@@ -1,12 +1,16 @@
-
 # Keeper App
 
 ![React](https://img.shields.io/badge/react-v18.2.0-blue.svg)
 ![JavaScript](https://img.shields.io/badge/javascript-ES6-yellow.svg)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/0fc1b8e4-d290-4e5b-b74e-4cfedf16e908/deploy-status)](https://app.netlify.com/sites/alan-c-keeper-app/deploys)
 
 ## Overview
 
 Keeper App is a clone of Google Keep, built as a capstone project for a React course. It leverages the power of React to provide a seamless note-taking experience, mirroring the core functionalities of Google Keep.
+
+[TRY IT](https://alan-c-keeper-app.netlify.app/)
+
+![demo](./Keeper%20Demo.gif)
 
 ## Features
 
