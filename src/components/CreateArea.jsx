@@ -33,7 +33,7 @@ function CreateArea(props) {
       >
         {/* Conditionally render the title input with a Zoom animation */}
         {visible && (
-          <Zoom in={visible} out={!visible}>
+          <Zoom in={visible}>
             <input
               name="title"
               placeholder="Title"
@@ -51,13 +51,13 @@ function CreateArea(props) {
         />
 
         {/* Render the floating action button with a Zoom animation */}
-        <Zoom in={visible} out={!visible}>
+        <Zoom in={visible}>
           <Fab
             onClick={(e) => {
               e.preventDefault();
               setTitle("");
               setContent("");
-              handleFocusOut();
+              handleBlur(e);
               return props.addNote(uuidv4(), title, content);
             }}
           >
