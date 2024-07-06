@@ -37,16 +37,18 @@ let App = () => {
       <CreateArea addNote={addNote} />
 
       {/* Create a Note component for each note in the notesList*/}
-      {notes.map((note) => (
-        <Note
-          key={note.key}
-          id={note.key}
-          title={note.title}
-          content={note.content}
-          removeNote={removeNote}
-        />
-      ))}
-      <Footer />
+      <div className="centered-notes-container">
+        {notes.map((note) => (
+          <Note
+            key={note.key}
+            id={note.key}
+            title={note.title}
+            content={note.content}
+            removeNote={removeNote}
+          />
+        ))}
+      </div>
+      {/* <Footer /> */}
     </>
   );
 };

@@ -9,7 +9,8 @@ html {
 body {
   background: #fff6de;
   padding: 0 16px;
-  background-image: url("https://www.transparenttextures.com/patterns/black-thread.png");
+  background-color: #fff6de;
+  background-image: url("https://www.transparenttextures.com/patterns/cubes.png");
   /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
 }
 
@@ -27,7 +28,7 @@ header h1 {
 }
 
 footer {
-  position: absolute;
+  padding-top: 20px;
   text-align: center;
   bottom: 0;
   width: 100%;
@@ -43,9 +44,9 @@ footer p {
   box-shadow: 0 2px 5px #ccc;
   padding: 10px;
   width: 240px;
-  margin: 16px;
   float: left;
 }
+
 .note h1 {
   font-size: 1.1em;
   margin-bottom: 6px;
@@ -102,4 +103,23 @@ form.create-note button {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   outline: none;
+}
+
+@media screen and (max-width: 600px) {
+  .note {
+    width: 480px;
+  }
+  form.create-note {
+    max-width: 100%;
+  }
+}
+
+.centered-notes-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media screen {
 }

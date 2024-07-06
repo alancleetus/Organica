@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import AddIcon from "@mui/icons-material/Add";
 import { Fab } from "@mui/material";
@@ -15,13 +15,22 @@ function CreateArea(props) {
     setVisible(true);
   };
 
-  const handleFocusOut = () => {
-    setVisible(false);
+  // Function to handle focus out
+  const handleBlur = (event) => {
+    // Check if the blur event is related to a child element of the form
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      setVisible(false);
+    }
   };
 
   return (
     <div>
-      <form className="create-note">
+      <form
+        className="create-note"
+        onFocus={handleFocusIn}
+        onBlur={handleBlur}
+        tabIndex={-1} // Make the form focusable
+      >
         {/* Conditionally render the title input with a Zoom animation */}
         {visible && (
           <Zoom in={visible} out={!visible}>
@@ -39,7 +48,6 @@ function CreateArea(props) {
           rows={visible ? "3" : "1"}
           onChange={(e) => setContent(e.target.value)}
           value={content}
-          onFocus={handleFocusIn}
         />
 
         {/* Render the floating action button with a Zoom animation */}
