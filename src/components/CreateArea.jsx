@@ -3,14 +3,18 @@ import { v4 as uuidv4 } from "uuid";
 import AddIcon from "@mui/icons-material/Add";
 import { Fab } from "@mui/material";
 import { Zoom } from "@mui/material";
+
 function CreateArea(props) {
+  // State hooks to manage title, content, and visibility
   const [title, setTitle] = React.useState("");
   const [content, setContent] = React.useState("");
   const [visible, setVisible] = React.useState(false);
 
+  // Function to expand the note taking area on focus
   const handleFocusIn = () => {
     setVisible(true);
   };
+
   const handleFocusOut = () => {
     setVisible(false);
   };
@@ -18,6 +22,7 @@ function CreateArea(props) {
   return (
     <div>
       <form className="create-note">
+        {/* Conditionally render the title input with a Zoom animation */}
         {visible && (
           <Zoom in={visible} out={!visible}>
             <input
@@ -37,6 +42,7 @@ function CreateArea(props) {
           onFocus={handleFocusIn}
         />
 
+        {/* Render the floating action button with a Zoom animation */}
         <Zoom in={visible} out={!visible}>
           <Fab
             onClick={(e) => {
