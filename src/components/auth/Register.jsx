@@ -49,7 +49,7 @@ const Register = ({ theme, toggleTheme }) => {
           flexDirection="column"
           alignItems="center"
           justifyContent="center"
-          minHeight="100vh"
+          minHeight="calc(100vh - 50px)"
         >
           <form onSubmit={handleSubmit} className="register-form">
             <Box mb={2}>
