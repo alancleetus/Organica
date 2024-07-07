@@ -1,27 +1,30 @@
 import { useState, useEffect } from "react";
 import Note from "./Note";
 import CreateArea from "./CreateArea";
-import { db } from "./Firebase";
+import { db, auth } from "./Firebase";
 import {
   collection,
   addDoc,
   getDocs,
   deleteDoc,
   doc,
+  query,
+  where,
 } from "firebase/firestore";
 import Header from "./Header";
-import { auth } from "./Firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
 function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
   const navigate = useNavigate();
-
+  const [user, setUser] = useState(null);
   // Redirect to login if not authenticated
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
+      if (user) {
+        setUser(user);
+      } else {
         navigate("/login");
       }
     });
@@ -33,25 +36,33 @@ function NotesManager({ theme, toggleTheme }) {
   // Fetch notes from Firestore when the component mounts
   useEffect(() => {
     const fetchNotes = async () => {
-      try {
-        const notesCollection = collection(db, "notes");
-        const notesSnapshot = await getDocs(notesCollection);
-        const notesList = notesSnapshot.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-        }));
-        setNotes(notesList);
-        console.log("Fetched notes:", notesList);
-      } catch (error) {
-        console.error("Error fetching notes:", error);
+      if (user) {
+        try {
+          const notesCollection = collection(db, "notes");
+          const q = query(notesCollection, where("userId", "==", user.uid));
+          const notesSnapshot = await getDocs(q);
+          const notesList = notesSnapshot.docs.map((doc) => ({
+            ...doc.data(),
+            id: doc.id,
+          }));
+          setNotes(notesList);
+          console.log("Fetched notes:", notesList);
+        } catch (error) {
+          console.error("Error fetching notes:", error);
+        }
       }
     };
 
     fetchNotes();
-  }, []);
+  }, [user]);
 
   const addNote = async (key, title, content) => {
-    const note = { key, title, content };
+    if (!user) {
+      console.error("User is not authenticated");
+      return;
+    }
+
+    const note = { key, title, content, userId: user.uid };
     try {
       const docRef = await addDoc(collection(db, "notes"), note);
       setNotes((prevNotes) => [{ ...note, id: docRef.id }, ...prevNotes]);

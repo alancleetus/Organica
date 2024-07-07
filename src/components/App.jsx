@@ -27,7 +27,7 @@ let App = () => {
       <div>
         <Routes>
           <Route
-            path="/login"
+            path="/*"
             element={<Login theme={theme} toggleTheme={toggleTheme} />}
           />
           <Route

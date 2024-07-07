@@ -9,8 +9,8 @@ import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness5Icon from "@mui/icons-material/Brightness5";
 
 const Login = ({ toggleTheme, theme }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("test@gmail.com");
+  const [password, setPassword] = useState("testpassword");
   const [error, setError] = useState("");
 
   const handleSubmit = async (event) => {
