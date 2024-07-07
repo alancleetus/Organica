@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import Note from "./Note";
-import CreateArea from "./CreateArea";
+import { useNavigate } from "react-router-dom";
 import { db, auth } from "./Firebase";
+import { onAuthStateChanged } from "firebase/auth";
 import {
   collection,
   addDoc,
@@ -12,14 +12,15 @@ import {
   where,
 } from "firebase/firestore";
 import Header from "./Header";
-import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import Note from "./Note";
+import CreateArea from "./CreateArea";
 
 function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
-  const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  // Redirect to login if not authenticated
+  const navigate = useNavigate();
+
+  /****  Redirect to login if not authenticated ****/
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -33,7 +34,7 @@ function NotesManager({ theme, toggleTheme }) {
     return () => unsubscribe();
   }, [navigate]);
 
-  // Fetch notes from Firestore when the component mounts
+  /*****  Fetch notes from Firestore when the component mounts *****/
   useEffect(() => {
     const fetchNotes = async () => {
       if (user) {
@@ -52,19 +53,23 @@ function NotesManager({ theme, toggleTheme }) {
         }
       }
     };
-
     fetchNotes();
   }, [user]);
 
   const addNote = async (key, title, content) => {
+    // Check if user logged in
     if (!user) {
       console.error("User is not authenticated");
       return;
     }
 
+    // Create new note obj
     const note = { key, title, content, userId: user.uid };
+
+    // Add note to firebase db
     try {
       const docRef = await addDoc(collection(db, "notes"), note);
+      // Add note to start of Notes arr
       setNotes((prevNotes) => [{ ...note, id: docRef.id }, ...prevNotes]);
       console.log("Added note:", { ...note, id: docRef.id });
     } catch (error) {

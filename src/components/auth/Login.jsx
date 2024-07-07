@@ -1,9 +1,9 @@
 // src/components/Login.js
 import React, { useState } from "react";
 import { login } from "./authService";
+
 import { toast } from "react-toastify";
 import { TextField, Button, Container, Typography, Box } from "@mui/material";
-
 import HighlightIcon from "@mui/icons-material/Highlight";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness5Icon from "@mui/icons-material/Brightness5";
@@ -11,19 +11,17 @@ import Brightness5Icon from "@mui/icons-material/Brightness5";
 const Login = ({ toggleTheme, theme }) => {
   const [email, setEmail] = useState("test@gmail.com");
   const [password, setPassword] = useState("testpassword");
-  const [error, setError] = useState("");
 
+  // on click login button
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
       await login(email, password);
-      setError("");
       toast.success("Login Successful!", {
         position: "top-center",
       });
       window.location.href = "/main";
     } catch (error) {
-      setError(error.message);
       toast.error(error.message, { position: "bottom-center" });
     }
   };

@@ -1,7 +1,7 @@
 // src/components/Register.js
 import React, { useState } from "react";
 import { register } from "./authService";
-import { auth } from "../Firebase";
+
 import { toast } from "react-toastify";
 import { TextField, Button, Container, Typography, Box } from "@mui/material";
 
@@ -12,19 +12,16 @@ import Brightness5Icon from "@mui/icons-material/Brightness5";
 const Register = ({ theme, toggleTheme }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
       await register(email, password);
-      setError("");
       toast.success("User Registered Successfully!", {
         position: "top-center",
       });
       window.location.href = "/login"; // Fix the redirection
     } catch (error) {
-      setError(error.message);
       toast.error(error.message, { position: "bottom-center" });
     }
   };
