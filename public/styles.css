@@ -71,6 +71,18 @@ header h1 {
   flex-grow: 1;
 }
 
+.keeper-title {
+  color: var(--primary-color);
+  font-family: "McLaren", cursive;
+  font-weight: 200;
+  flex-grow: 1;
+}
+.register-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .dark-mode-button {
   background: none;
   border: none;
@@ -82,6 +94,51 @@ header h1 {
 
 .dark-mode-button svg {
   vertical-align: middle;
+}
+.custom-hyperlink {
+  width: 100%;
+  text-align: right;
+  padding: 5px;
+}
+
+.custom-hyperlink a {
+  color: var(--primary-color);
+}
+.register-form {
+  width: 100%;
+  background: var(--note-bg-color);
+  box-shadow: 0 1px 5px var(--create-note-shadow-color);
+  padding: 70px 30px 100px 30px;
+  color: var(--text-color);
+  border-radius: 10px;
+}
+
+.register-form button {
+  background-color: var(--primary-color);
+  color: black;
+}
+.register-form button:hover {
+  background: var(--primary-muted-color);
+  color: black;
+}
+
+.register-form label,
+.register-form input {
+  color: var(--text-color);
+}
+
+.custom-textfield
+  .MuiOutlinedInput-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #f5ba13; /* Custom outline color */
+}
+
+.custom-textfield .MuiInputLabel-root {
+  color: #f5ba13; /* Custom label color */
+}
+
+.custom-textfield .MuiInputLabel-root.Mui-focused {
+  color: #f5ba13; /* Custom label color when focused */
 }
 
 footer {

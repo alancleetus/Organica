@@ -9,9 +9,26 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
+import Header from "./Header";
+import { auth } from "./Firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
-function NotesManager() {
+function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
+  const navigate = useNavigate();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        navigate("/login");
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [navigate]);
 
   // Fetch notes from Firestore when the component mounts
   useEffect(() => {
@@ -68,6 +85,7 @@ function NotesManager() {
 
   return (
     <>
+      <Header toggleTheme={toggleTheme} theme={theme} />
       <CreateArea addNote={addNote} />
       <div className="centered-notes-container">
         {notes.map((note) => (
