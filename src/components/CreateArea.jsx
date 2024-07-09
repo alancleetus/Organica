@@ -9,14 +9,12 @@ function CreateArea(props) {
   // State hooks to manage title, content, and visibility
   const [title, setTitle] = React.useState("");
   const [content, setContent] = React.useState("");
-  const [visible, setVisible] = React.useState(false);
 
+  const [visible, setVisible] = React.useState(false);
   const [isList, setIsList] = React.useState(false);
 
   // Function to expand the note taking area on focus
-  const handleFocusIn = () => {
-    setVisible(true);
-  };
+  const handleFocusIn = () => setVisible(true);
 
   // Function to handle focus out
   const handleBlur = (event) => {
@@ -25,9 +23,9 @@ function CreateArea(props) {
       setVisible(false);
     }
   };
-  const handleListToggle = () => {
-    setIsList((prevValue) => !prevValue);
-  };
+
+  const handleListToggle = () => setIsList((prevValue) => !prevValue);
+
   useEffect(() => {
     if (isList) {
       setContent((prevContent) => {
@@ -67,6 +65,7 @@ function CreateArea(props) {
       setContent(newText);
     }
   };
+
   return (
     <div>
       <form
