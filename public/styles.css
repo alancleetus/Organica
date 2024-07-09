@@ -104,43 +104,6 @@ header h1 {
 .custom-hyperlink a {
   color: var(--primary-color);
 }
-.register-form {
-  width: 100%;
-  background: var(--note-bg-color);
-  box-shadow: 0 1px 5px var(--create-note-shadow-color);
-  padding: 70px 30px 100px 30px;
-  color: var(--text-color);
-  border-radius: 10px;
-}
-
-.register-form button {
-  background-color: var(--primary-color);
-  color: black;
-}
-.register-form button:hover {
-  background: var(--primary-muted-color);
-  color: black;
-}
-
-.register-form label,
-.register-form input {
-  color: var(--text-color);
-}
-
-.custom-textfield
-  .MuiOutlinedInput-root.Mui-focused
-  .MuiOutlinedInput-notchedOutline {
-  border-color: #f5ba13; /* Custom outline color */
-}
-
-.custom-textfield .MuiInputLabel-root {
-  color: #f5ba13; /* Custom label color */
-}
-
-.custom-textfield .MuiInputLabel-root.Mui-focused {
-  color: #f5ba13; /* Custom label color when focused */
-}
-
 footer {
   padding-top: 20px;
   text-align: center;
@@ -241,4 +204,98 @@ form.create-note button:hover {
   justify-content: center;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.register-form {
+  width: 100%;
+  background: var(--note-bg-color);
+  box-shadow: 0 1px 5px var(--create-note-shadow-color);
+  padding: 70px 30px 100px 30px;
+  color: var(--text-color);
+  border-radius: 10px;
+}
+
+.register-form button {
+  background-color: var(--primary-color);
+  color: black;
+}
+.register-form button:hover {
+  background: var(--primary-muted-color);
+  color: black;
+}
+
+.register-form label,
+.register-form input {
+  color: var(--text-color);
+}
+
+.custom-textfield
+  .MuiOutlinedInput-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #f5ba13; /* Custom outline color */
+}
+
+.custom-textfield .MuiInputLabel-root {
+  color: #f5ba13; /* Custom label color */
+}
+
+.custom-textfield .MuiInputLabel-root.Mui-focused {
+  color: #f5ba13; /* Custom label color when focused */
+}
+
+.login-register-flexbox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 50px);
+  max-height: 1000px;
+  min-height: 500px;
+}
+
+.login-register-container {
+  width: 600px;
+  min-width: 300px;
+}
+
+/* xs */
+@media screen and (max-width: 639px) {
+  .login-register-container {
+    width: 90%;
+  }
+}
+
+/* sm */
+@media screen and (min-width: 640px) and (max-width: 767px) {
+  .login-register-container {
+    width: 90%;
+  }
+}
+
+/* md */
+@media screen and (min-width: 768px) and (max-width: 1023px) {
+  .login-register-container {
+    width: 600px;
+  }
+}
+
+/* lg */
+@media screen and (min-width: 1024px) and (max-width: 1279px) {
+  .login-register-container {
+    width: 600px;
+  }
+}
+
+/* xl */
+@media screen and (min-width: 1280px) and (max-width: 1535px) {
+  .login-register-container {
+    width: 600px;
+  }
+}
+
+/* 2xl */
+@media screen and (min-width: 1536px) {
+  .login-register-container {
+    width: 600px;
+  }
 }
