@@ -123,8 +123,16 @@ function NotesManager({ theme, toggleTheme }) {
       );
       console.log("Updated note with id:", id);
     } catch (error) {
-      // Log any errors encountered during the process
       console.error("Error updating note:", error);
+
+      // // Update UI even if offline
+      // setNotes((prevNotes) =>
+      //   prevNotes.map((note) =>
+      //     note.id === id
+      //       ? { ...note, title: newTitle, content: newContent }
+      //       : note
+      //   )
+      // );
     }
   };
 

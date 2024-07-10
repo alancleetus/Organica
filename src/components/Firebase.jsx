@@ -1,7 +1,11 @@
 // Import the functions you need from the SDKs you need
-
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  CACHE_SIZE_UNLIMITED,
+  enableIndexedDbPersistence,
+} from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
@@ -17,9 +21,25 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore
-const db = getFirestore(app);
+// Initialize Firestore with offline persistence enabled
+const db = initializeFirestore(app, {
+  cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+});
 
+// Enable IndexedDb persistence for Firestore
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === "failed-precondition") {
+    console.error(
+      "Multiple tabs open, persistence can only be enabled in one tab at a time."
+    );
+  } else if (err.code === "unimplemented") {
+    console.error(
+      "The current browser does not support all of the features required to enable persistence"
+    );
+  }
+});
+
+// Initialize Authentication
 const auth = getAuth(app);
 
 export { db, auth };
