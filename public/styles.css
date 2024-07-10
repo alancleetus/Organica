@@ -135,10 +135,61 @@ footer p {
   word-wrap: break-word;
 }
 
-.note button {
+.note .titleInput {
+  font-size: 1.1em;
+  margin-bottom: 6px;
+  font-family: "Montserrat", sans-serif;
+  background: none;
+  outline: none;
+  border: none;
+  color: var(--text-color);
+}
+.note .contentInput {
+  font-size: 1em;
+  margin-bottom: 10px;
+  font-family: "Montserrat", sans-serif;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background: none;
+  outline: none;
+  border: none;
+  color: var(--text-color);
+  width: 100%; /* Ensure it takes full width of the container */
+  resize: vertical; /* Allow vertical resizing */
+  overflow: auto; /* Handle overflowing content */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.note .deleteButton {
   background: none;
   position: relative;
   float: right;
+  margin-right: 10px;
+  color: var(--primary-color);
+  border: none;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  outline: none;
+}
+
+.note .editButton {
+  background: none;
+  position: relative;
+  float: left;
+  margin-right: 10px;
+  color: var(--primary-color);
+  border: none;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  outline: none;
+}
+
+.note .saveButton {
+  background: none;
+  position: relative;
+  float: left;
   margin-right: 10px;
   color: var(--primary-color);
   border: none;

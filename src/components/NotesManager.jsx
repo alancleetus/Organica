@@ -10,6 +10,7 @@ import {
   doc,
   query,
   where,
+  updateDoc,
 } from "firebase/firestore";
 import Header from "./Header";
 import Note from "./Note";
@@ -99,6 +100,34 @@ function NotesManager({ theme, toggleTheme }) {
     }
   };
 
+  const editNote = async (id, newTitle, newContent) => {
+    try {
+      // Ensure the document reference is correct
+      const noteRef = doc(db, "notes", id);
+      console.log("Document reference:", noteRef);
+
+      // Update the document in Firestore
+      await updateDoc(noteRef, {
+        title: newTitle,
+        content: newContent,
+      });
+      console.log("Document updated in Firestore");
+
+      // Update the state to reflect the changes in the UI
+      setNotes((prevNotes) =>
+        prevNotes.map((note) =>
+          note.id === id
+            ? { ...note, title: newTitle, content: newContent }
+            : note
+        )
+      );
+      console.log("Updated note with id:", id);
+    } catch (error) {
+      // Log any errors encountered during the process
+      console.error("Error updating note:", error);
+    }
+  };
+
   return (
     <>
       <Header toggleTheme={toggleTheme} theme={theme} />
@@ -111,6 +140,7 @@ function NotesManager({ theme, toggleTheme }) {
             title={note.title}
             content={note.content}
             removeNote={removeNote}
+            editNote={editNote}
           />
         ))}
       </div>
