@@ -9,8 +9,8 @@ import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness5Icon from "@mui/icons-material/Brightness5";
 
 const Login = ({ toggleTheme, theme }) => {
-  const [email, setEmail] = useState("test@gmail.com");
-  const [password, setPassword] = useState("testpassword");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   // on click login button
   const handleSubmit = async (event) => {
@@ -91,6 +91,19 @@ const Login = ({ toggleTheme, theme }) => {
             </form>
             <p className="custom-hyperlink">
               Already a member? <a href="/register">Register</a>
+            </p>{" "}
+            <p className="custom-hyperlink">
+              Try app with{" "}
+              <a
+                href=""
+                onClick={(e) => {
+                  e.preventDefault();
+                  setEmail("test@gmail.com");
+                  setPassword("testpassword");
+                }}
+              >
+                Test Account
+              </a>
             </p>
           </div>
         </Box>
