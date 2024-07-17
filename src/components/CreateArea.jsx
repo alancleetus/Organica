@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import AddIcon from "@mui/icons-material/Add";
 import { Fab } from "@mui/material";
 import { Zoom } from "@mui/material";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+
+import CheckboxList from "./DNDCheckboxList";
+import Grid from "@mui/material/Grid";
+import AddIcon from "@mui/icons-material/Add";
 
 function CreateArea(props) {
   // State hooks to manage title, content, and visibility
@@ -26,44 +29,25 @@ function CreateArea(props) {
 
   const handleListToggle = () => setIsList((prevValue) => !prevValue);
 
-  useEffect(() => {
-    if (isList) {
-      setContent((prevContent) => {
-        // Split the text into lines
-        const lines = prevContent.split("\n");
-
-        // Add a bullet point to each line
-        const bulletedLines = lines.map((line) => "• " + line);
-
-        // Join the lines back together
-        const outputText = bulletedLines.join("\n");
-
-        return outputText;
-      });
-    } else {
-      setContent((prevContent) => {
-        // Remove bullet points from each line if present
-        const lines = prevContent.split("\n");
-        const unbulletedLines = lines.map((line) =>
-          line.startsWith("• ") ? line.substring(2) : line
-        );
-        return unbulletedLines.join("\n");
-      });
-    }
-  }, [isList]);
-
   const handleContentChange = (e) => {
     const newText = e.target.value;
-    if (isList) {
-      const lines = newText.split("\n");
-      const lastLineIndex = lines.length - 1;
-      if (lines[lastLineIndex] && !lines[lastLineIndex].startsWith("• ")) {
-        lines[lastLineIndex] = "• " + lines[lastLineIndex];
-      }
-      setContent(lines.join("\n"));
-    } else {
-      setContent(newText);
-    }
+
+    setContent(newText);
+  };
+
+  let [itemsArray, setItemsArray] = useState([]);
+  const updateItemsArray = (updatedItemsArray) => {
+    setItemsArray(updatedItemsArray);
+    console.log("updated list");
+  };
+  const addNewItem = () => {
+    const newItem = {
+      id: "" + (itemsArray.length + 1),
+      text: "",
+      checked: false,
+    };
+    const updatedItems = [...itemsArray, newItem];
+    setItemsArray(updatedItems);
   };
 
   return (
@@ -82,16 +66,45 @@ function CreateArea(props) {
               placeholder="Title"
               onChange={(e) => setTitle(e.target.value)}
               value={title}
+              type="text"
             />
           </Zoom>
         )}
-        <textarea
-          name="content"
-          placeholder="Take a note..."
-          rows={visible ? "3" : "1"}
-          onChange={handleContentChange}
-          value={content}
-        />
+
+        {!isList ? (
+          <textarea
+            name="content"
+            placeholder="Take a note..."
+            rows={visible ? "3" : "1"}
+            onChange={handleContentChange}
+            value={content}
+          />
+        ) : (
+          <>
+            <CheckboxList
+              itemsArray={itemsArray}
+              updateItemsArray={updateItemsArray}
+              editable="true"
+            />
+            <Grid
+              container
+              spacing={2}
+              style={{
+                marginLeft: "20px",
+                color: "var(--primary-muted-color)",
+                display: visible ? "" : "none",
+              }}
+              onClick={addNewItem}
+            >
+              <Grid item xs={1}>
+                <AddIcon style={{ flexGrow: 0 }} />
+              </Grid>
+              <Grid item xs={10}>
+                <p style={{ flexGrow: 2 }}>add new item</p>
+              </Grid>
+            </Grid>
+          </>
+        )}
 
         <Zoom
           in={visible}
@@ -108,8 +121,12 @@ function CreateArea(props) {
               e.preventDefault();
               setTitle("");
               setContent("");
+              setItemsArray([]);
               handleBlur(e);
-              return props.addNote(uuidv4(), title, content);
+
+              return isList
+                ? props.addNote(uuidv4(), title, itemsArray, isList)
+                : props.addNote(uuidv4(), title, content, isList);
             }}
           >
             <AddIcon></AddIcon>
