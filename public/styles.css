@@ -208,7 +208,7 @@ form.create-note {
   border-radius: 7px;
   box-shadow: 0 1px 5px var(--create-note-shadow-color);
 }
-form.create-note input,
+form.create-note input[type="text"],
 form.create-note textarea {
   width: 100%;
   border: none;
@@ -349,4 +349,34 @@ form.create-note button:hover {
   .login-register-container {
     width: 600px;
   }
+}
+
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 15px;
+  height: 15px;
+  background-color: #ccc;
+  border-radius: 3px;
+  position: relative;
+  cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  text-decoration: line-through;
+}
+
+input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
