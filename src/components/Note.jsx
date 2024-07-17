@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
+import CheckboxList from "./DNDCheckboxList";
 
+import AddIcon from "@mui/icons-material/Add";
+import Grid from "@mui/material/Grid";
 function note(props) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(props.title);
@@ -13,11 +16,38 @@ function note(props) {
     setIsEditing(true);
   };
 
+  let [itemsArray, setItemsArray] = useState(props.content);
+
+  const updateItemsArray = (updatedItemsArray) => {
+    setItemsArray(updatedItemsArray);
+    props.editNote(props.id, editedTitle, updatedItemsArray);
+  };
+  const addNewItem = () => {
+    const newItem = {
+      id: "" + (itemsArray.length + 1),
+      text: "",
+      checked: false,
+    };
+    const updatedItems = [...itemsArray, newItem];
+    setItemsArray(updatedItems);
+  };
+
+  useEffect(() => {
+    setItemsArray(props.content);
+  }, [props.content]);
+
   const handleSaveClick = () => {
-    if (editedTitle !== props.title || editedContent !== props.content)
+    if (props.isList) {
+      const updatedItems = itemsArray.filter((item) => item.text != "");
+      setItemsArray(updatedItems);
+      console.log("removing empty item");
+      props.editNote(props.id, editedTitle, updatedItems);
+    } else if (editedTitle !== props.title || editedContent !== props.content)
       props.editNote(props.id, editedTitle, editedContent);
+
     setIsEditing(false);
   };
+
   return (
     <div className="note">
       {isEditing ? (
@@ -30,13 +60,39 @@ function note(props) {
               onChange={(e) => setEditedTitle(e.target.value)}
             />
           </h1>
-          <p>
-            <textarea
-              className="contentInput"
-              value={editedContent}
-              onChange={(e) => setEditedContent(e.target.value)}
-            />
-          </p>
+          {props.isList ? (
+            <>
+              <CheckboxList
+                itemsArray={itemsArray}
+                updateItemsArray={updateItemsArray}
+                editable={isEditing}
+              />
+              <Grid
+                container
+                spacing={1}
+                style={{
+                  marginLeft: "5px",
+                  color: "var(--primary-muted-color)",
+                }}
+                onClick={addNewItem}
+              >
+                <Grid item xs={1}>
+                  <AddIcon style={{ flexGrow: 0 }} />
+                </Grid>
+                <Grid item xs={11}>
+                  <p style={{ flexGrow: 2 }}>add new item</p>
+                </Grid>
+              </Grid>
+            </>
+          ) : (
+            <p>
+              <textarea
+                className="contentInput"
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+              />
+            </p>
+          )}
           <button className="saveButton" onClick={handleSaveClick}>
             {editedTitle !== props.title || editedContent !== props.content ? (
               <SaveIcon />
@@ -48,7 +104,15 @@ function note(props) {
       ) : (
         <>
           <h1>{props.title}</h1>
-          <p>{props.content}</p>
+          {props.isList ? (
+            <CheckboxList
+              itemsArray={itemsArray}
+              updateItemsArray={updateItemsArray}
+            />
+          ) : (
+            <p>{props.content}</p>
+          )}
+
           <button className="editButton" onClick={handleEditClick}>
             <EditIcon />
           </button>
