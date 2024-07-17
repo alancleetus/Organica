@@ -15,6 +15,7 @@ import {
 import Header from "./Header";
 import Note from "./Note";
 import CreateArea from "./CreateArea";
+import CheckboxList from "./DNDCheckboxList";
 
 function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
@@ -57,15 +58,21 @@ function NotesManager({ theme, toggleTheme }) {
     fetchNotes();
   }, [user]);
 
-  const addNote = async (key, title, content) => {
+  const addNote = async (key, title, content, isList = false) => {
     // Check if user logged in
     if (!user) {
       console.error("User is not authenticated");
       return;
     }
 
+    //removes empty lines
+    if (isList) {
+      const updatedContent = content.filter((item) => item.text != "");
+      content = updatedContent;
+    }
+
     // Create new note obj
-    const note = { key, title, content, userId: user.uid };
+    const note = { key, title, content, isList, userId: user.uid };
 
     // Add note to firebase db
     try {
@@ -140,6 +147,11 @@ function NotesManager({ theme, toggleTheme }) {
     <>
       <Header toggleTheme={toggleTheme} theme={theme} />
       <CreateArea addNote={addNote} />
+
+      {/* <CheckboxList
+        itemsArray={itemsArray}
+        updateItemsArray={updateItemsArray}
+      /> */}
       <div className="centered-notes-container">
         {notes.map((note) => (
           <Note
@@ -147,6 +159,7 @@ function NotesManager({ theme, toggleTheme }) {
             id={note.id}
             title={note.title}
             content={note.content}
+            isList={note.isList}
             removeNote={removeNote}
             editNote={editNote}
           />
