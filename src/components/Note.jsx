@@ -58,6 +58,7 @@ function note(props) {
               type="text"
               value={editedTitle}
               onChange={(e) => setEditedTitle(e.target.value)}
+              placeholder="Add a title..."
             />
           </h1>
           {props.isList ? (
@@ -90,6 +91,7 @@ function note(props) {
                 className="contentInput"
                 value={editedContent}
                 onChange={(e) => setEditedContent(e.target.value)}
+                placeholder="Take a note..."
               />
             </p>
           )}
@@ -99,6 +101,14 @@ function note(props) {
             ) : (
               <CancelIcon />
             )}
+          </button>
+          <button
+            className="deleteButton"
+            onClick={() => {
+              return props.removeNote(props.id);
+            }}
+          >
+            <DeleteIcon />
           </button>
         </>
       ) : (
@@ -115,15 +125,6 @@ function note(props) {
 
           <button className="editButton" onClick={handleEditClick}>
             <EditIcon />
-          </button>
-
-          <button
-            className="deleteButton"
-            onClick={() => {
-              return props.removeNote(props.id);
-            }}
-          >
-            <DeleteIcon />
           </button>
         </>
       )}
