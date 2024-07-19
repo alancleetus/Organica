@@ -1,6 +1,7 @@
 // src/components/Login.js
-import React, { useState } from "react";
-import { login } from "./authService";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { login, isAuthenticated } from "./authService";
 
 import { toast } from "react-toastify";
 import { TextField, Button, Container, Typography, Box } from "@mui/material";
@@ -12,6 +13,7 @@ const Login = ({ toggleTheme, theme }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const navigate = useNavigate();
   // on click login button
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -25,6 +27,16 @@ const Login = ({ toggleTheme, theme }) => {
       toast.error(error.message, { position: "bottom-center" });
     }
   };
+  // Check if the user is already authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const isAuthenticatedUser = await isAuthenticated();
+      if (isAuthenticatedUser) {
+        navigate("/main");
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   return (
     <>

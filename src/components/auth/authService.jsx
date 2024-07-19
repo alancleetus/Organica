@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "../Firebase";
 
@@ -38,4 +39,16 @@ export const logout = async () => {
   } catch (error) {
     throw error;
   }
+};
+
+export const isAuthenticated = () => {
+  return new Promise((resolve) => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+  });
 };
