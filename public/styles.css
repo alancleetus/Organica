@@ -380,3 +380,12 @@ input[type="checkbox"]:checked::after {
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
+
+.checkbox-list-item .drag-handle {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.checkbox-list-item:hover .drag-handle {
+  opacity: 1;
+}

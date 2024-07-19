@@ -74,6 +74,7 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
               <Draggable key={item.id} draggableId={item.id} index={index}>
                 {(provided, snapshot) => (
                   <div
+                    className="checkbox-list-item"
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     style={getItemStyle(
@@ -120,9 +121,11 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
                       <Grid item xs={1}>
                         <div
                           {...provided.dragHandleProps}
+                          className="drag-handle"
                           style={{
                             cursor: "grab",
                             flexGrow: 0,
+                            opacity: snapshot.isDragging && 1,
                           }}
                         >
                           <DragHandleIcon />
