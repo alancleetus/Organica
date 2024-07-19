@@ -16,6 +16,7 @@ import Header from "./Header";
 import Note from "./Note";
 import CreateArea from "./CreateArea";
 import CheckboxList from "./DNDCheckboxList";
+import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 
 function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
@@ -152,7 +153,8 @@ function NotesManager({ theme, toggleTheme }) {
         itemsArray={itemsArray}
         updateItemsArray={updateItemsArray}
       /> */}
-      <div className="centered-notes-container">
+      {/* <div className="centered-notes-container"> */}
+      {/* <div>
         {notes.map((note) => (
           <Note
             key={note.id}
@@ -164,7 +166,25 @@ function NotesManager({ theme, toggleTheme }) {
             editNote={editNote}
           />
         ))}
-      </div>
+      </div> */}
+
+      <ResponsiveMasonry
+        columnsCountBreakPoints={{ 350: 1, 650: 2, 900: 3, 1200: 4 }}
+      >
+        <Masonry>
+          {notes.map((note) => (
+            <Note
+              key={note.id}
+              id={note.id}
+              title={note.title}
+              content={note.content}
+              isList={note.isList}
+              removeNote={removeNote}
+              editNote={editNote}
+            />
+          ))}
+        </Masonry>
+      </ResponsiveMasonry>
     </>
   );
 }
