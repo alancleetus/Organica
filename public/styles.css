@@ -13,6 +13,8 @@
 
   --primary-color: #f5ba13;
   --primary-muted-color: #fbdf90;
+
+  --light-gray: #ccc;
 }
 
 [data-theme="dark"] {
@@ -30,6 +32,8 @@
 
   --primary-color: #f5ba13;
   --primary-muted-color: #fbdf90;
+
+  --light-gray: #5a5a5a;
 }
 
 * {
@@ -163,43 +167,28 @@ footer p {
   box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
-.note .deleteButton {
-  background: none;
-  position: relative;
-  float: right;
-  margin-right: 10px;
-  color: var(--primary-color);
-  border: none;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
-  outline: none;
-}
-
-.note .editButton {
-  background: none;
-  position: relative;
-  float: left;
-  margin-right: 10px;
-  color: var(--primary-color);
-  border: none;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
-  outline: none;
-}
-
+.note .deleteButton,
+.note .editButton,
 .note .saveButton {
   background: none;
   position: relative;
   float: left;
   margin-right: 10px;
-  color: var(--primary-color);
+  color: var(--light-gray);
   border: none;
   width: 36px;
   height: 36px;
   cursor: pointer;
   outline: none;
+}
+
+.note .deleteButton {
+  float: right;
+}
+.note .deleteButton:hover,
+.note .editButton:hover,
+.note .saveButton:hover {
+  color: var(--primary-color);
 }
 
 form.create-note {
@@ -351,41 +340,20 @@ form.create-note button:hover {
   }
 }
 
-input[type="checkbox"] {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  width: 15px;
-  height: 15px;
-  background-color: #ccc;
-  border-radius: 3px;
-  position: relative;
-  cursor: pointer;
-}
-
-input[type="checkbox"]:checked {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  text-decoration: line-through;
-}
-
-input[type="checkbox"]:checked::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 5px;
-  width: 4px;
-  height: 8px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.checkbox-list-item .drag-handle {
+.checkbox-list-item .hover-icons {
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-.checkbox-list-item:hover .drag-handle {
+.checkbox-list-item:hover .hover-icons {
   opacity: 1;
+}
+
+.checkbox-list-item {
+  border-top: 1px solid rgba(0, 0, 0, 0);
+  border-bottom: 1px solid rgba(0, 0, 0, 0);
+}
+.checkbox-list-item:hover {
+  border-top: 1px solid var(--light-gray);
+  border-bottom: 1px solid var(--light-gray);
 }

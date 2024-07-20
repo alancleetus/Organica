@@ -1,13 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import DragHandleIcon from "@mui/icons-material/DragHandle";
 import Grid from "@mui/material/Grid";
+import { v4 as uuidv4 } from "uuid";
+import AddIcon from "@mui/icons-material/Add";
+import ClearIcon from "@mui/icons-material/Clear";
+
+import Checkbox from "@mui/material/Checkbox";
 const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
   const [items, setItems] = useState([]);
 
+  const [prevSize, setPrevSize] = useState(0);
   // Initialize items from itemsArray prop
   useEffect(() => {
+    setPrevSize(items.length);
     setItems(itemsArray);
   }, [itemsArray]);
 
@@ -37,19 +44,51 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
 
   // handle text change
   const handleTextChange = (id, newText) => {
-    if (!newText) {
-      const updatedItems = items.filter((item) => item.id != id);
+    // if (!newText) {
+    //   const updatedItems = items.filter((item) => item.id != id);
 
-      setItems(updatedItems);
-      updateItemsArray(updatedItems);
-      console.log("removing empty item");
-    } else {
-      const updatedItems = items.map((item) =>
-        item.id === id ? { ...item, text: newText } : item
-      );
-      setItems(updatedItems);
-      updateItemsArray(updatedItems);
-    }
+    //   setItems(updatedItems);
+    //   updateItemsArray(updatedItems);
+    //   console.log("removing empty item");
+    // } else {
+    //   const updatedItems = items.map((item) =>
+    //     item.id === id ? { ...item, text: newText } : item
+    //   );
+    const updatedItems = items.map((item) =>
+      item.id === id ? { ...item, text: newText } : item
+    );
+    setItems(updatedItems);
+    updateItemsArray(updatedItems);
+    // }
+  };
+
+  const addNewLI = (e, content) => {
+    console.log("addNewItem()");
+
+    if (content === "") return;
+    const newItem = {
+      id: uuidv4(),
+      text: content,
+      checked: false,
+    };
+
+    console.log(newItem);
+    const updatedItems = [...items, newItem];
+    updateItemsArray(updatedItems);
+    e.target.value = "";
+  };
+  const addBlank = () => {
+    console.log("addBlankItem()");
+
+    const newItem = {
+      id: uuidv4(),
+      text: "",
+      checked: false,
+    };
+
+    console.log(newItem);
+    const updatedItems = [...items, newItem];
+    updateItemsArray(updatedItems);
   };
 
   //style of item being dragged
@@ -66,102 +105,167 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
   //style of list when dragging
   const getListStyle = (isDraggingOver) => ({});
 
+  const refToLast = useRef();
+  useEffect(() => {
+    if (prevSize < items.length && refToLast.current) {
+      refToLast.current.focus();
+    }
+  }, [items.length]);
+
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <Droppable droppableId="checkboxList">
-        {(provided, snapshot) => (
-          <div
-            {...provided.droppableProps}
-            ref={provided.innerRef}
-            style={getListStyle(snapshot.isDraggingOver)}
-          >
-            {items.map((item, index) => (
-              <Draggable key={item.id} draggableId={item.id} index={index}>
-                {(provided, snapshot) => (
-                  <div
-                    className="checkbox-list-item"
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    style={getItemStyle(
-                      snapshot.isDragging,
-                      provided.draggableProps.style
-                    )}
-                  >
-                    <Grid
-                      container
-                      spacing={1}
-                      style={{
-                        paddingRight: "10px",
-                        paddingLeft: "10px",
-                      }}
+    <>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="checkboxList">
+          {(provided, snapshot) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              style={getListStyle(snapshot.isDraggingOver)}
+            >
+              {items.map((item, index) => (
+                <Draggable key={item.id} draggableId={item.id} index={index}>
+                  {(provided, snapshot) => (
+                    <div
+                      className="checkbox-list-item"
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      style={getItemStyle(
+                        snapshot.isDragging,
+                        provided.draggableProps.style
+                      )}
                     >
-                      {editable && (
+                      <Grid
+                        container
+                        direction="row"
+                        justifyContent="flex-start"
+                        alignItems="center"
+                      >
                         <Grid item xs={1}>
                           <div
+                            {...provided.dragHandleProps}
+                            className="hover-icons"
                             style={{
-                              cursor: "cursor",
+                              cursor: "grab",
                               flexGrow: 0,
-                            }}
-                            onClick={() => {
-                              removeItem(item.id);
+                              opacity: snapshot.isDragging && 1,
                             }}
                           >
-                            X
+                            <DragIndicatorIcon
+                              sx={{ color: "var(--light-gray)" }}
+                            />
                           </div>
                         </Grid>
-                      )}
 
-                      <Grid
-                        item
-                        xs={1}
-                        style={{ flexGrow: 0, paddingTop: "10px" }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={item.checked}
-                          onChange={() => handleCheckboxChange(item.id)}
-                          style={{ flexGrow: 0 }}
-                        />
+                        <Grid item xs={2} style={{ flexGrow: 0 }}>
+                          {/* <input
+                            type="checkbox"
+                            checked={item.checked}
+                            onChange={() => handleCheckboxChange(item.id)}
+                            
+                          /> */}
+                          <Checkbox
+                            checked={item.checked}
+                            onChange={() => handleCheckboxChange(item.id)}
+                            className="check-style"
+                            sx={{
+                              color: "var(--light-gray)",
+                              "&.Mui-checked": {
+                                color: "var(--primary-color)",
+                              },
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={8}>
+                          <p
+                            ref={
+                              item.id === items[items.length - 1].id
+                                ? refToLast
+                                : null
+                            }
+                            contentEditable={editable}
+                            style={{
+                              outline: "none",
+                              flexGrow: 2,
+                              marginBottom: "0",
+                              textDecoration: item.checked && "line-through",
+                            }}
+                            onBlur={(e) =>
+                              handleTextChange(item.id, e.target.textContent)
+                            }
+                            autofocus={items[items.length - 1].id === item.id}
+                          >
+                            {item.text}
+                          </p>
+                        </Grid>
+                        {editable && (
+                          <Grid item xs={1}>
+                            <div
+                              className="hover-icons"
+                              style={{
+                                cursor: "cursor",
+                                flexGrow: 0,
+                                opacity: snapshot.isDragging && 1,
+                              }}
+                              onClick={() => {
+                                removeItem(item.id);
+                              }}
+                            >
+                              <ClearIcon sx={{ color: "var(--light-gray)" }} />
+                            </div>
+                          </Grid>
+                        )}
                       </Grid>
-                      <Grid item xs={9}>
-                        <p
-                          contentEditable={editable}
-                          style={{
-                            flexGrow: 2,
-                            paddingLeft: "10px",
-                            marginBottom: "0",
-                            textDecoration: item.checked && "line-through",
-                          }}
-                          onBlur={(e) =>
-                            handleTextChange(item.id, e.target.textContent)
-                          }
-                        >
-                          {item.text}
-                        </p>
-                      </Grid>
-                      <Grid item xs={1}>
-                        <div
-                          {...provided.dragHandleProps}
-                          className="drag-handle"
-                          style={{
-                            cursor: "grab",
-                            flexGrow: 0,
-                            opacity: snapshot.isDragging && 1,
-                          }}
-                        >
-                          <DragHandleIcon />
-                        </div>
-                      </Grid>
-                    </Grid>
-                  </div>
-                )}
-              </Draggable>
-            ))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
-    </DragDropContext>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+      {editable && (
+        <Grid
+          container
+          direction="row"
+          justifyContent="center"
+          alignItems="center"
+          style={{
+            color: "var(--primary-muted-color)",
+            paddingLeft: "2px",
+          }}
+        >
+          <Grid item xs={1}></Grid>
+          <Grid item xs={2}>
+            <Checkbox
+              className="check-style"
+              sx={{
+                color: "var(--light-gray)",
+                "&[aria-disabled='true']": {
+                  color: "var(--light-gray)",
+                },
+              }}
+              disabled
+            />
+          </Grid>
+          <Grid item xs={9}>
+            <input
+              style={{
+                flexGrow: 2,
+                fontSize: "1.1em",
+                background: "none",
+                color: "var(--text-color)",
+                border: "none",
+              }}
+              type="text"
+              placeholder="add new item"
+              onBlur={(e) => addNewLI(e, e.target.value)}
+              onFocus={addBlank}
+            ></input>
+          </Grid>
+        </Grid>
+      )}
+    </>
   );
 };
 
