@@ -5,6 +5,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CheckboxList from "./DNDCheckboxList";
 
+import { v4 as uuidv4 } from "uuid";
 import AddIcon from "@mui/icons-material/Add";
 import Grid from "@mui/material/Grid";
 function note(props) {
@@ -14,6 +15,7 @@ function note(props) {
 
   const handleEditClick = () => {
     setIsEditing(true);
+    addNewItem();
   };
 
   let [itemsArray, setItemsArray] = useState(props.content);
@@ -22,14 +24,19 @@ function note(props) {
     setItemsArray(updatedItemsArray);
     props.editNote(props.id, editedTitle, updatedItemsArray);
   };
+
   const addNewItem = () => {
+    console.log("addNewItem()");
+
     const newItem = {
-      id: "" + (itemsArray.length + 1),
+      id: uuidv4(),
       text: "",
       checked: false,
     };
+
+    console.log(newItem);
     const updatedItems = [...itemsArray, newItem];
-    setItemsArray(updatedItems);
+    updateItemsArray(updatedItems);
   };
 
   useEffect(() => {
@@ -38,9 +45,10 @@ function note(props) {
 
   const handleSaveClick = () => {
     if (props.isList) {
-      const updatedItems = itemsArray.filter((item) => item.text != "");
+      //const updatedItems = itemsArray.filter((item) => item.text != "");
+      const updatedItems = itemsArray;
       setItemsArray(updatedItems);
-      console.log("removing empty item");
+      //console.log("removing empty item");
       props.editNote(props.id, editedTitle, updatedItems);
     } else if (editedTitle !== props.title || editedContent !== props.content)
       props.editNote(props.id, editedTitle, editedContent);
@@ -75,7 +83,7 @@ function note(props) {
                   marginLeft: "5px",
                   color: "var(--primary-muted-color)",
                 }}
-                onClick={addNewItem}
+                onClick={(e) => addNewItem(e)}
               >
                 <Grid item xs={1}>
                   <AddIcon style={{ flexGrow: 0 }} />
@@ -118,6 +126,7 @@ function note(props) {
             <CheckboxList
               itemsArray={itemsArray}
               updateItemsArray={updateItemsArray}
+              addNewItem={addNewItem}
             />
           ) : (
             <p>{props.content}</p>

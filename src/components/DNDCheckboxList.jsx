@@ -30,6 +30,11 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
     updateItemsArray(updatedItems);
   };
 
+  const removeItem = (id) => {
+    const updatedItems = items.filter((item) => item.id != id);
+    updateItemsArray(updatedItems);
+  };
+
   // handle text change
   const handleTextChange = (id, newText) => {
     if (!newText) {
@@ -90,6 +95,22 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
                         paddingLeft: "10px",
                       }}
                     >
+                      {editable && (
+                        <Grid item xs={1}>
+                          <div
+                            style={{
+                              cursor: "cursor",
+                              flexGrow: 0,
+                            }}
+                            onClick={() => {
+                              removeItem(item.id);
+                            }}
+                          >
+                            X
+                          </div>
+                        </Grid>
+                      )}
+
                       <Grid
                         item
                         xs={1}
@@ -102,7 +123,7 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
                           style={{ flexGrow: 0 }}
                         />
                       </Grid>
-                      <Grid item xs={10}>
+                      <Grid item xs={9}>
                         <p
                           contentEditable={editable}
                           style={{
@@ -136,7 +157,6 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
                 )}
               </Draggable>
             ))}
-
             {provided.placeholder}
           </div>
         )}
