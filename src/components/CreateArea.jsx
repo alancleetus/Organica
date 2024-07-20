@@ -80,30 +80,11 @@ function CreateArea(props) {
             value={content}
           />
         ) : (
-          <>
-            <CheckboxList
-              itemsArray={itemsArray}
-              updateItemsArray={updateItemsArray}
-              editable="true"
-            />
-            <Grid
-              container
-              spacing={2}
-              style={{
-                marginLeft: "20px",
-                color: "var(--primary-muted-color)",
-                display: visible ? "" : "none",
-              }}
-              onClick={addNewItem}
-            >
-              <Grid item xs={1}>
-                <AddIcon style={{ flexGrow: 0 }} />
-              </Grid>
-              <Grid item xs={10}>
-                <p style={{ flexGrow: 2 }}>add new item</p>
-              </Grid>
-            </Grid>
-          </>
+          <CheckboxList
+            itemsArray={itemsArray}
+            updateItemsArray={updateItemsArray}
+            editable="true"
+          />
         )}
 
         <Zoom
