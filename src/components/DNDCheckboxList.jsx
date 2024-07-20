@@ -11,6 +11,7 @@ import Checkbox from "@mui/material/Checkbox";
 const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
   const [items, setItems] = useState([]);
 
+  const [focused, setFocused] = useState(null);
   const [prevSize, setPrevSize] = useState(0);
   // Initialize items from itemsArray prop
   useEffect(() => {
@@ -147,7 +148,9 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
                             style={{
                               cursor: "grab",
                               flexGrow: 0,
-                              opacity: snapshot.isDragging && 1,
+                              opacity:
+                                (snapshot.isDragging || focused === item.id) &&
+                                1,
                             }}
                           >
                             <DragIndicatorIcon
@@ -157,12 +160,6 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
                         </Grid>
 
                         <Grid item xs={2} style={{ flexGrow: 0 }}>
-                          {/* <input
-                            type="checkbox"
-                            checked={item.checked}
-                            onChange={() => handleCheckboxChange(item.id)}
-                            
-                          /> */}
                           <Checkbox
                             checked={item.checked}
                             onChange={() => handleCheckboxChange(item.id)}
@@ -185,13 +182,17 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
                             contentEditable={editable}
                             style={{
                               outline: "none",
-                              flexGrow: 2,
                               marginBottom: "0",
                               textDecoration: item.checked && "line-through",
+                              minHeight: "20px",
                             }}
-                            onBlur={(e) =>
-                              handleTextChange(item.id, e.target.textContent)
-                            }
+                            onBlur={(e) => {
+                              handleTextChange(item.id, e.target.textContent);
+                              setFocused(null);
+                            }}
+                            onFocus={() => {
+                              setFocused(item.id);
+                            }}
                             autofocus={items[items.length - 1].id === item.id}
                           >
                             {item.text}
@@ -204,7 +205,10 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
                               style={{
                                 cursor: "cursor",
                                 flexGrow: 0,
-                                opacity: snapshot.isDragging && 1,
+                                opacity:
+                                  (snapshot.isDragging ||
+                                    focused === item.id) &&
+                                  1,
                               }}
                               onClick={() => {
                                 removeItem(item.id);

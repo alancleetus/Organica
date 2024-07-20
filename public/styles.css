@@ -349,6 +349,9 @@ form.create-note button:hover {
 .checkbox-list-item:hover .hover-icons {
   opacity: 1;
 }
+.checkbox-list-item:focus-visible .hover-icons {
+  opacity: 1;
+}
 
 .checkbox-list-item {
   border-top: 1px solid rgba(0, 0, 0, 0);
