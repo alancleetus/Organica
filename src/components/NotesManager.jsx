@@ -17,6 +17,7 @@ import Note from "./Note";
 import CreateArea from "./CreateArea";
 import CheckboxList from "./DNDCheckboxList";
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
+import isEqual from "lodash/isEqual";
 
 function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
@@ -67,10 +68,10 @@ function NotesManager({ theme, toggleTheme }) {
     }
 
     //removes empty lines
-    if (isList) {
-      const updatedContent = content.filter((item) => item.text != "");
-      content = updatedContent;
-    }
+    // if (isList) {
+    //   const updatedContent = content.filter((item) => item.text != "");
+    //   content = updatedContent;
+    // }
 
     // Create new note obj
     const note = { key, title, content, isList, userId: user.uid };
@@ -109,17 +110,30 @@ function NotesManager({ theme, toggleTheme }) {
   };
 
   const editNote = async (id, newTitle, newContent) => {
+    console.log("editNote(): Start");
+    // Find the current note by id
+    const currentNote = notes.find((note) => note.id === id);
+
+    // Check if the title or content has changed
+    if (
+      currentNote.title === newTitle &&
+      isEqual(currentNote.content, newContent)
+    ) {
+      console.log("editNote(): No changes detected, skipping update");
+      console.log("editNote(): End");
+      return;
+    }
     try {
       // Ensure the document reference is correct
       const noteRef = doc(db, "notes", id);
-      console.log("Document reference:", noteRef);
+      console.log("editNote(): Document reference:", noteRef);
 
       // Update the document in Firestore
       await updateDoc(noteRef, {
         title: newTitle,
         content: newContent,
       });
-      console.log("Document updated in Firestore");
+      console.log("editNote(): Document updated in Firestore");
 
       // Update the state to reflect the changes in the UI
       setNotes((prevNotes) =>
@@ -129,19 +143,11 @@ function NotesManager({ theme, toggleTheme }) {
             : note
         )
       );
-      console.log("Updated note with id:", id);
+      console.log("editNote(): Updated note with id:", id);
     } catch (error) {
-      console.error("Error updating note:", error);
-
-      // // Update UI even if offline
-      // setNotes((prevNotes) =>
-      //   prevNotes.map((note) =>
-      //     note.id === id
-      //       ? { ...note, title: newTitle, content: newContent }
-      //       : note
-      //   )
-      // );
+      console.error("editNote(): Error updating note:", error);
     }
+    console.log("editNote(): End");
   };
 
   return (
