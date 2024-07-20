@@ -47,6 +47,7 @@ html {
   font-family: "Montserrat", sans-serif;
 }
 body {
+  min-width: 300px;
   background-color: var(--background-color);
   color: var(--text-color);
   padding: 0 16px;
