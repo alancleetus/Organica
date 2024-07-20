@@ -15,7 +15,6 @@ function note(props) {
 
   const handleEditClick = () => {
     setIsEditing(true);
-    addNewItem();
   };
 
   let [itemsArray, setItemsArray] = useState(props.content);
@@ -23,20 +22,6 @@ function note(props) {
   const updateItemsArray = (updatedItemsArray) => {
     setItemsArray(updatedItemsArray);
     props.editNote(props.id, editedTitle, updatedItemsArray);
-  };
-
-  const addNewItem = () => {
-    console.log("addNewItem()");
-
-    const newItem = {
-      id: uuidv4(),
-      text: "",
-      checked: false,
-    };
-
-    console.log(newItem);
-    const updatedItems = [...itemsArray, newItem];
-    updateItemsArray(updatedItems);
   };
 
   useEffect(() => {
@@ -70,29 +55,11 @@ function note(props) {
             />
           </h1>
           {props.isList ? (
-            <>
-              <CheckboxList
-                itemsArray={itemsArray}
-                updateItemsArray={updateItemsArray}
-                editable={isEditing}
-              />
-              <Grid
-                container
-                spacing={1}
-                style={{
-                  marginLeft: "5px",
-                  color: "var(--primary-muted-color)",
-                }}
-                onClick={(e) => addNewItem(e)}
-              >
-                <Grid item xs={1}>
-                  <AddIcon style={{ flexGrow: 0 }} />
-                </Grid>
-                <Grid item xs={11}>
-                  <p style={{ flexGrow: 2 }}>add new item</p>
-                </Grid>
-              </Grid>
-            </>
+            <CheckboxList
+              itemsArray={itemsArray}
+              updateItemsArray={updateItemsArray}
+              editable={isEditing}
+            />
           ) : (
             <p>
               <textarea
@@ -126,7 +93,6 @@ function note(props) {
             <CheckboxList
               itemsArray={itemsArray}
               updateItemsArray={updateItemsArray}
-              addNewItem={addNewItem}
             />
           ) : (
             <p>{props.content}</p>
