@@ -1,0 +1,20 @@
+/* Target the dialog container */
+.MuiDialog-root,
+.MuiFormControl-root > .MuiInputBase-input,
+.MuiFormControl-root > .MuiOutlinedInput-notchedOutline {
+  color: var(--text-color);
+}
+
+/* Optionally target specific dialog content if needed */
+.MuiDialog-paper {
+  background-color: var(--create-note-bg-color);
+  color: var(--text-color);
+}
+
+/* Adjust other dialog elements if needed */
+.MuiDialogTitle-root,
+.MuiDialogContent-root,
+.MuiDialogActions-root {
+  background-color: var(--create-note-bg-color);
+  color: var(--text-color);
+}

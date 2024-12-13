@@ -1,0 +1,8 @@
+& .MuiBadge-badge {
+  right: -20;
+  top: 10;
+  padding: 0 4px;
+  color: var(--primary-color);
+  background: var(--badge-bg-color);
+  font-size: 13px;
+}

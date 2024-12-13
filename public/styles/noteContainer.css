@@ -1,0 +1,19 @@
+#notes-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#notes-grid > .note {
+  flex: 0 1 calc(25% - 20px); /* 3 items per row */
+}
+@media (max-width: 768px) {
+  #notes-grid > .note {
+    flex: 0 1 calc(50% - 20px); /* 2 items per row on smaller screens */
+  }
+}
+@media (max-width: 480px) {
+  #notes-grid > .note {
+    flex: 0 1 100%; /* 1 item per row on the smallest screens */
+  }
+}

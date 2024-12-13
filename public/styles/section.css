@@ -1,0 +1,33 @@
+div.sectioned-div {
+  display: flex;
+  flex-direction: row;
+  padding: 10px 0px;
+}
+
+div.sectioned-div > div.section-title {
+  display: flex;
+  gap: 10px;
+  padding: none;
+  flex-grow: 2;
+  align-items: center;
+}
+
+#sorter {
+  flex-grow: 1;
+}
+
+div.sectioned-div > div.section-title > p.section-badge {
+  color: var(--badge-color);
+  background-color: var(--badge-bg-color);
+  width: 20px; /* Adjust size for a square badge */
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px; /* Use this for slight rounding or 0 for sharp corners */
+
+  font-size: 0.8em;
+  font-weight: bold;
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+  line-height: 1; /* Ensure text doesn't cause layout issues */
+}
