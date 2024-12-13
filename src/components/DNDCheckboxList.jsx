@@ -174,6 +174,7 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
                         </Grid>
                         <Grid item xs={8}>
                           <p
+                            className="note-content"
                             ref={
                               item.id === items[items.length - 1].id
                                 ? refToLast
@@ -193,7 +194,7 @@ const CheckboxList = ({ itemsArray, updateItemsArray, editable = false }) => {
                             onFocus={() => {
                               setFocused(item.id);
                             }}
-                            autofocus={items[items.length - 1].id === item.id}
+                            autoFocus={items[items.length - 1].id === item.id}
                           >
                             {item.text}
                           </p>
