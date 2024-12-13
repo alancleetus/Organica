@@ -1,28 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, auth } from "./Firebase";
+import { auth } from "./Firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  query,
-  where,
-  updateDoc,
-} from "firebase/firestore";
 import Header from "./Header";
 import Note from "./Note";
-import CreateArea from "./CreateArea";
-import CheckboxList from "./DNDCheckboxList";
-import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
-import isEqual from "lodash/isEqual";
+import AddNoteFab from "./AddNoteFab";
+import { fetchNotes } from "../utils/fetchNotes.js";
+import { formatTimestampToDate } from "../utils/formatTimestampToDate.js";
+import Sorter from "./Sorter";
 
 function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const [sortingMethod, setSortingMethod] = useState("date");
 
   /****  Redirect to login if not authenticated ****/
   useEffect(() => {
@@ -40,157 +31,77 @@ function NotesManager({ theme, toggleTheme }) {
 
   /*****  Fetch notes from Firestore when the component mounts *****/
   useEffect(() => {
-    const fetchNotes = async () => {
+    const getNotes = async () => {
       if (user) {
-        try {
-          const notesCollection = collection(db, "notes");
-          const q = query(notesCollection, where("userId", "==", user.uid));
-          const notesSnapshot = await getDocs(q);
-          const notesList = notesSnapshot.docs.map((doc) => ({
-            ...doc.data(),
-            id: doc.id,
-          }));
-          setNotes(notesList);
-          console.log("Fetched notes:", notesList);
-        } catch (error) {
-          console.error("Error fetching notes:", error);
-        }
+        const fetchedNotes = await fetchNotes(user);
+        setNotes(fetchedNotes || []); // Ensure `notes` is always an array
       }
     };
-    fetchNotes();
+
+    getNotes();
   }, [user]);
 
-  const addNote = async (key, title, content, isList = false) => {
-    // Check if user logged in
-    if (!user) {
-      console.error("User is not authenticated");
-      return;
-    }
-
-    //removes empty lines
-    // if (isList) {
-    //   const updatedContent = content.filter((item) => item.text != "");
-    //   content = updatedContent;
-    // }
-
-    // Create new note obj
-    const note = { key, title, content, isList, userId: user.uid };
-
-    // Add note to firebase db
-    try {
-      const docRef = await addDoc(collection(db, "notes"), note);
-      // Add note to start of Notes arr
-      setNotes((prevNotes) => [{ ...note, id: docRef.id }, ...prevNotes]);
-      console.log("Added note:", { ...note, id: docRef.id });
-    } catch (error) {
-      console.error("Error adding note:", error);
-    }
+  const handleSortingChange = (newMethod) => {
+    setSortingMethod(newMethod);
+    sortNotes(sortedNotes);
   };
+  const [isAscending, setIsAscending] = useState(true); // Default to ascending
+  const sortNotes = (method) => {
+    if (!Array.isArray(notes)) return []; // Guard against invalid `notes`
 
-  const removeNote = async (id) => {
-    try {
-      // Log the ID of the note to be removed
-      console.log("Attempting to remove note with id:", id);
-
-      // Ensure the document reference is correct
-      const noteRef = doc(db, "notes", id);
-      console.log("Document reference:", noteRef);
-
-      // Delete the document from Firestore
-      await deleteDoc(noteRef);
-      console.log("Document deleted from Firestore");
-
-      // Update the state to remove the note from the UI
-      setNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));
-      console.log("Removed note with id:", id);
-    } catch (error) {
-      // Log any errors encountered during the process
-      console.error("Error removing note:", error);
+    const sortedNotes = [...notes]; // Make a copy
+    switch (method) {
+      case "date":
+        sortedNotes.sort(
+          (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+        );
+      case "title":
+        sortedNotes.sort((a, b) => a.title.localeCompare(b.title));
+      default:
+        sortedNotes;
     }
+
+    return isAscending ? sortedNotes : sortedNotes.reverse();
   };
-
-  const editNote = async (id, newTitle, newContent) => {
-    console.log("editNote(): Start");
-    // Find the current note by id
-    const currentNote = notes.find((note) => note.id === id);
-
-    // Check if the title or content has changed
-    if (
-      currentNote.title === newTitle &&
-      isEqual(currentNote.content, newContent)
-    ) {
-      console.log("editNote(): No changes detected, skipping update");
-      console.log("editNote(): End");
-      return;
-    }
-    try {
-      // Ensure the document reference is correct
-      const noteRef = doc(db, "notes", id);
-      console.log("editNote(): Document reference:", noteRef);
-
-      // Update the document in Firestore
-      await updateDoc(noteRef, {
-        title: newTitle,
-        content: newContent,
-      });
-      console.log("editNote(): Document updated in Firestore");
-
-      // Update the state to reflect the changes in the UI
-      setNotes((prevNotes) =>
-        prevNotes.map((note) =>
-          note.id === id
-            ? { ...note, title: newTitle, content: newContent }
-            : note
-        )
-      );
-      console.log("editNote(): Updated note with id:", id);
-    } catch (error) {
-      console.error("editNote(): Error updating note:", error);
-    }
-    console.log("editNote(): End");
+  const toggleSortDirection = () => {
+    setIsAscending((prev) => !prev);
   };
+  const sortedNotes = sortNotes(sortingMethod);
 
   return (
     <>
+      <AddNoteFab user={user} />
       <Header toggleTheme={toggleTheme} theme={theme} />
-      <CreateArea addNote={addNote} />
 
-      {/* <CheckboxList
-        itemsArray={itemsArray}
-        updateItemsArray={updateItemsArray}
-      /> */}
-      {/* <div className="centered-notes-container"> */}
-      {/* <div>
-        {notes.map((note) => (
+      <div className="sectioned-div">
+        <div className="section-title">
+          <h2>All Notes</h2>
+          <p className="section-badge">{sortedNotes.length}</p>
+        </div>
+        <Sorter
+          sortingOptions={[
+            { value: "date", label: "Date" },
+            { value: "title", label: "Title" },
+          ]}
+          currentSorting={sortingMethod}
+          onSortingChange={handleSortingChange}
+          toggleSortDirection={toggleSortDirection}
+        />
+      </div>
+
+      <div id="notes-grid">
+        {sortedNotes.map((note) => (
           <Note
             key={note.id}
             id={note.id}
             title={note.title}
+            date={formatTimestampToDate(note.timestamp.seconds)}
             content={note.content}
             isList={note.isList}
-            removeNote={removeNote}
-            editNote={editNote}
+            setNotes={setNotes}
           />
         ))}
-      </div> */}
-
-      <ResponsiveMasonry
-        columnsCountBreakPoints={{ 350: 1, 650: 2, 900: 3, 1200: 4 }}
-      >
-        <Masonry>
-          {notes.map((note) => (
-            <Note
-              key={note.id}
-              id={note.id}
-              title={note.title}
-              content={note.content}
-              isList={note.isList}
-              removeNote={removeNote}
-              editNote={editNote}
-            />
-          ))}
-        </Masonry>
-      </ResponsiveMasonry>
+      </div>
     </>
   );
 }
