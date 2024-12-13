@@ -25,7 +25,7 @@ function Header({ toggleTheme, theme }) {
   return (
     <header>
       <h1>
-        <HighlightIcon></HighlightIcon>Keeper
+        <HighlightIcon></HighlightIcon>Organica
       </h1>
 
       {!isOnline && (

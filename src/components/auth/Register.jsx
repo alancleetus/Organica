@@ -49,11 +49,11 @@ const Register = ({ theme, toggleTheme }) => {
                   variant="h4"
                   component="h1"
                   gutterBottom
-                  className="keeper-title"
+                  className="organica-title"
                   align="center"
                   style={{ marginBottom: "30px" }}
                 >
-                  <HighlightIcon></HighlightIcon>Keeper
+                  <HighlightIcon></HighlightIcon>Organica
                 </Typography>
               </Box>
               <Box mb={2}>

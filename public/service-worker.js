@@ -1,4 +1,4 @@
-const CACHE_NAME = "keeper-app-cache-v1";
+const CACHE_NAME = "organica-cache-v1";
 const urlsToCache = ["/", "/index.html", "/static/js/bundle.js"];
 
 // Install a service worker

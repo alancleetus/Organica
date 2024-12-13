@@ -1,16 +1,11 @@
-# Keeper App
+# Organica
 
 ![React](https://img.shields.io/badge/react-v18.2.0-blue.svg)
 ![JavaScript](https://img.shields.io/badge/javascript-ES6-yellow.svg)
-[![Netlify Status](https://api.netlify.com/api/v1/badges/0fc1b8e4-d290-4e5b-b74e-4cfedf16e908/deploy-status)](https://app.netlify.com/sites/alan-c-keeper-app/deploys)
 
 ## Overview
 
-Keeper App is a clone of Google Keep, built as a capstone project for a React course. It leverages the power of React to provide a seamless note-taking experience, mirroring the core functionalities of Google Keep.
-
-[TRY IT](https://alan-c-keeper-app.netlify.app/)
-
-![demo](./Keeper%20Demo.gif)
+A refined version of the original Keeper-App, built after months of real-world use and valuable insights. This iteration brings enhanced features, improved usability, and a cleaner design, all inspired by practical experience. Organica aims to provide a smoother, more efficient note-taking and task management experience while incorporating new tools like TipTap for flexible and dynamic content editing. A fresh start for an even better Keeper experience!
 
 ## Features
 
@@ -30,11 +25,11 @@ Keeper App is a clone of Google Keep, built as a capstone project for a React co
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/alancleetus/Keeper-App.git
+   git clone https://github.com/alancleetus/Organica.git
    ```
 2. **Navigate to the project directory:**
    ```bash
-   cd Keeper-App
+   cd Organica
    ```
 3. **Install dependencies:**
    ```bash
@@ -58,10 +53,6 @@ Keeper App is a clone of Google Keep, built as a capstone project for a React co
   - **App.js**: Main application component.
   - **index.js**: Entry point of the application.
 
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
-
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
@@ -69,7 +60,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Acknowledgements
 
 - Inspired by the Google Keep application.
-- Developed as part of a React course.
+- Original Keeper-App code developed as part of a React course.
 
 ## Contact
 
