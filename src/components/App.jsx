@@ -6,6 +6,8 @@ import "react-toastify/dist/ReactToastify.css";
 import NotesManager from "./NotesManager";
 import Login from "./auth/Login";
 import Register from "./auth/Register";
+import EditNote from "./EditNote";
+import AddNote from "./AddNote";
 
 let App = () => {
   /****** Toggle Darkmode Start *******/
@@ -39,6 +41,14 @@ let App = () => {
           <Route
             path="/main"
             element={<NotesManager theme={theme} toggleTheme={toggleTheme} />}
+          />
+          <Route
+            path="/note/:id"
+            element={<EditNote theme={theme} toggleTheme={toggleTheme} />}
+          />
+          <Route
+            path="/note/"
+            element={<AddNote theme={theme} toggleTheme={toggleTheme} />}
           />
         </Routes>
       </div>
