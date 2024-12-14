@@ -15,14 +15,17 @@ export const CreateNote = async (
   title,
   content,
   isList = false,
-  setNotes
+  setNotes,
+  tags = [],
+  dueDateTime = null,
+  reminderDateTime = null
 ) => {
   if (!user) {
     console.error("User is not authenticated");
     return;
   }
 
-  const timestamp = new Date(); // Current date and time
+  const creationDate = new Date(); // Current date and time
 
   const note = {
     key: uuidv4(),
@@ -30,8 +33,14 @@ export const CreateNote = async (
     content,
     isList,
     userId: user.uid,
-    creationDate: timestamp, // Store as creationDate
-    modifiedDate: timestamp, // Initially, creationDate and modifiedDate are the same
+    creationDate,
+    modifiedDate: creationDate, // Initially the same as creation date
+    isPinned: false, // Default values for new fields
+    isFavorite: false,
+    isArchived: false,
+    tags,
+    dueDateTime,
+    reminderDateTime,
   };
 
   try {
@@ -42,7 +51,45 @@ export const CreateNote = async (
   }
 };
 
-export const UpdateNote = async (id, newTitle, newContent, setNotes) => {
+export const FavoriteNote = async (id, isFavorite, setNotes) => {
+  try {
+    const noteRef = doc(db, "notes", id); // Get the document reference
+    const currentNote = await getDoc(noteRef); // Fetch the current note data
+
+    if (!currentNote.exists()) {
+      console.error("Note does not exist");
+      return;
+    }
+
+    await updateDoc(noteRef, {
+      isFavorite, // Update the favorite status
+      modifiedDate: new Date(), // Update the modified date
+    });
+
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === id
+          ? { ...note, isFavorite, modifiedDate: new Date() }
+          : note
+      )
+    );
+    console.log(`Note ${id} is ${isFavorite ? "favorited" : "unfavorited"}`);
+  } catch (error) {
+    console.error("Error favoriting/unfavoriting note:", error);
+  }
+};
+export const UpdateNote = async (
+  id,
+  newTitle,
+  newContent,
+  setNotes,
+  isPinned,
+  isFavorite,
+  isArchived,
+  tags,
+  dueDateTime,
+  reminderDateTime
+) => {
   try {
     const noteRef = doc(db, "notes", id); // Get the document reference
     const currentNote = await getDoc(noteRef); // Fetch the current note data
@@ -53,23 +100,36 @@ export const UpdateNote = async (id, newTitle, newContent, setNotes) => {
     }
 
     const noteData = currentNote.data();
-    if (noteData.title === newTitle && isEqual(noteData.content, newContent)) {
+    const updatedFields = {
+      title: newTitle,
+      content: newContent,
+      isPinned,
+      isFavorite,
+      isArchived,
+      tags,
+      dueDateTime,
+      reminderDateTime,
+      modifiedDate: new Date(), // Update the modified date
+    };
+
+    if (
+      noteData.title === newTitle &&
+      isEqual(noteData.content, newContent) &&
+      noteData.isPinned === isPinned &&
+      noteData.isFavorite === isFavorite &&
+      noteData.isArchived === isArchived &&
+      isEqual(noteData.tags, tags) &&
+      noteData.dueDateTime === dueDateTime &&
+      noteData.reminderDateTime === reminderDateTime
+    ) {
       console.log("No changes detected, skipping update");
       return;
     }
 
-    const modifiedDate = new Date(); // Set the modified date to current time
-
-    await updateDoc(noteRef, {
-      title: newTitle,
-      content: newContent,
-      modifiedDate, // Update the modified date
-    });
+    await updateDoc(noteRef, updatedFields); // Update Firestore
     setNotes((prevNotes) =>
       prevNotes.map((note) =>
-        note.id === id
-          ? { ...note, title: newTitle, content: newContent }
-          : note
+        note.id === id ? { ...note, ...updatedFields } : note
       )
     ); // Update state
     console.log("Updated note with id:", id);
