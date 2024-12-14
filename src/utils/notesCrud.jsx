@@ -6,6 +6,8 @@ import {
   doc,
   updateDoc,
   getDoc,
+  query,
+  where,
 } from "firebase/firestore";
 import isEqual from "lodash/isEqual";
 import { v4 as uuidv4 } from "uuid";
@@ -194,6 +196,93 @@ export const UpdateNote = async (
   }
 };
 
+export const AddTagsToNote = async (id, newTags, setNotes) => {
+  try {
+    const noteRef = doc(db, "notes", id);
+    const currentNote = await getDoc(noteRef);
+
+    if (!currentNote.exists()) {
+      console.error("Note does not exist");
+      return;
+    }
+
+    const { tags = [] } = currentNote.data();
+    const updatedTags = Array.from(new Set([...tags, ...newTags])); // Avoid duplicates
+
+    await updateDoc(noteRef, {
+      tags: updatedTags,
+      modifiedDate: new Date(),
+    });
+
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === id
+          ? { ...note, tags: updatedTags, modifiedDate: new Date() }
+          : note
+      )
+    );
+
+    console.log(`Tags added to note ${id}:`, newTags);
+  } catch (error) {
+    console.error("Error adding tags:", error);
+  }
+};
+
+export const RemoveTagsFromNote = async (id, tagsToRemove, setNotes) => {
+  try {
+    const noteRef = doc(db, "notes", id);
+    const currentNote = await getDoc(noteRef);
+
+    if (!currentNote.exists()) {
+      console.error("Note does not exist");
+      return;
+    }
+
+    const { tags = [] } = currentNote.data();
+    const updatedTags = tags.filter((tag) => !tagsToRemove.includes(tag));
+
+    await updateDoc(noteRef, {
+      tags: updatedTags,
+      modifiedDate: new Date(),
+    });
+
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === id
+          ? { ...note, tags: updatedTags, modifiedDate: new Date() }
+          : note
+      )
+    );
+
+    console.log(`Tags removed from note ${id}:`, tagsToRemove);
+  } catch (error) {
+    console.error("Error removing tags:", error);
+  }
+};
+
+export const ReplaceTagsForNote = async (id, newTags, setNotes) => {
+  try {
+    const noteRef = doc(db, "notes", id);
+
+    await updateDoc(noteRef, {
+      tags: newTags,
+      modifiedDate: new Date(),
+    });
+
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === id
+          ? { ...note, tags: newTags, modifiedDate: new Date() }
+          : note
+      )
+    );
+
+    console.log(`Tags replaced for note ${id}:`, newTags);
+  } catch (error) {
+    console.error("Error replacing tags:", error);
+  }
+};
+
 export const DeleteNote = async (id, setNotes) => {
   try {
     const noteRef = doc(db, "notes", id); // Get the document reference
@@ -219,4 +308,12 @@ export const ReadNoteById = async (id) => {
     console.error("Error fetching note:", error);
     throw error;
   }
+};
+export const fetchNotesByTag = async (tag) => {
+  const q = query(
+    collection(db, "notes"),
+    where("tags", "array-contains", tag)
+  );
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 };
