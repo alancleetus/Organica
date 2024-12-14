@@ -1,0 +1,20 @@
+header {
+  background-color: var(--header-bg-color);
+  margin: auto -16px;
+  padding: 16px 32px;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+  display: flex;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Space between elements */
+}
+
+header h1 {
+  color: var(--header-text-color);
+  font-family: "McLaren", cursive;
+  font-weight: 200;
+  flex-grow: 1;
+}

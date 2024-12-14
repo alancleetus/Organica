@@ -1,0 +1,69 @@
+.note {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: space-between;
+  background: var(--note-bg-color);
+  border-radius: 7px;
+  box-shadow: 0 2px 5px var(--note-shadow-color);
+  padding: 10px;
+  transition: all 0.3s ease-in-out;
+}
+
+.note-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between; /* Align items left and right */
+  margin-bottom: 6px;
+}
+.note-header-left {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center; /* Align items to the top */
+}
+
+.note-badge-div {
+  flex-grow: 2;
+}
+.note-title {
+  font-size: 1.15em;
+  flex-grow: 1;
+  font-family: "Gilroy-Regular", Arial, sans-serif;
+}
+.note-badge {
+  color: var(--badge-color);
+  background-color: var(--badge-bg-color);
+  width: 18px; /* Adjust size for a square badge */
+  height: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px; /* Use this for slight rounding or 0 for sharp corners */
+
+  font-family: "Gilroy-Regular", Arial, sans-serif;
+  line-height: 1; /* Ensure text doesn't cause layout issues */
+  font-size: 0.9em;
+}
+
+#menuIcon {
+  flex-shrink: 0; /* Prevent flex-grow behavior */
+}
+
+.note-content {
+  flex-grow: 2;
+  font-size: 0.95em;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-y: scroll; /* Default to hidden scroll */
+  scrollbar-width: thin;
+  color: var(--note-color);
+}
+
+.note-date {
+  align-self: flex-end; /* Align at the bottom */
+  margin-top: 10px; /* Add a slight margin above the date */
+  font-size: 0.75em;
+  color: var(--light-gray);
+}

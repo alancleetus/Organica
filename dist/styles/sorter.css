@@ -1,0 +1,31 @@
+.sorter {
+  display: flex;
+  justify-items: center;
+  align-items: center;
+  color: var(--primary-color);
+}
+
+#sorter-select {
+  color: var(--primary-color);
+  border: none;
+  background-color: var(--background-color);
+  font-family: "Gilroy-Medium";
+  font-size: var(--font-size-normal);
+
+  /* Remove the default dropdown arrow */
+  appearance: none; /* Standard */
+  -webkit-appearance: none; /* Chrome, Safari, Edge */
+  -moz-appearance: none; /* Firefox */
+  outline: none;
+
+  /* Optional: Add padding or adjust size to fit your design */
+  padding-right: 10px;
+  background-image: none; /* Remove background in some cases */
+}
+
+#sorter-select > option {
+  /* background-color: var(--create-note-bg-color); */
+  background-color: var(--background-color);
+  color: var(--primary-color);
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+}
