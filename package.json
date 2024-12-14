@@ -37,6 +37,8 @@
     "react-responsive-masonry": "^2.2.1",
     "react-router-dom": "^6.24.1",
     "react-toastify": "^10.0.5",
+    "remixicon": "^4.5.0",
+    "remixicon-react": "^1.0.0",
     "uuid": "^10.0.0"
   },
   "devDependencies": {

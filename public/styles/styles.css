@@ -27,8 +27,8 @@
   --background-color: #f6f6f6;
   --text-color: black;
 
-  --primary-color: #0d6efd;
-  --primary-muted-color: #9ac1fa;
+  --primary-color: #0dfd79;
+  --primary-muted-color: #9afadc;
 
   --header-bg-color: #ffffff;
   --header-text-color: var(--primary-color);
@@ -99,7 +99,7 @@ body {
 
 .organica-title {
   color: var(--primary-color);
-  font-family: "McLaren", cursive;
+  font-family: "Gilroy-Regular", Arial, sans-serif;
   font-weight: 200;
   flex-grow: 1;
 }

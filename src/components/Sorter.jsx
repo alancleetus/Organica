@@ -1,9 +1,11 @@
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
-
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 function Sorter({
   sortingOptions,
   currentSorting,
   onSortingChange,
+  isAscending,
   toggleSortDirection,
 }) {
   return (
@@ -19,7 +21,13 @@ function Sorter({
           </option>
         ))}
       </select>
-      <UnfoldMoreIcon onClick={toggleSortDirection} />
+      {/* <UnfoldMoreIcon onClick={toggleSortDirection} /> */}
+
+      {isAscending ? (
+        <KeyboardArrowUpIcon onClick={toggleSortDirection} />
+      ) : (
+        <KeyboardArrowDownIcon onClick={toggleSortDirection} />
+      )}
     </div>
   );
 }

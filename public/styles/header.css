@@ -14,7 +14,7 @@ header {
 
 header h1 {
   color: var(--header-text-color);
-  font-family: "McLaren", cursive;
+  font-family: "Gilroy-Regular", Arial, sans-serif;
   font-weight: 200;
   flex-grow: 1;
 }

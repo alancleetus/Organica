@@ -13,7 +13,7 @@ function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
-  const [sortingMethod, setSortingMethod] = useState("date");
+  const [sortingMethod, setSortingMethod] = useState("title");
 
   /****  Redirect to login if not authenticated ****/
   useEffect(() => {
@@ -43,11 +43,12 @@ function NotesManager({ theme, toggleTheme }) {
 
   /*****  Fetch notes when route changes back to /main *****/
   useEffect(() => {
-    console.log("fetching notes");
     const getNotes = async () => {
       if (user) {
         const fetchedNotes = await fetchNotes(user);
         setNotes(fetchedNotes || []); // Update notes when navigating back to /main
+
+        console.log("Fetch notes:", notes);
       }
     };
 
@@ -64,12 +65,24 @@ function NotesManager({ theme, toggleTheme }) {
 
     const sortedNotes = [...notes]; // Make a copy
     switch (method) {
-      case "date":
+      case "title":
+        sortedNotes.sort((a, b) => a.title.localeCompare(b.title));
+      case "creationDT":
         sortedNotes.sort(
           (a, b) => new Date(a.creationDate) - new Date(b.creationDate)
         );
-      case "title":
-        sortedNotes.sort((a, b) => a.title.localeCompare(b.title));
+      case "modifiedDT":
+        sortedNotes.sort(
+          (a, b) => new Date(a.modifiedDate) - new Date(b.modifiedDate)
+        );
+      case "dueDT":
+        sortedNotes.sort(
+          (a, b) => new Date(a.dueDateTime) - new Date(b.dueDateTime)
+        );
+      case "reminderDT":
+        sortedNotes.sort(
+          (a, b) => new Date(a.reminderDateTime) - new Date(b.reminderDateTime)
+        );
       default:
         sortedNotes;
     }
@@ -93,12 +106,16 @@ function NotesManager({ theme, toggleTheme }) {
         </div>
         <Sorter
           sortingOptions={[
-            { value: "date", label: "Date" },
             { value: "title", label: "Title" },
+            { value: "creationDT", label: "Creation Date" },
+            { value: "modifiedDT", label: "Modified Date" },
+            { value: "dueDT", label: "Due Date" },
+            { value: "reminderDT", label: "Reminder Date" },
           ]}
           currentSorting={sortingMethod}
           onSortingChange={handleSortingChange}
           toggleSortDirection={toggleSortDirection}
+          isAscending={isAscending}
         />
       </div>
 
@@ -108,7 +125,7 @@ function NotesManager({ theme, toggleTheme }) {
             key={note.id}
             id={note.id}
             title={note.title}
-            date={formatTimestampToDate(note.creationDate.seconds)}
+            date={formatTimestampToDate(note.creationDate)}
             content={note.content}
             isList={note.isList}
             setNotes={setNotes}

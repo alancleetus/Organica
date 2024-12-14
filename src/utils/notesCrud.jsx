@@ -27,7 +27,7 @@ export const CreateNote = async (
     return;
   }
 
-  const creationDate = new Date(); // Current date and time
+  const creationDate = Date.now(); // Current date and time
 
   const note = {
     key: uuidv4(),
@@ -66,12 +66,12 @@ export const PinNote = async (id, isPinned, setNotes) => {
 
     await updateDoc(noteRef, {
       isPinned, // Update the pinning status
-      modifiedDate: new Date(), // Update the modified date
+      modifiedDate: Date.now(), // Update the modified date
     });
 
     setNotes((prevNotes) =>
       prevNotes.map((note) =>
-        note.id === id ? { ...note, isPinned, modifiedDate: new Date() } : note
+        note.id === id ? { ...note, isPinned, modifiedDate: Date.now() } : note
       )
     );
     console.log(`Note ${id} is ${isPinned ? "pinned" : "unpinned"}`);
@@ -91,13 +91,13 @@ export const FavoriteNote = async (id, isFavorite, setNotes) => {
 
     await updateDoc(noteRef, {
       isFavorite, // Update the favorite status
-      modifiedDate: new Date(), // Update the modified date
+      modifiedDate: Date.now(), // Update the modified date
     });
 
     setNotes((prevNotes) =>
       prevNotes.map((note) =>
         note.id === id
-          ? { ...note, isFavorite, modifiedDate: new Date() }
+          ? { ...note, isFavorite, modifiedDate: Date.now() }
           : note
       )
     );
@@ -119,13 +119,13 @@ export const ArchiveNote = async (id, isArchived, setNotes) => {
 
     await updateDoc(noteRef, {
       isArchived, // Update the archived status
-      modifiedDate: new Date(), // Update the modified date
+      modifiedDate: Date.now(), // Update the modified date
     });
 
     setNotes((prevNotes) =>
       prevNotes.map((note) =>
         note.id === id
-          ? { ...note, isArchived, modifiedDate: new Date() }
+          ? { ...note, isArchived, modifiedDate: Date.now() }
           : note
       )
     );
@@ -171,7 +171,7 @@ export const UpdateNote = async (
         reminderDateTime !== undefined
           ? reminderDateTime
           : noteData.reminderDateTime,
-      modifiedDate: new Date(), // Update the modified date
+      modifiedDate: Date.now(), // Update the modified date
     };
 
     await updateDoc(noteRef, updatedFields); // Update Firestore
@@ -196,13 +196,13 @@ export const AddTagsToNote = async (id, newTags, setNotes) => {
 
     await updateDoc(noteRef, {
       tags: updatedTags,
-      modifiedDate: new Date(),
+      modifiedDate: Date.now(),
     });
 
     setNotes((prevNotes) =>
       prevNotes.map((note) =>
         note.id === id
-          ? { ...note, tags: updatedTags, modifiedDate: new Date() }
+          ? { ...note, tags: updatedTags, modifiedDate: Date.now() }
           : note
       )
     );
@@ -228,13 +228,13 @@ export const RemoveTagsFromNote = async (id, tagsToRemove, setNotes) => {
 
     await updateDoc(noteRef, {
       tags: updatedTags,
-      modifiedDate: new Date(),
+      modifiedDate: Date.now(),
     });
 
     setNotes((prevNotes) =>
       prevNotes.map((note) =>
         note.id === id
-          ? { ...note, tags: updatedTags, modifiedDate: new Date() }
+          ? { ...note, tags: updatedTags, modifiedDate: Date.now() }
           : note
       )
     );
@@ -251,13 +251,13 @@ export const ReplaceTagsForNote = async (id, newTags, setNotes) => {
 
     await updateDoc(noteRef, {
       tags: newTags,
-      modifiedDate: new Date(),
+      modifiedDate: Date.now(),
     });
 
     setNotes((prevNotes) =>
       prevNotes.map((note) =>
         note.id === id
-          ? { ...note, tags: newTags, modifiedDate: new Date() }
+          ? { ...note, tags: newTags, modifiedDate: Date.now() }
           : note
       )
     );

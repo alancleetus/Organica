@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import HighlightIcon from "@mui/icons-material/Highlight";
-import DarkModeIcon from "@mui/icons-material/DarkMode";
-import LightModeIcon from "@mui/icons-material/LightMode";
-import { Logout } from "@mui/icons-material";
+
 import { handleLogout } from "./auth/Logout";
-import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import WifiOffIcon from "@mui/icons-material/WifiOff";
-import WifiIcon from "@mui/icons-material/Wifi";
+
+import MoonLineIcon from "remixicon-react/MoonLineIcon";
+import SunLineIcon from "remixicon-react/SunLineIcon";
+import WifiOffLineIcon from "remixicon-react/WifiOffLineIcon";
+import Download2LineIcon from "remixicon-react/Download2LineIcon";
+
+import LogoutBoxRLineIcon from "remixicon-react/LogoutBoxRLineIcon";
+import LeafFillIcon from "remixicon-react/LeafFillIcon";
+
 function Header({ toggleTheme, theme }) {
   const [isOnline, setOnline] = useState(navigator.onLine);
 
@@ -56,27 +60,27 @@ function Header({ toggleTheme, theme }) {
   return (
     <header>
       <h1>
-        <HighlightIcon></HighlightIcon>Organica
+        <LeafFillIcon />
+        Organica
       </h1>
-
       {!isOnline && (
-        <WifiOffIcon style={{ color: "red", float: "right", margin: "10px" }} />
+        <WifiOffLineIcon
+          style={{ color: "red", float: "right", margin: "10px" }}
+        />
       )}
-
       <button
         className="dark-mode-button"
         style={{ marginRight: "10px" }}
         onClick={exportNotes}
       >
-        <FileDownloadIcon />
+        <Download2LineIcon />
       </button>
-
       <button
         className="dark-mode-button"
         style={{ marginRight: "10px" }}
         onClick={toggleTheme}
       >
-        {theme === "light" ? <DarkModeIcon /> : <LightModeIcon />}
+        {theme === "light" ? <MoonLineIcon /> : <SunLineIcon />}
       </button>
       <button
         className="dark-mode-button"
@@ -85,7 +89,7 @@ function Header({ toggleTheme, theme }) {
           window.location.href = "/login";
         }}
       >
-        <Logout />
+        <LogoutBoxRLineIcon />
       </button>
     </header>
   );
