@@ -51,6 +51,31 @@ export const CreateNote = async (
   }
 };
 
+export const PinNote = async (id, isPinned, setNotes) => {
+  try {
+    const noteRef = doc(db, "notes", id); // Get the document reference
+    const currentNote = await getDoc(noteRef); // Fetch the current note data
+
+    if (!currentNote.exists()) {
+      console.error("Note does not exist");
+      return;
+    }
+
+    await updateDoc(noteRef, {
+      isPinned, // Update the pinning status
+      modifiedDate: new Date(), // Update the modified date
+    });
+
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === id ? { ...note, isPinned, modifiedDate: new Date() } : note
+      )
+    );
+    console.log(`Note ${id} is ${isPinned ? "pinned" : "unpinned"}`);
+  } catch (error) {
+    console.error("Error pinning/unpinning note:", error);
+  }
+};
 export const FavoriteNote = async (id, isFavorite, setNotes) => {
   try {
     const noteRef = doc(db, "notes", id); // Get the document reference
