@@ -53,7 +53,7 @@ function NotesManager({ theme, toggleTheme }) {
     switch (method) {
       case "date":
         sortedNotes.sort(
-          (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+          (a, b) => new Date(a.creationDate) - new Date(b.creationDate)
         );
       case "title":
         sortedNotes.sort((a, b) => a.title.localeCompare(b.title));
@@ -95,7 +95,7 @@ function NotesManager({ theme, toggleTheme }) {
             key={note.id}
             id={note.id}
             title={note.title}
-            date={formatTimestampToDate(note.timestamp.seconds)}
+            date={formatTimestampToDate(note.creationDate.seconds)}
             content={note.content}
             isList={note.isList}
             setNotes={setNotes}

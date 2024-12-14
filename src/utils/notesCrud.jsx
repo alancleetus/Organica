@@ -30,7 +30,8 @@ export const CreateNote = async (
     content,
     isList,
     userId: user.uid,
-    timestamp,
+    creationDate: timestamp, // Store as creationDate
+    modifiedDate: timestamp, // Initially, creationDate and modifiedDate are the same
   };
 
   try {
@@ -57,7 +58,13 @@ export const UpdateNote = async (id, newTitle, newContent, setNotes) => {
       return;
     }
 
-    await updateDoc(noteRef, { title: newTitle, content: newContent }); // Update Firestore
+    const modifiedDate = new Date(); // Set the modified date to current time
+
+    await updateDoc(noteRef, {
+      title: newTitle,
+      content: newContent,
+      modifiedDate, // Update the modified date
+    });
     setNotes((prevNotes) =>
       prevNotes.map((note) =>
         note.id === id
