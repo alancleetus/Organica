@@ -41,6 +41,19 @@ function NotesManager({ theme, toggleTheme }) {
     getNotes();
   }, [user]);
 
+  /*****  Fetch notes when route changes back to /main *****/
+  useEffect(() => {
+    console.log("fetching notes");
+    const getNotes = async () => {
+      if (user) {
+        const fetchedNotes = await fetchNotes(user);
+        setNotes(fetchedNotes || []); // Update notes when navigating back to /main
+      }
+    };
+
+    getNotes();
+  }, [user, navigate]); // Dependency on `navigate` ensures the fetch is triggered on route change
+
   const handleSortingChange = (newMethod) => {
     setSortingMethod(newMethod);
     sortNotes(sortedNotes);

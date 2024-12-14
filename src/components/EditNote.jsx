@@ -1,46 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import CheckboxList from "./DNDCheckboxList";
 import { UpdateNote, DeleteNote, ReadNoteById } from "../utils/notesCrud";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Button from "@mui/material/Button";
+import TipTapEditor from "./TipTapEditor";
 
 function EditNote({ theme, toggleTheme }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [note, setNote] = useState(null);
   const [editedTitle, setEditedTitle] = useState("");
-  const [editedContent, setEditedContent] = useState("");
-  const [isList, setIsList] = useState(false);
-  const [itemsArray, setItemsArray] = useState([]);
+  const [editorContent, setEditorContent] = useState("<p></p>");
 
   useEffect(() => {
     const fetchNote = async () => {
       const fetchedNote = await ReadNoteById(id);
       setNote(fetchedNote);
       setEditedTitle(fetchedNote.title);
-      setEditedContent(fetchedNote.content);
-      setIsList(fetchedNote.isList);
-      setItemsArray(fetchedNote.content || []);
+      setEditorContent(fetchedNote.content);
     };
 
     fetchNote();
   }, [id]);
 
-  const updateItemsArray = (updatedItemsArray) => {
-    setItemsArray(updatedItemsArray);
-    UpdateNote(id, editedTitle, updatedItemsArray);
-  };
-
-  const handleSaveClick = () => {
-    if (isList) {
-      UpdateNote(id, editedTitle, itemsArray);
-    } else {
-      UpdateNote(id, editedTitle, editedContent);
+  const handleSaveClick = async () => {
+    try {
+      await UpdateNote(id, editedTitle, editorContent); // Wait for the update to finish
+      navigate("/main"); // Redirect back to main page
+    } catch (error) {
+      console.error("Error updating note:", error);
+      // Handle the error (e.g., show a toast notification)
     }
-    navigate("/main"); // Redirect back to main page
   };
 
   const handleCancelClick = () => {
@@ -63,19 +55,12 @@ function EditNote({ theme, toggleTheme }) {
         onChange={(e) => setEditedTitle(e.target.value)}
         placeholder="Add a title..."
       />
-      {isList ? (
-        <CheckboxList
-          itemsArray={itemsArray}
-          updateItemsArray={updateItemsArray}
-        />
-      ) : (
-        <textarea
-          className="contentInput"
-          value={editedContent}
-          onChange={(e) => setEditedContent(e.target.value)}
-          placeholder="Take a note..."
-        />
-      )}
+
+      <TipTapEditor
+        setEditorContent={setEditorContent}
+        initialContent={editorContent}
+      />
+
       <div className="note-page-actions">
         <Button onClick={handleCancelClick} color="primary">
           <CancelIcon /> Cancel

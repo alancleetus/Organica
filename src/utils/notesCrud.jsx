@@ -47,6 +47,7 @@ export const CreateNote = async (
 
   try {
     const docRef = await addDoc(collection(db, "notes"), note);
+
     console.log("Added note:", { ...note, id: docRef.id });
   } catch (error) {
     console.error("Error adding note:", error);
@@ -140,7 +141,6 @@ export const UpdateNote = async (
   id,
   newTitle,
   newContent,
-  setNotes,
   isPinned,
   isFavorite,
   isArchived,
@@ -161,41 +161,26 @@ export const UpdateNote = async (
     const updatedFields = {
       title: newTitle,
       content: newContent,
-      isPinned,
-      isFavorite,
-      isArchived,
-      tags,
-      dueDateTime,
-      reminderDateTime,
+      isPinned: isPinned !== undefined ? isPinned : noteData.isPinned,
+      isFavorite: isFavorite !== undefined ? isFavorite : noteData.isFavorite,
+      isArchived: isArchived !== undefined ? isArchived : noteData.isArchived,
+      tags: tags !== undefined ? tags : noteData.tags,
+      dueDateTime:
+        dueDateTime !== undefined ? dueDateTime : noteData.dueDateTime,
+      reminderDateTime:
+        reminderDateTime !== undefined
+          ? reminderDateTime
+          : noteData.reminderDateTime,
       modifiedDate: new Date(), // Update the modified date
     };
 
-    if (
-      noteData.title === newTitle &&
-      isEqual(noteData.content, newContent) &&
-      noteData.isPinned === isPinned &&
-      noteData.isFavorite === isFavorite &&
-      noteData.isArchived === isArchived &&
-      isEqual(noteData.tags, tags) &&
-      noteData.dueDateTime === dueDateTime &&
-      noteData.reminderDateTime === reminderDateTime
-    ) {
-      console.log("No changes detected, skipping update");
-      return;
-    }
-
     await updateDoc(noteRef, updatedFields); // Update Firestore
-    setNotes((prevNotes) =>
-      prevNotes.map((note) =>
-        note.id === id ? { ...note, ...updatedFields } : note
-      )
-    ); // Update state
+
     console.log("Updated note with id:", id);
   } catch (error) {
     console.error("Error updating note:", error);
   }
 };
-
 export const AddTagsToNote = async (id, newTags, setNotes) => {
   try {
     const noteRef = doc(db, "notes", id);
