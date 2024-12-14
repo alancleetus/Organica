@@ -103,6 +103,37 @@ export const FavoriteNote = async (id, isFavorite, setNotes) => {
     console.error("Error favoriting/unfavoriting note:", error);
   }
 };
+
+export const ArchiveNote = async (id, isArchived, setNotes) => {
+  try {
+    const noteRef = doc(db, "notes", id); // Get the document reference
+    const currentNote = await getDoc(noteRef); // Fetch the current note data
+
+    if (!currentNote.exists()) {
+      console.error("Note does not exist");
+      return;
+    }
+
+    await updateDoc(noteRef, {
+      isArchived, // Update the archived status
+      modifiedDate: new Date(), // Update the modified date
+    });
+
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === id
+          ? { ...note, isArchived, modifiedDate: new Date() }
+          : note
+      )
+    );
+    console.log(
+      `Note ${id} has been ${isArchived ? "archived" : "unarchived"}`
+    );
+  } catch (error) {
+    console.error("Error archiving/unarchiving note:", error);
+  }
+};
+
 export const UpdateNote = async (
   id,
   newTitle,
