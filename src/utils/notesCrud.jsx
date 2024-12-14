@@ -317,3 +317,28 @@ export const fetchNotesByTag = async (tag) => {
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 };
+
+export const fetchAllTags = async (userId) => {
+  try {
+    const notesCollection = collection(db, "notes");
+    const q = query(notesCollection, where("userId", "==", userId));
+
+    const querySnapshot = await getDocs(q);
+
+    // Aggregate tags
+    const allTags = new Set(); // To store unique tags
+    querySnapshot.forEach((doc) => {
+      const noteData = doc.data();
+      if (noteData.tags && Array.isArray(noteData.tags)) {
+        noteData.tags.forEach((tag) => allTags.add(tag));
+      }
+    });
+
+    const uniqueTags = Array.from(allTags); // Convert Set to Array
+    console.log("Fetched unique tags:", uniqueTags);
+    return uniqueTags;
+  } catch (error) {
+    console.error("Error fetching tags:", error);
+    throw error;
+  }
+};
