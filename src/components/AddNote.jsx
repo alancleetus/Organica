@@ -7,6 +7,8 @@ import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./Firebase";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css"; // Add this line for styling
 
 function AddNote() {
   const navigate = useNavigate();
@@ -15,6 +17,8 @@ function AddNote() {
   const [isList, setIsList] = useState(false);
   const [itemsArray, setItemsArray] = useState([]);
   const [user, setUser] = useState(null);
+  const [dueDate, setDueDate] = useState(null);
+  const [reminderDate, setReminderDate] = useState(null);
 
   /****  Redirect to login if not authenticated ****/
   useEffect(() => {
@@ -29,17 +33,24 @@ function AddNote() {
     // Cleanup subscription on unmount
     return () => unsubscribe();
   }, [navigate]);
+
   const updateItemsArray = (updatedItemsArray) => {
     setItemsArray(updatedItemsArray);
   };
 
   const handleSaveClick = () => {
     // Create a new note
-    CreateNote(user, editedTitle, editedContent, isList, itemsArray).then(
-      () => {
-        navigate("/main"); // Redirect to main page after creation
-      }
-    );
+    CreateNote(
+      user,
+      editedTitle,
+      editedContent,
+      isList,
+      itemsArray,
+      dueDate,
+      reminderDate
+    ).then(() => {
+      navigate("/main"); // Redirect to main page after creation
+    });
   };
 
   const handleCancelClick = () => {
@@ -68,6 +79,24 @@ function AddNote() {
           placeholder="Take a note..."
         />
       )}
+
+      <div className="date-time-picker">
+        <DatePicker
+          selected={dueDate}
+          onChange={(date) => setDueDate(date)}
+          showTimeSelect
+          dateFormat="Pp"
+          placeholderText="Due Date"
+        />
+        <DatePicker
+          selected={reminderDate}
+          onChange={(date) => setReminderDate(date)}
+          showTimeSelect
+          dateFormat="Pp"
+          placeholderText="Reminder Date"
+        />
+      </div>
+
       <div className="note-page-actions">
         <Button onClick={handleCancelClick} color="primary">
           <CancelIcon /> Cancel
