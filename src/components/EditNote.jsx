@@ -5,7 +5,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Button from "@mui/material/Button";
-import TipTapEditor from "./TipTapEditor";
+import TipTapEditor from "./TiptapEditor";
 
 function EditNote({ theme, toggleTheme }) {
   const { id } = useParams();

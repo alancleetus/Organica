@@ -12,6 +12,7 @@
   font-family: "Gilroy-Medium";
   font-size: var(--font-size-normal);
 
+  text-align: right;
   /* Remove the default dropdown arrow */
   appearance: none; /* Standard */
   -webkit-appearance: none; /* Chrome, Safari, Edge */
@@ -28,4 +29,5 @@
   background-color: var(--background-color);
   color: var(--primary-color);
   font-family: "Gilroy-Medium", Arial, sans-serif;
+  text-align: right;
 }
