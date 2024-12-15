@@ -27,8 +27,8 @@
   --background-color: #f6f6f6;
   --text-color: black;
 
-  --primary-color: #0dfd79;
-  --primary-muted-color: #9afadc;
+  --primary-color: hsl(156, 57%, 57%);
+  --primary-muted-color: hsl(135, 70%, 92%);
 
   --header-bg-color: #ffffff;
   --header-text-color: var(--primary-color);
@@ -39,8 +39,8 @@
   --create-note-bg-color: #f8f8f8;
   --create-note-shadow-color: rgb(138, 137, 137);
 
-  --light-gray: #667485;
-  --dark-gray: #001834;
+  --light-gray: hsl(227, 20%, 44%);
+  --dark-gray: hsl(227, 20%, 19%);
 
   --badge-color: #000000;
   --badge-bg-color: #e7e7e9;

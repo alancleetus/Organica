@@ -27,7 +27,7 @@
   --background-color: #f6f6f6;
   --text-color: black;
 
-  --primary-color: hsl(135, 100%, 37%);
+  --primary-color: hsl(156, 57%, 57%);
   --primary-muted-color: hsl(135, 70%, 92%);
 
   --header-bg-color: #ffffff;
@@ -39,8 +39,8 @@
   --create-note-bg-color: #f8f8f8;
   --create-note-shadow-color: rgb(138, 137, 137);
 
-  --light-gray: #667485;
-  --dark-gray: #001834;
+  --light-gray: hsl(227, 20%, 44%);
+  --dark-gray: hsl(227, 20%, 19%);
 
   --badge-color: #000000;
   --badge-bg-color: #e7e7e9;
@@ -246,4 +246,53 @@ form.create-note button:hover {
   bottom: 20px;
   right: 20px;
   background-color: var(--primary-color);
+}
+
+/* Basic editor styles */
+.tiptap {
+  :first-child {
+    margin-top: 0;
+  }
+
+  /* List styles */
+  ul,
+  ol {
+    padding: 0 1rem;
+    margin: 1.25rem 1rem 1.25rem 0.4rem;
+
+    li p {
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+  }
+
+  /* Task list specific styles */
+  ul[data-type="taskList"] {
+    list-style: none;
+    margin-left: 0;
+    padding: 0;
+
+    li {
+      align-items: flex-start;
+      display: flex;
+
+      > label {
+        flex: 0 0 auto;
+        margin-right: 0.5rem;
+        user-select: none;
+      }
+
+      > div {
+        flex: 1 1 auto;
+      }
+    }
+
+    input[type="checkbox"] {
+      cursor: pointer;
+    }
+
+    ul[data-type="taskList"] {
+      margin: 0;
+    }
+  }
 }
