@@ -27,8 +27,8 @@
   --background-color: #f6f6f6;
   --text-color: black;
 
-  --primary-color: #0dfd79;
-  --primary-muted-color: #9afadc;
+  --primary-color: hsl(135, 100%, 37%);
+  --primary-muted-color: hsl(135, 70%, 92%);
 
   --header-bg-color: #ffffff;
   --header-text-color: var(--primary-color);
