@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import HighlightIcon from "@mui/icons-material/Highlight";
 
 import { handleLogout } from "./auth/Logout";
 

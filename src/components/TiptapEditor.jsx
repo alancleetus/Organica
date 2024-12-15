@@ -2,6 +2,26 @@ import ListItem from "@tiptap/extension-list-item";
 import TextStyle from "@tiptap/extension-text-style";
 import { EditorProvider, useCurrentEditor, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+
+import BoldIcon from "remixicon-react/BoldIcon";
+import ItalicIcon from "remixicon-react/ItalicIcon";
+import StrikethroughIcon from "remixicon-react/StrikethroughIcon";
+
+import H1Icon from "remixicon-react/H1Icon";
+import H2Icon from "remixicon-react/H2Icon";
+import H3Icon from "remixicon-react/H3Icon";
+import H4Icon from "remixicon-react/H4Icon";
+import H5Icon from "remixicon-react/H5Icon";
+import H6Icon from "remixicon-react/H6Icon";
+
+import ListUnorderedIcon from "remixicon-react/ListUnorderedIcon";
+import ListOrderedIcon from "remixicon-react/ListOrderedIcon";
+
+import SeparatorIcon from "remixicon-react/SeparatorIcon";
+
+import ArrowGoBackLineIcon from "remixicon-react/ArrowGoBackLineIcon";
+import ArrowGoForwardLineIcon from "remixicon-react/ArrowGoForwardLineIcon";
+
 function TipTapEditor({ setEditorContent, initialContent = null }) {
   const MenuBar = () => {
     const { editor } = useCurrentEditor();
@@ -18,21 +38,21 @@ function TipTapEditor({ setEditorContent, initialContent = null }) {
             disabled={!editor.can().chain().focus().toggleBold().run()}
             className={editor.isActive("bold") ? "is-active" : ""}
           >
-            Bold
+            <BoldIcon />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleItalic().run()}
             disabled={!editor.can().chain().focus().toggleItalic().run()}
             className={editor.isActive("italic") ? "is-active" : ""}
           >
-            Italic
+            <ItalicIcon />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleStrike().run()}
             disabled={!editor.can().chain().focus().toggleStrike().run()}
             className={editor.isActive("strike") ? "is-active" : ""}
           >
-            Strike
+            <StrikethroughIcon />
           </button>
           <button
             onClick={() =>
@@ -42,7 +62,7 @@ function TipTapEditor({ setEditorContent, initialContent = null }) {
               editor.isActive("heading", { level: 1 }) ? "is-active" : ""
             }
           >
-            H1
+            <H1Icon />
           </button>
           <button
             onClick={() =>
@@ -52,7 +72,7 @@ function TipTapEditor({ setEditorContent, initialContent = null }) {
               editor.isActive("heading", { level: 2 }) ? "is-active" : ""
             }
           >
-            H2
+            <H2Icon />
           </button>
           <button
             onClick={() =>
@@ -62,7 +82,7 @@ function TipTapEditor({ setEditorContent, initialContent = null }) {
               editor.isActive("heading", { level: 3 }) ? "is-active" : ""
             }
           >
-            H3
+            <H3Icon />
           </button>
           <button
             onClick={() =>
@@ -72,7 +92,7 @@ function TipTapEditor({ setEditorContent, initialContent = null }) {
               editor.isActive("heading", { level: 4 }) ? "is-active" : ""
             }
           >
-            H4
+            <H4Icon />
           </button>
           <button
             onClick={() =>
@@ -82,7 +102,7 @@ function TipTapEditor({ setEditorContent, initialContent = null }) {
               editor.isActive("heading", { level: 5 }) ? "is-active" : ""
             }
           >
-            H5
+            <H5Icon />
           </button>
           <button
             onClick={() =>
@@ -92,39 +112,37 @@ function TipTapEditor({ setEditorContent, initialContent = null }) {
               editor.isActive("heading", { level: 6 }) ? "is-active" : ""
             }
           >
-            H6
+            <H6Icon />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             className={editor.isActive("bulletList") ? "is-active" : ""}
           >
-            Bullet list
+            <ListUnorderedIcon />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             className={editor.isActive("orderedList") ? "is-active" : ""}
           >
-            Ordered list
+            <ListOrderedIcon />
           </button>
           <button
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
           >
-            Horizontal rule
+            <SeparatorIcon />
           </button>
-          <button onClick={() => editor.chain().focus().setHardBreak().run()}>
-            Hard break
-          </button>
+
           <button
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().chain().focus().undo().run()}
           >
-            Undo
+            <ArrowGoBackLineIcon />
           </button>
           <button
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().chain().focus().redo().run()}
           >
-            Redo
+            <ArrowGoForwardLineIcon />
           </button>
         </div>
       </div>
@@ -145,7 +163,7 @@ function TipTapEditor({ setEditorContent, initialContent = null }) {
     }),
   ];
 
-  const content = initialContent || `<p>Your Note content...</p>`;
+  const content = initialContent || `<p></p>`;
 
   return (
     <EditorProvider
