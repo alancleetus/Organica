@@ -8,7 +8,7 @@ import { auth } from "./Firebase";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Add this line for styling
 import { CreateNote } from "../utils/notesCrud";
-import TipTapEditor from "./TipTapEditor";
+import TipTapEditor from "./TiptapEditor";
 
 function AddNote() {
   const navigate = useNavigate();
