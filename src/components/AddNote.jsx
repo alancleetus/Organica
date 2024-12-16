@@ -70,6 +70,24 @@ function AddNote() {
       }
     });
   };
+
+  useEffect(() => {
+    const updateHeight = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    };
+
+    // Initial setup
+    updateHeight();
+
+    // Re-calculate on resize
+    window.addEventListener("resize", updateHeight);
+
+    return () => {
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, []);
+
   return (
     <div className="note-page">
       <div className="note-page-header">

@@ -58,6 +58,7 @@ function Note(props) {
                 style={{
                   backgroundColor: generateColorForTag(tag),
                   color: "black",
+                  cursor: "default",
                 }}
               >
                 {tag}
