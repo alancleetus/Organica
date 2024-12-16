@@ -48,7 +48,7 @@ function NotesManager({ theme, toggleTheme }) {
         const fetchedNotes = await fetchNotes(user);
         setNotes(fetchedNotes || []); // Update notes when navigating back to /main
 
-        console.log("Fetch notes:", notes);
+        console.log("Fetch notes:", fetchedNotes);
       }
     };
 
@@ -129,6 +129,7 @@ function NotesManager({ theme, toggleTheme }) {
             content={note.content}
             isList={note.isList}
             setNotes={setNotes}
+            tags={note.tags}
           />
         ))}
       </div>

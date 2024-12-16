@@ -299,3 +299,17 @@ form.create-note button:hover {
     }
   }
 }
+
+input[type="checkbox"] {
+  border: 2px solid red;
+  background-color: transparent;
+}
+ul[data-type="taskList"] {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+ul[data-type="taskList"] div {
+  display: inline-block;
+  padding-left: 5px;
+}

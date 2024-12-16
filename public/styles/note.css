@@ -67,3 +67,11 @@
   font-size: 0.75em;
   color: var(--light-gray);
 }
+
+.note-tags {
+  font-size: 0.8em;
+  text-align: right;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}

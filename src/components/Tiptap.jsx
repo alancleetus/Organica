@@ -9,7 +9,7 @@ const extensions = [
   StarterKit,
   TaskList.configure({
     HTMLAttributes: {
-      class: "my-custom-class",
+      class: "checkbox-wrapper-11",
     },
     itemTypeName: "taskItem",
   }),

@@ -1,7 +1,4 @@
 import React, { act, useEffect, useState } from "react";
-import SaveIcon from "@mui/icons-material/Save";
-import CancelIcon from "@mui/icons-material/Cancel";
-import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./Firebase";
@@ -11,7 +8,6 @@ import { CreateNote, fetchAllTags } from "../utils/notesCrud";
 import TipTapEditor from "./TiptapEditor";
 import TimeLineIcon from "remixicon-react/TimeLineIcon";
 import NotificationLineIcon from "remixicon-react/NotificationLineIcon";
-
 import ArrowLeftSLineIcon from "remixicon-react/ArrowLeftSLineIcon";
 import { generateColorForTag } from "../utils/generateColorForTag";
 
@@ -50,10 +46,6 @@ function AddNote() {
     }
   }, [user]);
 
-  // useEffect(() => {
-  //   console.log("editorContent:", editorContent);
-  // }, [editorContent]);
-
   const handleSaveClick = () => {
     // Create a new note
     CreateNote(user, editedTitle, editorContent, dueDate, reminderDate).then(
@@ -78,7 +70,6 @@ function AddNote() {
       }
     });
   };
-
   return (
     <div className="note-page">
       <div className="note-page-header">
@@ -126,6 +117,7 @@ function AddNote() {
       <div className="date-time-picker">
         <div>
           <TimeLineIcon className="IconButton" />
+
           <DatePicker
             selected={dueDate}
             onChange={(date) => setDueDate(date)}

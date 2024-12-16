@@ -9,6 +9,7 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Menu, MenuItem } from "@mui/material";
 import { EditNote } from "@mui/icons-material";
 import DOMPurify from "dompurify";
+import { generateColorForTag } from "../utils/generateColorForTag";
 function Note(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
@@ -17,10 +18,10 @@ function Note(props) {
   const handleFabClick = (event) => setAnchorEl(event.currentTarget); // Open menu
   const handleMenuClose = () => setAnchorEl(null); // Close menu
 
-  // console.log(props);
+  // console.log("note prop", props);
   return (
     <>
-      <div className="note" onDoubleClick={() => navigate(`/note/${props.id}`)}>
+      <div className="note">
         <div className="note-header">
           <div className="note-header-left">
             <h1 className="note-title">{props.title}</h1>
@@ -47,7 +48,22 @@ function Note(props) {
         <div
           className="note-content"
           dangerouslySetInnerHTML={{ __html: sanitizedContent }}
-        ></div>{" "}
+        ></div>
+        <div className="note-tags">
+          {props.tags &&
+            props.tags.map((tag, index) => (
+              <p
+                key={index}
+                className={"tag-badge"}
+                style={{
+                  backgroundColor: generateColorForTag(tag),
+                  color: "black",
+                }}
+              >
+                {tag}
+              </p>
+            ))}
+        </div>
         <div className="note-date">
           <p className="date-time-text">{props.date}</p>
         </div>
