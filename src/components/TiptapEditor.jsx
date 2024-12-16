@@ -87,11 +87,17 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
     }),
     TaskList.configure({
       HTMLAttributes: {
-        class: "my-custom-class",
+        class: "my-task-list",
       },
       itemTypeName: "taskItem",
     }),
-    TaskItem,
+    TaskItem.configure({
+      HTMLAttributes: {
+        class: "my-task-item",
+      },
+      itemTypeName: "taskItem",
+    }),
+    ,
     TextStyle.configure({ types: [ListItem.name] }),
   ];
 

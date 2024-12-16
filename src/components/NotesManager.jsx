@@ -130,6 +130,8 @@ function NotesManager({ theme, toggleTheme }) {
             isList={note.isList}
             setNotes={setNotes}
             tags={note.tags}
+            dueDateTime={note.dueDateTime}
+            reminderDateTime={note.reminderDateTime}
           />
         ))}
       </div>

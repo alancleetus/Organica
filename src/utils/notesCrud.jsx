@@ -13,16 +13,14 @@ import {
 import isEqual from "lodash/isEqual";
 import { v4 as uuidv4 } from "uuid";
 
-export const CreateNote = async (
+export const CreateNote = async ({
   user,
   title,
   content,
-  isList = false,
-  setNotes,
   tags = [],
   dueDateTime = null,
-  reminderDateTime = null
-) => {
+  reminderDateTime = null,
+}) => {
   if (!user) {
     console.error("User is not authenticated");
     return;
@@ -34,7 +32,6 @@ export const CreateNote = async (
     key: uuidv4(),
     title,
     content,
-    isList,
     userId: user.uid,
     creationDate,
     modifiedDate: creationDate, // Initially the same as creation date
@@ -138,7 +135,7 @@ export const ArchiveNote = async (id, isArchived, setNotes) => {
   }
 };
 
-export const UpdateNote = async (
+export const UpdateNote = async ({
   id,
   newTitle,
   newContent,
@@ -147,8 +144,8 @@ export const UpdateNote = async (
   isArchived,
   tags,
   dueDateTime,
-  reminderDateTime
-) => {
+  reminderDateTime,
+}) => {
   try {
     const noteRef = doc(db, "notes", id); // Get the document reference
     const currentNote = await getDoc(noteRef); // Fetch the current note data
@@ -160,8 +157,8 @@ export const UpdateNote = async (
 
     const noteData = currentNote.data();
     const updatedFields = {
-      title: newTitle,
-      content: newContent,
+      title: newTitle !== undefined ? newTitle : noteData.title,
+      content: newContent !== undefined ? newContent : noteData.content,
       isPinned: isPinned !== undefined ? isPinned : noteData.isPinned,
       isFavorite: isFavorite !== undefined ? isFavorite : noteData.isFavorite,
       isArchived: isArchived !== undefined ? isArchived : noteData.isArchived,
@@ -178,6 +175,7 @@ export const UpdateNote = async (
     await updateDoc(noteRef, updatedFields); // Update Firestore
 
     console.log("Updated note with id:", id);
+    console.log("Updated Fields: ", updatedFields);
   } catch (error) {
     console.error("Error updating note:", error);
   }

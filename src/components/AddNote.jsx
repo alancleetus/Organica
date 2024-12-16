@@ -15,8 +15,8 @@ function AddNote() {
   const navigate = useNavigate();
   const [editedTitle, setEditedTitle] = useState("");
   const [user, setUser] = useState(null);
-  const [dueDate, setDueDate] = useState(null);
-  const [reminderDate, setReminderDate] = useState(null);
+  const [dueDateTime, setDueDateTime] = useState(null);
+  const [reminderDateTime, setReminderDateTime] = useState(null);
   const [editorContent, setEditorContent] = useState(null);
   const [tags, setTags] = useState([]);
   const [activeTags, setActiveTags] = useState([]);
@@ -46,13 +46,24 @@ function AddNote() {
     }
   }, [user]);
 
+  useEffect(() => {
+    console.log("date due:", dueDateTime);
+    dueDateTime && console.log(typeof dueDateTime);
+    dueDateTime && console.log(dueDateTime instanceof Date);
+    // console.log("date due:", formatTimestampToDate(props.dueDate.seconds));
+  }, [dueDateTime]);
   const handleSaveClick = () => {
     // Create a new note
-    CreateNote(user, editedTitle, editorContent, dueDate, reminderDate).then(
-      () => {
-        navigate("/main"); // Redirect to main page after creation
-      }
-    );
+    CreateNote({
+      user,
+      title: editedTitle,
+      content: editorContent,
+      tags: activeTags,
+      reminderDateTime,
+      dueDateTime,
+    }).then(() => {
+      navigate("/main"); // Redirect to main page after creation
+    });
   };
 
   const handleCancelClick = () => {
@@ -137,8 +148,8 @@ function AddNote() {
           <TimeLineIcon className="IconButton" />
 
           <DatePicker
-            selected={dueDate}
-            onChange={(date) => setDueDate(date)}
+            selected={dueDateTime}
+            onChange={(date) => setDueDateTime(date)}
             showTimeSelect
             dateFormat="Pp"
             placeholderText="Due Date"
@@ -147,8 +158,8 @@ function AddNote() {
         <div>
           <NotificationLineIcon className="IconButton" />
           <DatePicker
-            selected={reminderDate}
-            onChange={(date) => setReminderDate(date)}
+            selected={reminderDateTime}
+            onChange={(date) => setReminderDateTime(date)}
             showTimeSelect
             dateFormat="Pp"
             placeholderText="Reminder Date"

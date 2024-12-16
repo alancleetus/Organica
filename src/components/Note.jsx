@@ -6,19 +6,46 @@ import Badge from "@mui/material/Badge";
 import { UpdateNote, DeleteNote } from "../utils/notesCrud";
 import { useNavigate } from "react-router-dom";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import { Menu, MenuItem } from "@mui/material";
+import { ListItem, Menu, MenuItem } from "@mui/material";
 import { EditNote } from "@mui/icons-material";
 import DOMPurify from "dompurify";
 import { generateColorForTag } from "../utils/generateColorForTag";
+import TimeLineIcon from "remixicon-react/TimeLineIcon";
+import NotificationLineIcon from "remixicon-react/NotificationLineIcon";
+import { formatTimestampToDate } from "../utils/formatTimestampToDate";
+import { useEditor } from "@tiptap/react";
+
+import StarterKit from "@tiptap/starter-kit";
+import TaskItem from "@tiptap/extension-task-item";
+import TaskList from "@tiptap/extension-task-list";
+import { EditorProvider, useCurrentEditor, EditorContent } from "@tiptap/react";
+import TextStyle from "@tiptap/extension-text-style";
+
 function Note(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
-  const sanitizedContent = DOMPurify.sanitize(props.content);
+
   // Menu handlers
   const handleFabClick = (event) => setAnchorEl(event.currentTarget); // Open menu
   const handleMenuClose = () => setAnchorEl(null); // Close menu
 
   // console.log("note prop", props);
+
+  const editor = useEditor({
+    editorProps: {
+      attributes: {
+        class: "note-content", // You can customize classes if needed
+      },
+    },
+    extensions: [StarterKit, TaskList, TaskItem],
+    content: props.content,
+    onUpdate: ({ editor }) => {
+      const updatedContent = editor.getHTML();
+      // setContent(updatedContent);
+      UpdateNote({ id: props.id, newContent: updatedContent });
+    },
+  });
+
   return (
     <>
       <div className="note">
@@ -45,10 +72,15 @@ function Note(props) {
             </Menu>
           </div>
         </div>
-        <div
+        <div className="note-content">
+          {editor && <EditorContent editor={editor} />}
+        </div>
+
+        {/* <div
           className="note-content"
-          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
-        ></div>
+          dangerouslySetInnerHTML={{ __html: content }}
+        ></div> */}
+
         <div className="note-tags">
           {props.tags &&
             props.tags.map((tag, index) => (
@@ -67,6 +99,34 @@ function Note(props) {
         </div>
         <div className="note-date">
           <p className="date-time-text">{props.date}</p>
+          {props.dueDateTime && (
+            <p className="date-time-text">
+              <TimeLineIcon className="IconButton" />
+              {props.dueDateTime
+                ? props.dueDateTime.toDate().toLocaleString("en-US", {
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "numeric",
+                    minute: "numeric",
+                    hour12: true,
+                  })
+                : "No Due Date"}
+            </p>
+          )}
+          {props.reminderDateTime && (
+            <p className="date-time-text">
+              <NotificationLineIcon className="IconButton" />
+              {props.reminderDateTime
+                ? props.reminderDateTime.toDate().toLocaleString("en-US", {
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "numeric",
+                    minute: "numeric",
+                    hour12: true,
+                  })
+                : "No Reminder Date"}
+            </p>
+          )}
         </div>
       </div>
     </>

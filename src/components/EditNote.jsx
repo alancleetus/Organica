@@ -17,6 +17,8 @@ function EditNote({ theme, toggleTheme }) {
   useEffect(() => {
     const fetchNote = async () => {
       const fetchedNote = await ReadNoteById(id);
+      console.log(fetchedNote);
+
       setNote(fetchedNote);
       setEditedTitle(fetchedNote.title);
       setEditorContent(fetchedNote.content);
