@@ -8,7 +8,7 @@ import AddNoteFab from "./AddNoteFab";
 import { fetchNotes } from "../utils/fetchNotes.js";
 import { formatTimestampToDate } from "../utils/formatTimestampToDate.js";
 import Sorter from "./Sorter";
-
+import HorizontalDatePicker from "./HorizontalDatePicker";
 function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
   const [user, setUser] = useState(null);
@@ -98,6 +98,7 @@ function NotesManager({ theme, toggleTheme }) {
     <div className="page-body">
       <AddNoteFab user={user} />
       <Header toggleTheme={toggleTheme} theme={theme} />
+      <HorizontalDatePicker />
 
       <div className="sectioned-div">
         <div className="section-title">

@@ -1,0 +1,185 @@
+/* Global CSS Variables */
+:root {
+  --dp-primary-color: var(--note-bg-color);
+  --dp-secondary-color: var(--note-color);
+  --dp-text-color: var(--text-color);
+
+  --dp-selected-primary-color: var(--primary-color);
+  --dp-selected-secondary-color: var(--primary-muted-color);
+  --dp-selected-color: var(--dark-gray);
+
+  --dp-today-primary-color: var(--dark-gray);
+  --dp-today-secondary-color: var(--light-gray);
+  --dp-today-color: white;
+}
+
+/* Horizontal Date Picker Container */
+.horizontal-date-picker {
+  display: flex;
+  flex-direction: column;
+  max-width: 100vw;
+}
+
+/* Month and Year Selector */
+.month-year-selector-container {
+  display: flex;
+  align-items: baseline;
+  padding-top: 10px;
+}
+
+.month-select {
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.year-select {
+  font-size: 1.5em;
+}
+
+.month-select,
+.year-select {
+  background-color: transparent;
+  color: var(--text-color);
+  border: 0;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  margin: 0;
+  padding: 0;
+}
+
+.month-select > option,
+.year-select > option {
+  background-color: var(--dp-primary-color);
+  color: var(--dp-text-color);
+  font-size: 1em;
+}
+
+.dot-seperator {
+  min-width: 10px;
+  min-height: 10px;
+  max-width: 10px;
+  max-height: 10px;
+  margin-right: 10px;
+  border-radius: 50%;
+  color: transparent;
+  background-color: var(--text-color);
+  text-align: center;
+}
+
+/* Days Container */
+.days-in-month {
+  display: flex;
+  overflow-x: scroll;
+  gap: 10px;
+  padding: 10px 0px;
+}
+
+.days-in-month::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.days-in-month {
+  overflow-y: scroll; /* Allow vertical scrolling */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+/* Day Styling */
+.day {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  background-color: var(--dp-secondary-color);
+  text-align: center;
+  border-radius: 25px;
+  min-width: 50px;
+  min-height: 70px;
+}
+
+.day p {
+  padding: 0px;
+  margin: 0px;
+  text-transform: lowercase;
+}
+
+.day > p.day-of-week {
+  padding-top: 10px;
+  padding-bottom: 5px;
+}
+
+.day > p.date {
+  background-color: var(--dp-primary-color);
+  min-width: 50px;
+  min-height: 50px;
+  max-width: 50px;
+  max-height: 50px;
+  font-size: 1em;
+  line-height: 50px;
+  text-align: center;
+  margin: 0px;
+  border-radius: 25px;
+  box-shadow: 0px -2px 5px 2px rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: 0px -2px 5px 2px rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 0px -2px 5px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Day States */
+.day.today {
+  background-color: var(--dp-today-primary-color);
+  color: var(--dp-today-color);
+}
+
+.day.selected {
+  background-color: var(--dp-selected-secondary-color);
+  color: var(--dp-selected-color);
+}
+
+.day:hover {
+  background-color: white;
+  color: black;
+}
+
+.day:hover > .date {
+  background-color: #ccc;
+  color: black;
+}
+
+.day.selected > p.date {
+  background-color: var(--dp-selected-primary-color);
+  border-color: var(--dp-selected-primary-color);
+}
+
+.days-navigation {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Day Select Scroller */
+.scroll-arrow {
+  background-color: transparent;
+  color: var(--dp-text-color);
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.scroll-arrow:hover {
+  color: var(--primary-color);
+}
+
+.days-in-month {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px 0px;
+  flex-grow: 1;
+  scroll-behavior: smooth;
+}
+
+.days-in-month::-webkit-scrollbar {
+  display: none;
+}
