@@ -8,6 +8,7 @@ import {
   getDoc,
   query,
   where,
+  getDocs,
 } from "firebase/firestore";
 import isEqual from "lodash/isEqual";
 import { v4 as uuidv4 } from "uuid";
@@ -309,7 +310,6 @@ export const fetchAllTags = async (userId) => {
     const q = query(notesCollection, where("userId", "==", userId));
 
     const querySnapshot = await getDocs(q);
-
     // Aggregate tags
     const allTags = new Set(); // To store unique tags
     querySnapshot.forEach((doc) => {

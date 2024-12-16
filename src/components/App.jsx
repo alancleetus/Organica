@@ -8,7 +8,6 @@ import Login from "./auth/Login";
 import Register from "./auth/Register";
 import EditNote from "./EditNote";
 import AddNote from "./AddNote";
-import Tiptap from "./Tiptap";
 
 let App = () => {
   /****** Toggle Darkmode Start *******/

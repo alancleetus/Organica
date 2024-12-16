@@ -12,6 +12,8 @@ import "../public/styles/note.css";
 import "../public/styles/noteContainer.css";
 import "../public/styles/sorter.css";
 import "../public/styles/section.css";
+
+import "../public/styles/editor.css";
 // Get the root element
 const rootElement = document.getElementById("root");
 

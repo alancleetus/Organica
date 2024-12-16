@@ -95,7 +95,7 @@ function NotesManager({ theme, toggleTheme }) {
   const sortedNotes = sortNotes(sortingMethod);
 
   return (
-    <>
+    <div className="page-body">
       <AddNoteFab user={user} />
       <Header toggleTheme={toggleTheme} theme={theme} />
 
@@ -132,7 +132,7 @@ function NotesManager({ theme, toggleTheme }) {
           />
         ))}
       </div>
-    </>
+    </div>
   );
 }
 

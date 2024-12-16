@@ -4,7 +4,7 @@ import TaskList from "@tiptap/extension-task-list";
 import { EditorProvider, useCurrentEditor } from "@tiptap/react";
 import ListItem from "@tiptap/extension-list-item";
 import TextStyle from "@tiptap/extension-text-style";
-
+import Placeholder from "@tiptap/extension-placeholder";
 import ListUnorderedIcon from "remixicon-react/ListUnorderedIcon";
 import ListOrderedIcon from "remixicon-react/ListOrderedIcon";
 import CheckboxMultipleLineIcon from "remixicon-react/CheckboxMultipleLineIcon";
@@ -24,7 +24,7 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
 
     return (
       <div className="control-group">
-        <div className="button-group">
+        <div className="button-group editor-button-group">
           <button
             onClick={() => editor.chain().focus().toggleTaskList().run()}
             className={
@@ -57,18 +57,21 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
           </button>
           <button
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
+            className="editor-button "
           >
             <SeparatorIcon />
           </button>
           <button
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().chain().focus().undo().run()}
+            className="editor-button "
           >
             <ArrowGoBackLineIcon />
           </button>
           <button
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().chain().focus().redo().run()}
+            className="editor-button "
           >
             <ArrowGoForwardLineIcon />
           </button>
@@ -79,6 +82,9 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
 
   const extensions = [
     StarterKit,
+    Placeholder.configure({
+      placeholder: "Type Something... ",
+    }),
     TaskList.configure({
       HTMLAttributes: {
         class: "my-custom-class",
@@ -89,11 +95,11 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
     TextStyle.configure({ types: [ListItem.name] }),
   ];
 
-  const content = initialContent || `<p></p>`;
+  const content = initialContent || "";
 
   return (
     <EditorProvider
-      slotBefore={<MenuBar />}
+      slotAfter={<MenuBar />}
       extensions={extensions}
       content={content}
     />

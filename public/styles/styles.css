@@ -92,11 +92,14 @@ body {
   min-width: 300px;
   background-color: var(--background-color);
   color: var(--text-color);
-  padding: 0 16px;
+  padding: 0px;
   /* background-image: url("https://www.transparenttextures.com/patterns/cubes.png"); */
   /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
 }
 
+.page-body {
+  padding: 0px 16px;
+}
 .organica-title {
   color: var(--primary-color);
   font-family: "Gilroy-Regular", Arial, sans-serif;

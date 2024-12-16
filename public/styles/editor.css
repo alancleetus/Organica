@@ -1,0 +1,152 @@
+.note-page {
+  background-color: var(--note-bg-color);
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+  height: 100vh;
+  gap: 1em;
+  color: var(--text-color);
+}
+
+/***********************************/
+.note-page-header {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 0;
+  align-items: center;
+}
+
+.note-page-back-button {
+  background-color: transparent;
+  border: none;
+}
+
+.titleInput {
+  background-color: transparent;
+  border: none;
+  font-size: 1.1em;
+  text-decoration: none;
+  outline: none;
+  color: var(--text-color);
+}
+/***********************************/
+.note-page-tag-selector {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-grow: 0;
+}
+
+.tag-badge {
+  background-color: var(--badge-bg-color);
+  padding: 2px 4px;
+  border-radius: 3px;
+  text-align: center;
+  font-size: 0.95em;
+  cursor: pointer;
+}
+
+.tag-badge.active {
+  background-color: var(--primary-muted-color);
+}
+/***********************************/
+.editor-button-group {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex-grow: 0;
+}
+
+.editor-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 3px;
+
+  color: var(--text-color);
+}
+.editor-button.is-active {
+  background-color: var(--primary-muted-color);
+}
+
+/***********************************/
+.note-page-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+.note-page-editor {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.note-page-editor > div {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.note-page-editor > div.control-group {
+  flex-grow: 0;
+}
+
+.note-page-editor > div > div.tiptap[role="textbox"] {
+  flex-grow: 1; /* Make this input fill all available space */
+  border: none;
+  resize: none; /* Prevent resizing if it's a textarea */
+  outline: none;
+  font-size: 1em;
+  box-sizing: border-box; /* Ensure padding doesn't affect width/height */
+}
+.date-time-picker {
+  flex-grow: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 1em;
+}
+.IconButton {
+  height: 1em;
+}
+
+.date-time-picker > div > div > div > input {
+  border: none;
+  font-size: 1em;
+  outline: none;
+  text-transform: none;
+  background-color: var(--note-bg-color);
+  color: var(--text-color);
+}
+
+.date-time-picker > div {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.note-page-actions {
+  flex-grow: 0;
+}
+
+.notes-page-save-button {
+  width: 100%;
+  padding: 10px;
+  background-color: var(--primary-muted-color);
+  border-radius: 4px;
+  border: none;
+  text-transform: uppercase;
+  color: var(--primary-color);
+
+  font-family: "Gilroy-Bold", Arial, sans-serif;
+  font-size: 1.1em;
+  cursor: pointer;
+}
+
+.notes-page-save-button:hover {
+  color: var(--primary-muted-color);
+  background-color: var(--primary-color);
+}
