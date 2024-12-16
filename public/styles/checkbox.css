@@ -3,7 +3,7 @@
 #13 by Aaron iker*/
 
 @supports (-webkit-appearance: none) or (-moz-appearance: none) {
-  .my-custom-class input[type="checkbox"] {
+  ul[data-type="taskList"] input[type="checkbox"] {
     --active: var(--primary-color);
     --active-inner: #fff;
     --border: var(--text-color);
@@ -25,7 +25,7 @@
     background: var(--b, var(--background));
     transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
   }
-  .my-custom-class input[type="checkbox"]:after {
+  ul[data-type="taskList"] input[type="checkbox"]:after {
     content: "";
     display: block;
     left: 0;
@@ -34,49 +34,49 @@
     transition: transform var(--d-t, 0.3s) var(--d-t-e, ease),
       opacity var(--d-o, 0.2s);
   }
-  .my-custom-class input[type="checkbox"]:checked {
+  ul[data-type="taskList"] input[type="checkbox"]:checked {
     --b: var(--active);
     --bc: var(--active);
     --d-o: 0.3s;
     --d-t: 0.6s;
     --d-t-e: cubic-bezier(0.2, 0.85, 0.32, 1.2);
   }
-  .my-custom-class input[type="checkbox"]:disabled {
+  ul[data-type="taskList"] input[type="checkbox"]:disabled {
     --b: var(--disabled);
     cursor: not-allowed;
     opacity: 0.9;
   }
-  .my-custom-class input[type="checkbox"]:disabled:checked {
+  ul[data-type="taskList"] input[type="checkbox"]:disabled:checked {
     --b: var(--disabled-inner);
     --bc: var(--border);
   }
-  .my-custom-class input[type="checkbox"]:disabled + label {
+  ul[data-type="taskList"] input[type="checkbox"]:disabled + label {
     cursor: not-allowed;
   }
   .checkbox-wrapper-13
     input[type="checkbox"]:hover:not(:checked):not(:disabled) {
     --bc: var(--border-hover);
   }
-  .my-custom-class input[type="checkbox"]:not(.switch) {
+  ul[data-type="taskList"] input[type="checkbox"]:not(.switch) {
     width: 20px;
   }
-  .my-custom-class input[type="checkbox"]:not(.switch):after {
+  ul[data-type="taskList"] input[type="checkbox"]:not(.switch):after {
     opacity: var(--o, 0);
   }
-  .my-custom-class input[type="checkbox"]:not(.switch):checked {
+  ul[data-type="taskList"] input[type="checkbox"]:not(.switch):checked {
     --o: 1;
   }
-  .my-custom-class input[type="checkbox"] + label {
+  ul[data-type="taskList"] input[type="checkbox"] + label {
     display: inline-block;
     vertical-align: middle;
     cursor: pointer;
     margin-left: 4px;
   }
 
-  .my-custom-class input[type="checkbox"]:not(.switch) {
+  ul[data-type="taskList"] input[type="checkbox"]:not(.switch) {
     border-radius: 17px;
   }
-  .my-custom-class input[type="checkbox"]:not(.switch):after {
+  ul[data-type="taskList"] input[type="checkbox"]:not(.switch):after {
     width: 5px;
     height: 9px;
     border: 2px solid var(--active-inner);
@@ -86,15 +86,15 @@
     top: 4px;
     transform: rotate(var(--r, 20deg));
   }
-  .my-custom-class input[type="checkbox"]:not(.switch):checked {
+  ul[data-type="taskList"] input[type="checkbox"]:not(.switch):checked {
     --r: 43deg;
   }
 }
 
-.my-custom-class * {
+ul[data-type="taskList"] * {
   box-sizing: inherit;
 }
-.my-custom-class *:before,
-.my-custom-class *:after {
+ul[data-type="taskList"] *:before,
+ul[data-type="taskList"] *:after {
   box-sizing: inherit;
 }

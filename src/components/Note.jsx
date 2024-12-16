@@ -34,7 +34,7 @@ function Note(props) {
   const editor = useEditor({
     editorProps: {
       attributes: {
-        class: "note-content", // You can customize classes if needed
+        class: "note-editor-content", // You can customize classes if needed
       },
     },
     extensions: [StarterKit, TaskList, TaskItem],

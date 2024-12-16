@@ -56,11 +56,12 @@
   margin-bottom: 10px;
   white-space: pre-wrap;
   word-wrap: break-word;
-  overflow-y: scroll; /* Default to hidden scroll */
   scrollbar-width: thin;
   color: var(--note-color);
 }
-
+.note-editor-content {
+  overflow-y: scroll;
+}
 .note-date {
   align-self: flex-end; /* Align at the bottom */
   margin-top: 10px; /* Add a slight margin above the date */
