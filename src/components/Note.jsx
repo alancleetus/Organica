@@ -29,13 +29,15 @@ import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
 import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import HeartFillIcon from "remixicon-react/HeartFillIcon";
-
+import SaveLineIcon from "remixicon-react/SaveLineIcon";
 function Note(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
   const [isPinned, setIsPinned] = useState(props.isPinned);
   const [isFavorite, setIsFavorite] = useState(props.isFavorite);
 
+  const [updatedContent, setUpdateContent] = useState("");
+  const [contentChanged, setContentChanged] = useState(false);
   // Menu handlers
   const handleFabClick = (event) => setAnchorEl(event.currentTarget); // Open menu
   const handleMenuClose = () => setAnchorEl(null); // Close menu
@@ -50,20 +52,28 @@ function Note(props) {
     },
     extensions: [StarterKit, TaskList, TaskItem],
     content: props.content,
-    //TODO: only call when click save button
-    //TODO: SHOW SAVE BUTTON ON CHANGE content
     onUpdate: ({ editor }) => {
-      const updatedContent = editor.getHTML();
-      // setContent(updatedContent);
-      UpdateNote({ id: props.id, newContent: updatedContent });
+      setUpdateContent(editor.getHTML());
+      setContentChanged(true);
     },
   });
 
+  const saveChanges = () => {
+    setContentChanged(false);
+    UpdateNote({ id: props.id, newContent: updatedContent });
+    setUpdateContent("");
+  };
   return (
     <>
       <div className="note">
         <div className="note-header">
           <div className="note-header-left">
+            {contentChanged && (
+              <SaveLineIcon
+                color="var(--primary-muted-color)"
+                onClick={() => saveChanges()}
+              />
+            )}
             <h1 className="note-title">{props.title}</h1>
           </div>
 
@@ -95,6 +105,7 @@ function Note(props) {
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={handleMenuClose}
+                id="test"
               >
                 <MenuItem
                   onClick={() => {
@@ -133,11 +144,6 @@ function Note(props) {
         <div className="note-content">
           {editor && <EditorContent editor={editor} />}
         </div>
-
-        {/* <div
-          className="note-content"
-          dangerouslySetInnerHTML={{ __html: content }}
-        ></div> */}
 
         <div className="note-tags">
           {props.tags &&

@@ -83,3 +83,14 @@
   flex-direction: row;
   gap: 4px;
 }
+
+ul[role="menu"] {
+  background-color: var(--note-bg-color);
+  color: var(--text-color);
+  border: 0;
+}
+
+ul[role="menu"] li:hover {
+  background-color: var(--primary-muted-color);
+  color: black;
+}

@@ -21,8 +21,8 @@
     position: relative;
     margin: 0;
     cursor: pointer;
-    border: 0;
-    background: var(--b, var(--background));
+    border: 3px solid var(--b, var(--background));
+    background: transparent;
     transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
   }
   ul[data-type="taskList"] input[type="checkbox"]:after {
@@ -40,6 +40,8 @@
     --d-o: 0.3s;
     --d-t: 0.6s;
     --d-t-e: cubic-bezier(0.2, 0.85, 0.32, 1.2);
+    border: 0;
+    background: var(--b, var(--background));
   }
   ul[data-type="taskList"] input[type="checkbox"]:disabled {
     --b: var(--disabled);
