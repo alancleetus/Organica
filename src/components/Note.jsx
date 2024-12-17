@@ -3,7 +3,12 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { v4 as uuidv4 } from "uuid";
 import { styled } from "@mui/material/styles";
 import Badge from "@mui/material/Badge";
-import { UpdateNote, DeleteNote } from "../utils/notesCrud";
+import {
+  UpdateNote,
+  DeleteNote,
+  PinNote,
+  FavoriteNote,
+} from "../utils/notesCrud";
 import { useNavigate } from "react-router-dom";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { ListItem, Menu, MenuItem } from "@mui/material";
@@ -20,10 +25,16 @@ import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
 import { EditorProvider, useCurrentEditor, EditorContent } from "@tiptap/react";
 import TextStyle from "@tiptap/extension-text-style";
+import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
+import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
+import HeartLineIcon from "remixicon-react/HeartLineIcon";
+import HeartFillIcon from "remixicon-react/HeartFillIcon";
 
 function Note(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
+  const [isPinned, setIsPinned] = useState(props.isPinned);
+  const [isFavorite, setIsFavorite] = useState(props.isFavorite);
 
   // Menu handlers
   const handleFabClick = (event) => setAnchorEl(event.currentTarget); // Open menu
@@ -53,23 +64,68 @@ function Note(props) {
           <div className="note-header-left">
             <h1 className="note-title">{props.title}</h1>
           </div>
-          <div id="menuIcon">
-            <MoreHorizIcon onClick={handleFabClick} />
-            {/* Menu for FAB options */}
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-            >
-              <MenuItem onClick={() => navigate(`/note/${props.id}`)}>
-                <EditNote style={{ marginRight: "10px" }} />
-                Edit Note
-              </MenuItem>
-              <MenuItem onClick={() => DeleteNote(props.id, props.setNotes)}>
-                <DeleteIcon style={{ marginRight: "10px" }} />
-                Delete note
-              </MenuItem>
-            </Menu>
+
+          <div className="note-header-right">
+            {isFavorite && (
+              <HeartFillIcon
+                onClick={() => {
+                  setIsFavorite((prev) => {
+                    FavoriteNote({ id: props.id, isFavorite: !prev });
+                    return !prev;
+                  });
+                }}
+              />
+            )}
+            {isPinned && (
+              <PushpinFillIcon
+                onClick={() => {
+                  setIsPinned((prev) => {
+                    PinNote({ id: props.id, isPinned: !prev });
+                    return !prev;
+                  });
+                }}
+              />
+            )}
+            <div id="menuIcon">
+              <MoreHorizIcon onClick={handleFabClick} />
+              {/* Menu for FAB options */}
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+              >
+                <MenuItem
+                  onClick={() => {
+                    setIsFavorite((prev) => {
+                      FavoriteNote({ id: props.id, isFavorite: !prev });
+                      return !prev;
+                    });
+                  }}
+                >
+                  <HeartLineIcon style={{ marginRight: "10px" }} />
+                  Favorite Note
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setIsPinned((prev) => {
+                      PinNote({ id: props.id, isPinned: !prev });
+                      return !prev;
+                    });
+                  }}
+                >
+                  <PushpinLineIcon style={{ marginRight: "10px" }} />
+                  Pin Note
+                </MenuItem>
+                <MenuItem onClick={() => navigate(`/note/${props.id}`)}>
+                  <EditNote style={{ marginRight: "10px" }} />
+                  Edit Note
+                </MenuItem>
+                <MenuItem onClick={() => DeleteNote(props.id, props.setNotes)}>
+                  <DeleteIcon style={{ marginRight: "10px" }} />
+                  Delete note
+                </MenuItem>
+              </Menu>
+            </div>
           </div>
         </div>
         <div className="note-content">

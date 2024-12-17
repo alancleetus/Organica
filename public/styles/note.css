@@ -22,6 +22,11 @@
   gap: 10px;
   align-items: center; /* Align items to the top */
 }
+.note-header-right {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
 
 .note-badge-div {
   flex-grow: 2;
@@ -57,7 +62,7 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   scrollbar-width: thin;
-  color: var(--note-color);
+  color: var(--text-color);
 }
 .note-editor-content {
   overflow-y: scroll;

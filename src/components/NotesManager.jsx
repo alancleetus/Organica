@@ -130,7 +130,8 @@ function NotesManager({ theme, toggleTheme }) {
             title={note.title}
             date={formatTimestampToDate(note.creationDate)}
             content={note.content}
-            isList={note.isList}
+            isPinned={note.isPinned}
+            isFavorite={note.isFavorite}
             setNotes={setNotes}
             tags={note.tags}
             dueDateTime={note.dueDateTime}
