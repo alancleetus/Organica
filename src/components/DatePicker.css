@@ -143,6 +143,10 @@
   color: var(--today-text-color);
 }
 
+.day.today > .date {
+  text-decoration: underline;
+}
+
 .day.selected {
   background-color: var(--selected-inner-circle-bg);
   color: var(--selected-text-color);
@@ -187,9 +191,10 @@
   display: flex;
   overflow-x: auto;
   gap: 10px;
-  padding: 10px 0px;
+  padding: 10px 16px;
   flex-grow: 1;
   scroll-behavior: smooth;
+  margin: auto -16px;
 }
 
 .days-in-month::-webkit-scrollbar {

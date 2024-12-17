@@ -34,14 +34,29 @@
 /***********************************/
 .note-page-tag-selector {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  gap: 10px;
+  flex-grow: 0;
+}
+
+.tags-list {
+  display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  flex-grow: 0;
+}
+.add-tag-button {
+  display: flex;
+}
+.add-tag-button > input {
+  background-color: var(--note-bg-color);
+  color: var(--text-color);
+  border: none;
+  border-bottom: 1px solid var(--primary-color);
 }
 
 .tag-badge {
   background-color: var(--badge-bg-color);
+  color: black;
   padding: 2px 4px;
   border-radius: 3px;
   text-align: center;
@@ -51,7 +66,6 @@
 
 .tag-badge.active {
   background-color: var(--primary-muted-color);
-  color: black;
 }
 /***********************************/
 .editor-button-group {

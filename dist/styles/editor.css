@@ -32,10 +32,16 @@
 /***********************************/
 .note-page-tag-selector {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 10px;
-  flex-wrap: wrap;
-  flex-grow: 0;
+  flex-grow: 1;
+}
+
+.tags-list {
+  display: flex;
+}
+.add-tag-button {
+  display: flex;
 }
 
 .tag-badge {
