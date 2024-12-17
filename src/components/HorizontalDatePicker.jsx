@@ -4,7 +4,7 @@ import "./DatePicker.css"; // Optional for styling
 import ArrowLeftSFillIcon from "remixicon-react/ArrowLeftSFillIcon";
 import ArrowRightSFillIcon from "remixicon-react/ArrowRightSFillIcon";
 
-const HorizontalDatePicker = () => {
+const HorizontalDatePicker = ({ onDateChange }) => {
   const today = new Date();
   const [selectedDate, setSelectedDate] = useState(today);
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
@@ -48,6 +48,10 @@ const HorizontalDatePicker = () => {
 
   const handleMonthChange = (event) => {
     setSelectedMonth(parseInt(event.target.value, 10));
+    onDateChange &&
+      onDateChange(
+        new Date(year, month + 1, parseInt(event.target.value, 10)).getDate()
+      );
   };
 
   const handleYearChange = (event) => {
@@ -122,7 +126,7 @@ const HorizontalDatePicker = () => {
         </select>
       </div>
       {/* Day Picker with Arrows */}
-      <div className="days-navigation">
+      {/* <div className="days-navigation">
         <button className="scroll-arrow " onClick={() => scrollDays("left")}>
           <ArrowLeftSFillIcon />
         </button>
@@ -130,7 +134,7 @@ const HorizontalDatePicker = () => {
         <button className="scroll-arrow " onClick={() => scrollDays("right")}>
           <ArrowRightSFillIcon />
         </button>
-      </div>
+      </div> */}
       <div className="days-in-month" ref={daysContainerRef}>
         {daysInMonth.map((date) => (
           <div

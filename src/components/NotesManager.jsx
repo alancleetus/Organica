@@ -98,7 +98,9 @@ function NotesManager({ theme, toggleTheme }) {
     <div className="page-body">
       <AddNoteFab user={user} />
       <Header toggleTheme={toggleTheme} theme={theme} />
-      <HorizontalDatePicker />
+      <HorizontalDatePicker
+        onDateChange={(date) => console.log("date:", date)}
+      />
 
       <div className="sectioned-div">
         <div className="section-title">
