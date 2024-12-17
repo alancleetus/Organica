@@ -102,7 +102,7 @@ function EditNote({ theme, toggleTheme }) {
         id,
         newTitle: editedTitle,
         newContent: editorContent,
-        tags: activeTags.map((tag) => tag.tagName),
+        tags: activeTags,
         reminderDateTime,
         dueDateTime,
       }); // Wait for the update to finish
@@ -225,7 +225,10 @@ function EditNote({ theme, toggleTheme }) {
         </div>
 
         <div className="note-page-editor">
-          <TipTapEditor setEditorContent={setEditorContent} />
+          <TipTapEditor
+            setEditorContent={setEditorContent}
+            initialContent={editorContent}
+          />
         </div>
       </div>
 

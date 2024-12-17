@@ -62,7 +62,7 @@ function AddNote() {
       user,
       title: editedTitle,
       content: editorContent,
-      tags: activeTags.map((tag) => tag.tagName),
+      tags: activeTags,
       reminderDateTime,
       dueDateTime,
     }).then(() => {

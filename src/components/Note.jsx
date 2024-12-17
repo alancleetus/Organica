@@ -50,6 +50,8 @@ function Note(props) {
     },
     extensions: [StarterKit, TaskList, TaskItem],
     content: props.content,
+    //TODO: only call when click save button
+    //TODO: SHOW SAVE BUTTON ON CHANGE content
     onUpdate: ({ editor }) => {
       const updatedContent = editor.getHTML();
       // setContent(updatedContent);
@@ -154,35 +156,41 @@ function Note(props) {
             ))}
         </div>
         <div className="note-date">
-          <p className="date-time-text">{props.date}</p>
-          {props.dueDateTime && (
-            <p className="date-time-text">
-              <TimeLineIcon className="IconButton" />
-              {props.dueDateTime
-                ? props.dueDateTime.toDate().toLocaleString("en-US", {
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "numeric",
-                    minute: "numeric",
-                    hour12: true,
-                  })
-                : "No Due Date"}
-            </p>
+          {!props.reminderDateTime && !props.dueDateTime && (
+            <p className="date-time-text">{props.date}</p>
           )}
-          {props.reminderDateTime && (
-            <p className="date-time-text">
-              <NotificationLineIcon className="IconButton" />
-              {props.reminderDateTime
-                ? props.reminderDateTime.toDate().toLocaleString("en-US", {
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "numeric",
-                    minute: "numeric",
-                    hour12: true,
-                  })
-                : "No Reminder Date"}
-            </p>
-          )}
+
+          <div className="date-inner-container">
+            {props.reminderDateTime && (
+              <p className="date-time-text">
+                <NotificationLineIcon className="IconButton" />
+                {props.reminderDateTime
+                  ? props.reminderDateTime.toDate().toLocaleString("en-US", {
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "numeric",
+                      minute: "numeric",
+                      hour12: false,
+                    })
+                  : "No Reminder Date"}
+              </p>
+            )}
+
+            {props.dueDateTime && (
+              <p className="date-time-text">
+                <TimeLineIcon className="IconButton" />
+                {props.dueDateTime
+                  ? props.dueDateTime.toDate().toLocaleString("en-US", {
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "numeric",
+                      minute: "numeric",
+                      hour12: false,
+                    })
+                  : "No Due Date"}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </>
