@@ -52,7 +52,7 @@ export const CreateNote = async ({
   }
 };
 
-export const PinNote = async (id, isPinned, setNotes) => {
+export const PinNote = async ({ id, isPinned }) => {
   try {
     const noteRef = doc(db, "notes", id); // Get the document reference
     const currentNote = await getDoc(noteRef); // Fetch the current note data
@@ -67,17 +67,17 @@ export const PinNote = async (id, isPinned, setNotes) => {
       modifiedDate: Date.now(), // Update the modified date
     });
 
-    setNotes((prevNotes) =>
-      prevNotes.map((note) =>
-        note.id === id ? { ...note, isPinned, modifiedDate: Date.now() } : note
-      )
-    );
+    // setNotes((prevNotes) =>
+    //   prevNotes.map((note) =>
+    //     note.id === id ? { ...note, isPinned, modifiedDate: Date.now() } : note
+    //   )
+    // );
     console.log(`Note ${id} is ${isPinned ? "pinned" : "unpinned"}`);
   } catch (error) {
     console.error("Error pinning/unpinning note:", error);
   }
 };
-export const FavoriteNote = async (id, isFavorite, setNotes) => {
+export const FavoriteNote = async ({ id, isFavorite }) => {
   try {
     const noteRef = doc(db, "notes", id); // Get the document reference
     const currentNote = await getDoc(noteRef); // Fetch the current note data
@@ -92,13 +92,6 @@ export const FavoriteNote = async (id, isFavorite, setNotes) => {
       modifiedDate: Date.now(), // Update the modified date
     });
 
-    setNotes((prevNotes) =>
-      prevNotes.map((note) =>
-        note.id === id
-          ? { ...note, isFavorite, modifiedDate: Date.now() }
-          : note
-      )
-    );
     console.log(`Note ${id} is ${isFavorite ? "favorited" : "unfavorited"}`);
   } catch (error) {
     console.error("Error favoriting/unfavoriting note:", error);
