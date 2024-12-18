@@ -48,6 +48,7 @@
   --font-size-normal: 16px;
 
   --note-color: var(--dark-gray);
+  --editor-input-bg-color: hsl(0, 0%, 96%);
 }
 
 [data-theme="dark"] {
@@ -65,6 +66,8 @@
   --badge-color: #fff;
   --badge-bg-color: #667485;
   --note-color: var(--light-gray);
+
+  --editor-input-bg-color: hsl(224, 16%, 16%);
 }
 
 * {

@@ -59,13 +59,15 @@
   flex-grow: 2;
   font-size: 0.95em;
   margin-bottom: 10px;
-  white-space: pre-wrap;
-  word-wrap: break-word;
   scrollbar-width: thin;
   color: var(--text-color);
+  white-space: pre-wrap; /* Preserve whitespace and wrap text */
+  word-wrap: break-word; /* Break long words */
+  overflow-wrap: break-word; /* Modern equivalent */
+  word-break: break-word; /* Ensure URLs break properly */
 }
 .note-editor-content {
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 .note-date {
   align-self: flex-end; /* Align at the bottom */
