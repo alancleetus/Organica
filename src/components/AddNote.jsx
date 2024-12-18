@@ -188,6 +188,46 @@ function AddNote() {
               placeholder="Add a tag"
               disabled={isLoading}
             />
+            <button
+              className="add-tag-plus-button"
+              onClick={async () => {
+                if (tagInput.trim() !== "") {
+                  const trimmedInput = tagInput.trim();
+
+                  // Check if tag already exists
+                  const existingTag = tags.find(
+                    (tag) =>
+                      tag.tagName.toLowerCase() === trimmedInput.toLowerCase()
+                  );
+
+                  if (existingTag) {
+                    // Add existing tag to activeTags
+                    handleTagClick(existingTag.tagName);
+                  } else if (user) {
+                    // Create a new tag
+                    setIsLoading(true);
+                    try {
+                      const newTag = await CreateTag({
+                        userId: user.uid,
+                        tagName: trimmedInput,
+                        tagColor: generateColorForTag(trimmedInput),
+                      });
+
+                      setTags((prevTags) => [...prevTags, newTag]);
+                      handleTagClick(newTag);
+                    } catch (error) {
+                      console.error("Error creating tag:", error);
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }
+                  setTagInput(""); // Clear input
+                }
+              }}
+              disabled={isLoading}
+            >
+              <AddLineIcon />
+            </button>
             {isLoading && <p>Loading...</p>}
           </div>
         </div>
