@@ -52,7 +52,7 @@ export const CreateNote = async ({
   }
 };
 
-export const PinNote = async ({ id, isPinned }) => {
+export const PinNote = async (id, isPinned, setNotes) => {
   try {
     const noteRef = doc(db, "notes", id); // Get the document reference
     const currentNote = await getDoc(noteRef); // Fetch the current note data
@@ -67,11 +67,11 @@ export const PinNote = async ({ id, isPinned }) => {
       modifiedDate: Date.now(), // Update the modified date
     });
 
-    // setNotes((prevNotes) =>
-    //   prevNotes.map((note) =>
-    //     note.id === id ? { ...note, isPinned, modifiedDate: Date.now() } : note
-    //   )
-    // );
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === id ? { ...note, isPinned, modifiedDate: Date.now() } : note
+      )
+    );
     console.log(`Note ${id} is ${isPinned ? "pinned" : "unpinned"}`);
   } catch (error) {
     console.error("Error pinning/unpinning note:", error);

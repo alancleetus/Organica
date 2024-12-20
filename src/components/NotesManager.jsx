@@ -10,19 +10,15 @@ import { formatTimestampToDate } from "../utils/formatTimestampToDate.js";
 import Sorter from "./Sorter";
 import HorizontalDatePicker from "./HorizontalDatePicker";
 import { FetchTagsByUser } from "../utils/tagsCrud.jsx";
+
 function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const [sortingMethod, setSortingMethod] = useState("title");
   const [fetchedTags, setFetchedTags] = useState([]);
-  useEffect(() => {
-    if (user) {
-      FetchTagsByUser(user.uid)
-        .then((fetchedTags) => setFetchedTags(fetchedTags))
-        .catch((error) => console.error("Error fetching tags:", error));
-    }
-  }, [user]);
+  const [isAscending, setIsAscending] = useState(true); // Default to ascending
+  const [sortedNotes, setSortedNotes] = useState([]);
 
   /****  Redirect to login if not authenticated ****/
   useEffect(() => {
@@ -38,7 +34,16 @@ function NotesManager({ theme, toggleTheme }) {
     return () => unsubscribe();
   }, [navigate]);
 
-  /*****  Fetch notes from Firestore when the component mounts *****/
+  /*****  Fetch tags when user is authenticated *****/
+  useEffect(() => {
+    if (user) {
+      FetchTagsByUser(user.uid)
+        .then((fetchedTags) => setFetchedTags(fetchedTags))
+        .catch((error) => console.error("Error fetching tags:", error));
+    }
+  }, [user]);
+
+  /*****  Fetch notes when the component mounts *****/
   useEffect(() => {
     const getNotes = async () => {
       if (user) {
@@ -56,52 +61,65 @@ function NotesManager({ theme, toggleTheme }) {
       if (user) {
         const fetchedNotes = await fetchNotes(user);
         setNotes(fetchedNotes || []); // Update notes when navigating back to /main
-
-        console.log("Fetch notes:", fetchedNotes);
       }
     };
 
     getNotes();
   }, [user, navigate]); // Dependency on `navigate` ensures the fetch is triggered on route change
 
-  const handleSortingChange = (newMethod) => {
-    setSortingMethod(newMethod);
-    sortNotes(sortedNotes);
-  };
-  const [isAscending, setIsAscending] = useState(true); // Default to ascending
+  /***** Sorting Mechanism *****/
   const sortNotes = (method) => {
-    if (!Array.isArray(notes)) return []; // Guard against invalid `notes`
+    if (!Array.isArray(notes)) return []; // Ensure `notes` is valid
 
-    const sortedNotes = [...notes]; // Make a copy
+    const sorted = [...notes];
+
+    // Sort by the selected method
     switch (method) {
       case "title":
-        sortedNotes.sort((a, b) => a.title.localeCompare(b.title));
+        sorted.sort((a, b) => a.title.localeCompare(b.title));
+        break;
       case "creationDT":
-        sortedNotes.sort(
+        sorted.sort(
           (a, b) => new Date(a.creationDate) - new Date(b.creationDate)
         );
+        break;
       case "modifiedDT":
-        sortedNotes.sort(
+        sorted.sort(
           (a, b) => new Date(a.modifiedDate) - new Date(b.modifiedDate)
         );
+        break;
       case "dueDT":
-        sortedNotes.sort(
+        sorted.sort(
           (a, b) => new Date(a.dueDateTime) - new Date(b.dueDateTime)
         );
+        break;
       case "reminderDT":
-        sortedNotes.sort(
+        sorted.sort(
           (a, b) => new Date(a.reminderDateTime) - new Date(b.reminderDateTime)
         );
+        break;
       default:
-        sortedNotes;
+        break;
     }
 
-    return isAscending ? sortedNotes : sortedNotes.reverse();
+    if (!isAscending) sorted.reverse();
+    sorted.sort((a, b) => b.isPinned - a.isPinned);
+
+    return sorted;
   };
+
+  const handleSortingChange = (newMethod) => {
+    setSortingMethod(newMethod);
+    setSortedNotes(sortNotes(newMethod));
+  };
+
   const toggleSortDirection = () => {
     setIsAscending((prev) => !prev);
   };
-  const sortedNotes = sortNotes(sortingMethod);
+
+  useEffect(() => {
+    setSortedNotes(sortNotes(sortingMethod));
+  }, [notes, sortingMethod, isAscending]);
 
   return (
     <div className="page-body">

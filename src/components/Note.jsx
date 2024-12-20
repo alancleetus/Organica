@@ -92,9 +92,10 @@ function Note(props) {
               <PushpinFillIcon
                 onClick={() => {
                   setIsPinned((prev) => {
-                    PinNote({ id: props.id, isPinned: !prev });
+                    PinNote(props.id, !prev, props.setNotes);
                     return !prev;
                   });
+                  handleMenuClose();
                 }}
               />
             )}
@@ -121,9 +122,10 @@ function Note(props) {
                 <MenuItem
                   onClick={() => {
                     setIsPinned((prev) => {
-                      PinNote({ id: props.id, isPinned: !prev });
+                      PinNote(props.id, !prev, props.setNotes);
                       return !prev;
                     });
+                    handleMenuClose();
                   }}
                 >
                   <PushpinLineIcon style={{ marginRight: "10px" }} />
