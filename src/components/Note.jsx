@@ -147,19 +147,22 @@ function Note(props) {
 
         <div className="note-tags">
           {props.tags &&
-            props.tags.map((tag, index) => (
-              <p
-                key={index}
-                className={"tag-badge"}
-                style={{
-                  backgroundColor: generateColorForTag(tag),
-                  color: "black",
-                  cursor: "default",
-                }}
-              >
-                {tag}
-              </p>
-            ))}
+            props.tags.map((tagId, index) => {
+              const tag = props.fetchedTags.find((t) => t.id === tagId);
+              return tag ? (
+                <p
+                  key={index}
+                  className="tag-badge"
+                  style={{
+                    backgroundColor: tag.tagColor,
+                    color: "black",
+                    cursor: "default",
+                  }}
+                >
+                  {tag.tagName}
+                </p>
+              ) : null;
+            })}
         </div>
         <div className="note-date">
           {!props.reminderDateTime && !props.dueDateTime && (

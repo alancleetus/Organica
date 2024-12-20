@@ -74,14 +74,14 @@ function AddNote() {
     navigate("/main"); // Redirect without saving
   };
 
-  const handleTagClick = (tag) => {
+  const handleTagClick = (tagId) => {
     setActiveTags((prevTags) => {
-      if (prevTags.includes(tag)) {
+      if (prevTags.includes(tagId)) {
         // If the tag is already active, remove it
-        return prevTags.filter((t) => t !== tag);
+        return prevTags.filter((id) => id !== tagId);
       } else {
         // If the tag is not active, add it
-        return [...prevTags, tag];
+        return [...prevTags, tagId];
       }
     });
   };
@@ -89,7 +89,6 @@ function AddNote() {
   const handleTagInputChange = (e) => {
     setTagInput(e.target.value);
   };
-
   const handleTagInputKeyDown = async (e) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
       const trimmedInput = tagInput.trim();
@@ -100,8 +99,8 @@ function AddNote() {
       );
 
       if (existingTag) {
-        // Add existing tag to activeTags
-        handleTagClick(existingTag);
+        // Add existing tag's id to activeTags
+        handleTagClick(existingTag.id);
       } else if (user) {
         // Create a new tag
         setIsLoading(true);
@@ -113,7 +112,7 @@ function AddNote() {
           });
 
           setTags((prevTags) => [...prevTags, newTag]);
-          handleTagClick(newTag);
+          handleTagClick(newTag.id); // Add new tag's id to activeTags
         } catch (error) {
           console.error("Error creating tag:", error);
         } finally {
@@ -123,7 +122,6 @@ function AddNote() {
       setTagInput(""); // Clear input
     }
   };
-
   useEffect(() => {
     const updateHeight = () => {
       const vh = window.innerHeight * 0.01;
@@ -164,13 +162,11 @@ function AddNote() {
               <p
                 key={tag.id}
                 className={
-                  activeTags.includes(tag.tagName)
-                    ? "tag-badge active"
-                    : "tag-badge"
+                  activeTags.includes(tag.id) ? "tag-badge active" : "tag-badge"
                 }
-                onClick={() => handleTagClick(tag.tagName)}
+                onClick={() => handleTagClick(tag.id)}
                 style={{
-                  backgroundColor: activeTags.includes(tag.tagName)
+                  backgroundColor: activeTags.includes(tag.id)
                     ? tag.tagColor
                     : "#ccc",
                 }}
@@ -201,8 +197,8 @@ function AddNote() {
                   );
 
                   if (existingTag) {
-                    // Add existing tag to activeTags
-                    handleTagClick(existingTag.tagName);
+                    // Add existing tag's id to activeTags
+                    handleTagClick(existingTag.id);
                   } else if (user) {
                     // Create a new tag
                     setIsLoading(true);
@@ -214,7 +210,7 @@ function AddNote() {
                       });
 
                       setTags((prevTags) => [...prevTags, newTag]);
-                      handleTagClick(newTag);
+                      handleTagClick(newTag.id); // Add new tag's id to activeTags
                     } catch (error) {
                       console.error("Error creating tag:", error);
                     } finally {

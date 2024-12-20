@@ -9,11 +9,20 @@ import { fetchNotes } from "../utils/fetchNotes.js";
 import { formatTimestampToDate } from "../utils/formatTimestampToDate.js";
 import Sorter from "./Sorter";
 import HorizontalDatePicker from "./HorizontalDatePicker";
+import { FetchTagsByUser } from "../utils/tagsCrud.jsx";
 function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const [sortingMethod, setSortingMethod] = useState("title");
+  const [fetchedTags, setFetchedTags] = useState([]);
+  useEffect(() => {
+    if (user) {
+      FetchTagsByUser(user.uid)
+        .then((fetchedTags) => setFetchedTags(fetchedTags))
+        .catch((error) => console.error("Error fetching tags:", error));
+    }
+  }, [user]);
 
   /****  Redirect to login if not authenticated ****/
   useEffect(() => {
@@ -134,6 +143,7 @@ function NotesManager({ theme, toggleTheme }) {
             isFavorite={note.isFavorite}
             setNotes={setNotes}
             tags={note.tags}
+            fetchedTags={fetchedTags}
             dueDateTime={note.dueDateTime}
             reminderDateTime={note.reminderDateTime}
           />

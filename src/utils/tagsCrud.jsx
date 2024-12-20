@@ -22,7 +22,7 @@ export const CreateTag = async ({ userId, tagName, tagColor }) => {
   }
 
   const tag = {
-    id: uuidv4(),
+    id: uuidv4(), // Generate a unique ID for the tag
     userId, // Link the tag to the user
     tagName,
     tagColor,
@@ -31,9 +31,9 @@ export const CreateTag = async ({ userId, tagName, tagColor }) => {
   };
 
   try {
-    const docRef = await addDoc(tagsCollection, tag);
+    const docRef = await addDoc(tagsCollection, tag); // Save to Firestore
     console.log("Created tag:", { ...tag, id: docRef.id });
-    return { ...tag, id: docRef.id };
+    return { ...tag, id: docRef.id }; // Return tag with Firestore-generated ID
   } catch (error) {
     console.error("Error creating tag:", error);
   }

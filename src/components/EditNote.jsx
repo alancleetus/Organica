@@ -14,6 +14,7 @@ import { generateColorForTag } from "../utils/generateColorForTag";
 import { CreateTag, FetchTagsByUser } from "../utils/tagsCrud";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./Firebase";
+import AddLineIcon from "remixicon-react/AddLineIcon";
 
 function EditNote({ theme, toggleTheme }) {
   const { id } = useParams();
@@ -44,6 +45,12 @@ function EditNote({ theme, toggleTheme }) {
     return () => unsubscribe();
   }, [navigate]);
 
+  useEffect(() => {
+    console.log("tags", tags);
+  }, [tags]);
+  useEffect(() => {
+    console.log("activeTags", activeTags);
+  }, [activeTags]);
   useEffect(() => {
     const fetchNote = async () => {
       const fetchedNote = await ReadNoteById(id);
@@ -102,25 +109,24 @@ function EditNote({ theme, toggleTheme }) {
         id,
         newTitle: editedTitle,
         newContent: editorContent,
-        tags: activeTags,
+        tags: activeTags, // Save activeTags as IDs
         reminderDateTime,
         dueDateTime,
-      }); // Wait for the update to finish
+      });
       navigate("/main"); // Redirect back to main page
     } catch (error) {
       console.error("Error updating note:", error);
-      // Handle the error (e.g., show a toast notification)
     }
   };
 
-  const handleTagClick = (tag) => {
+  const handleTagClick = (tagId) => {
     setActiveTags((prevTags) => {
-      if (prevTags.includes(tag)) {
+      if (prevTags.includes(tagId)) {
         // If the tag is already active, remove it
-        return prevTags.filter((t) => t !== tag);
+        return prevTags.filter((id) => id !== tagId);
       } else {
         // If the tag is not active, add it
-        return [...prevTags, tag];
+        return [...prevTags, tagId];
       }
     });
   };
@@ -140,7 +146,7 @@ function EditNote({ theme, toggleTheme }) {
 
       if (existingTag) {
         // Add existing tag to activeTags
-        handleTagClick(existingTag);
+        handleTagClick(existingTag.id);
       } else if (user) {
         // Create a new tag
         setIsLoading(true);
@@ -152,7 +158,7 @@ function EditNote({ theme, toggleTheme }) {
           });
 
           setTags((prevTags) => [...prevTags, newTag]);
-          handleTagClick(newTag);
+          handleTagClick(newTag.id);
         } catch (error) {
           console.error("Error creating tag:", error);
         } finally {
@@ -162,6 +168,7 @@ function EditNote({ theme, toggleTheme }) {
       setTagInput(""); // Clear input
     }
   };
+
   const handleCancelClick = () => {
     navigate("/main"); // Redirect without saving
   };
@@ -200,9 +207,9 @@ function EditNote({ theme, toggleTheme }) {
                     ? "tag-badge active"
                     : "tag-badge"
                 }
-                onClick={() => handleTagClick(tag.tagName)}
+                onClick={() => handleTagClick(tag.id)}
                 style={{
-                  backgroundColor: activeTags.includes(tag.tagName)
+                  backgroundColor: activeTags.includes(tag.id)
                     ? tag.tagColor
                     : "#ccc",
                 }}
@@ -220,6 +227,46 @@ function EditNote({ theme, toggleTheme }) {
               placeholder="Add a tag"
               disabled={isLoading}
             />
+            <button
+              className="add-tag-plus-button"
+              onClick={async () => {
+                if (tagInput.trim() !== "") {
+                  const trimmedInput = tagInput.trim();
+
+                  // Check if tag already exists
+                  const existingTag = tags.find(
+                    (tag) =>
+                      tag.tagName.toLowerCase() === trimmedInput.toLowerCase()
+                  );
+
+                  if (existingTag) {
+                    // Add existing tag's id to activeTags
+                    handleTagClick(existingTag.id);
+                  } else if (user) {
+                    // Create a new tag
+                    setIsLoading(true);
+                    try {
+                      const newTag = await CreateTag({
+                        userId: user.uid,
+                        tagName: trimmedInput,
+                        tagColor: generateColorForTag(trimmedInput),
+                      });
+
+                      setTags((prevTags) => [...prevTags, newTag]);
+                      handleTagClick(newTag.id); // Add new tag's id to activeTags
+                    } catch (error) {
+                      console.error("Error creating tag:", error);
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }
+                  setTagInput(""); // Clear input
+                }
+              }}
+              disabled={isLoading}
+            >
+              <AddLineIcon />
+            </button>
             {isLoading && <p>Loading...</p>}
           </div>
         </div>
