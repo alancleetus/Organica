@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./components/App";
-import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import { register } from "./serviceWorkerRegistration";
 
 import "../public/styles/styles.css";
 import "../public/styles/badge.css";
@@ -29,4 +29,4 @@ root.render(
 );
 
 // Register the service worker
-serviceWorkerRegistration.register();
+register();

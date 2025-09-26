@@ -1,5 +1,5 @@
 const CACHE_NAME = "organica-cache-v1";
-const urlsToCache = ["/", "/index.html", "/static/js/bundle.js"];
+const urlsToCache = ["/", "/index.html", "/manifest.json"];
 
 // Install a service worker
 self.addEventListener("install", (event) => {
