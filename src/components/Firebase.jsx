@@ -6,7 +6,12 @@ import {
   CACHE_SIZE_UNLIMITED,
   enableIndexedDbPersistence,
 } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+} from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -41,5 +46,5 @@ enableIndexedDbPersistence(db).catch((err) => {
 
 // Initialize Authentication
 const auth = getAuth(app);
-
+setPersistence(auth, browserLocalPersistence).catch(console.error);
 export { db, auth };
