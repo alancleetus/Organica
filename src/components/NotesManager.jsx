@@ -149,7 +149,7 @@ function NotesManager({ theme, toggleTheme }) {
         />
       </div>
 
-      <div id="notes-grid">
+      <div className="notes-masonry">
         {sortedNotes.map((note) => (
           <Note
             key={note.id}
