@@ -1,38 +1,55 @@
-const CACHE_NAME = "organica-cache-v1";
-const urlsToCache = ["/", "/index.html", "/manifest.json"];
+const CACHE_NAME = "organica-cache-v3";
+const APP_SHELL = ["/", "/index.html", "/manifest.json"];
 
-// Install a service worker
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
-    })
-  );
+  self.skipWaiting();
+  event.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(APP_SHELL)));
 });
 
-// Cache and return requests
-self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then(() => {
-      return fetch(event.request).catch(() => caches.match("offline.html"));
-    })
-  );
-});
-
-// Update a service worker
 self.addEventListener("activate", (event) => {
-  const cacheWhitelist = [];
-  cacheWhitelist.push(CACHE_NAME);
-
   event.waitUntil(
-    caches.keys().then((cacheNames) =>
-      Promise.all(
-        cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            return caches.delete(cacheName);
-          }
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null))
+      );
+      await self.clients.claim();
+    })()
+  );
+});
+
+// Network-first for navigations (index.html), cache-first for assets
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+
+  // HTML navigations
+  if (req.mode === "navigate") {
+    event.respondWith(
+      (async () => {
+        try {
+          const net = await fetch(req);
+          const cache = await caches.open(CACHE_NAME);
+          cache.put("/", net.clone());
+          return net;
+        } catch (e) {
+          const cache = await caches.open(CACHE_NAME);
+          return (await cache.match("/")) || Response.error();
+        }
+      })()
+    );
+    return;
+  }
+
+  // Assets: cache-first
+  event.respondWith(
+    caches.match(req).then(
+      (cached) =>
+        cached ||
+        fetch(req).then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((c) => c.put(req, copy));
+          return res;
         })
-      )
     )
   );
 });
