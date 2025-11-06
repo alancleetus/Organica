@@ -96,3 +96,42 @@ ul[role="menu"] li:hover {
   background-color: var(--primary-muted-color);
   color: black;
 }
+
+/* Masonry container */
+.notes-masonry {
+  column-gap: 16px; /* space between columns */
+  column-count: 1; /* default: 1 column on mobile */
+}
+
+/* Responsive column counts */
+@media (min-width: 640px) {
+  .notes-masonry {
+    column-count: 2;
+  }
+}
+@media (min-width: 900px) {
+  .notes-masonry {
+    column-count: 3;
+  }
+}
+@media (min-width: 1200px) {
+  .notes-masonry {
+    column-count: 4;
+  }
+}
+
+/* Note card inside masonry */
+.note-card {
+  display: inline-block; /* required to flow inside columns */
+  width: 100%;
+  margin: 0 0 16px; /* vertical spacing between notes */
+  break-inside: avoid; /* prevent breaking across columns */
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+
+  background: var(--note-bg-color);
+  border-radius: 7px;
+  box-shadow: 0 2px 5px var(--note-shadow-color);
+  padding: 10px;
+  transition: all 0.3s ease-in-out;
+}

@@ -65,7 +65,7 @@ function Note(props) {
   };
   return (
     <>
-      <div className="note">
+      <article className="note-card">
         <div className="note-header">
           <div className="note-header-left">
             {contentChanged && (
@@ -203,7 +203,7 @@ function Note(props) {
             )}
           </div>
         </div>
-      </div>
+      </article>
     </>
   );
 }
