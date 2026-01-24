@@ -36,6 +36,18 @@ let App = () => {
   return (
     <Router>
       <AuthProvider>
+
+        <ToastContainer
+          position="bottom-center"
+          autoClose={3000}
+          newestOnTop
+          closeOnClick
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          style={{ zIndex: 99999 }}
+        />
+        
         <Routes>
           <Route element={<PublicOnlyRoute />}>
             <Route
