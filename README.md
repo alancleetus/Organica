@@ -53,6 +53,42 @@ A refined version of the original Keeper-App, built after months of real-world u
   - **App.js**: Main application component.
   - **index.js**: Entry point of the application.
 
+## Automated Testing
+
+This project includes a production-style end-to-end (E2E) test suite built with Playwright to validate critical user flows against a real application backed by Firebase.
+
+### Testing Approach
+- **Framework:** Playwright
+- **Test Type:** End-to-end (UI-driven)
+- **Auth Provider:** Firebase Authentication (test-only user)
+- **Data Store:** Firestore (tests create and clean up their own data)
+
+### Coverage
+**Authentication & Routing**
+- Successful login redirects authenticated users to `/main`
+- Invalid login attempts surface error feedback
+- Route guards enforce access rules:
+  - Unauthenticated users are redirected from protected routes
+  - Authenticated users are redirected away from public-only routes
+
+**Core Application Flows**
+- Create, edit, and delete notes
+- Verify persisted data is rehydrated after page refresh
+- Validate UI behavior across authenticated sessions
+
+### Test Design Considerations
+- Stable selectors are implemented using `data-testid` on interactive elements
+- Material UI inputs expose test hooks via underlying input props for reliability
+- Test data uses unique prefixes to avoid collisions and ensure isolation
+- Cleanup is performed within tests to keep the Firestore database clean
+
+### Running Tests Locally
+```bash
+npx playwright install
+npx playwright test
+npx playwright show-report
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
