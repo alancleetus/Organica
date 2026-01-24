@@ -22,7 +22,7 @@ const Login = ({ toggleTheme, theme }) => {
       toast.success("Login Successful!", {
         position: "top-center",
       });
-      window.location.href = "/main";
+      navigate("/main")
     } catch (error) {
       toast.error(error.message, { position: "bottom-center" });
     }
@@ -68,6 +68,7 @@ const Login = ({ toggleTheme, theme }) => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="custom-textfield"
+                  inputProps={{'data-testid': 'login-username',}}               
                 />
               </Box>
               <Box mb={2}>
@@ -80,6 +81,7 @@ const Login = ({ toggleTheme, theme }) => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="custom-textfield"
                   required
+                  inputProps={{'data-testid': 'login-password',}}  
                 />
               </Box>
               <Button
@@ -87,6 +89,7 @@ const Login = ({ toggleTheme, theme }) => {
                 type="submit"
                 variant="contained"
                 color="primary"
+                data-testid="login-submit"
               >
                 Login
               </Button>
