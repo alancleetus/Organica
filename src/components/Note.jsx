@@ -128,16 +128,16 @@ function Note(props) {
                     });
                     handleMenuClose();
                   }}
-                  inputProps={{ 'data-testid': 'note-card-menu-pin-button' }}
+                   data-testid="note-card-menu-pin-button"
                 >
                   <PushpinLineIcon style={{ marginRight: "10px" }} />
                   Pin Note
                 </MenuItem>
-                <MenuItem inputProps={{ 'data-testid': 'note-card-menu-edit-button' }} onClick={() => navigate(`/note/${props.id}`)}>
+                <MenuItem data-testid="note-card-menu-edit-button"  onClick={() => navigate(`/edit/${props.id}`)}>
                   <EditNote style={{ marginRight: "10px" }} />
                   Edit Note
                 </MenuItem>
-                <MenuItem inputProps={{ 'data-testid': 'note-card-menu-delete-button' }} onClick={() => DeleteNote(props.id, props.setNotes)}>
+                <MenuItem data-testid="note-card-menu-delete-button"  onClick={() => DeleteNote(props.id, props.setNotes)}>
                   <DeleteIcon style={{ marginRight: "10px" }} />
                   Delete note
                 </MenuItem>
@@ -145,7 +145,7 @@ function Note(props) {
             </div>
           </div>
         </div>
-        <div className="note-content" inputProps={{ 'data-testid': 'note-card-content' }}>
+        <div className="note-content" data-testid="note-card-content">
           {editor && <EditorContent editor={editor} />}
         </div>
 

@@ -87,6 +87,7 @@ function Header({ toggleTheme, theme }) {
           handleLogout();
           window.location.href = "/login";
         }}
+        data-testid="logout-button"
       >
         <LogoutBoxRLineIcon />
       </button>

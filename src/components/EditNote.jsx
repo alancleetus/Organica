@@ -183,7 +183,7 @@ function EditNote({ theme, toggleTheme }) {
   return (
     <div className="note-page">
       <div className="note-page-header">
-        <button className="note-page-back-button" onClick={handleCancelClick}>
+        <button className="note-page-back-button" onClick={handleCancelClick} data-testid="edit-note-cancel">
           <ArrowLeftSLineIcon />
         </button>
         <input
@@ -192,6 +192,7 @@ function EditNote({ theme, toggleTheme }) {
           value={editedTitle}
           onChange={(e) => setEditedTitle(e.target.value)}
           placeholder="New Task"
+          data-testid="edit-note-title"
         />
       </div>
 
@@ -308,6 +309,7 @@ function EditNote({ theme, toggleTheme }) {
           onClick={handleSaveClick}
           className="notes-page-save-button"
           variant="contained"
+          data-testid="edit-note-save"
         >
           Save Note
         </button>
