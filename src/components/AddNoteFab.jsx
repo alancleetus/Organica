@@ -12,6 +12,7 @@ function AddNoteFab() {
         aria-label="add"
         onClick={() => navigate(`/note/`)}
         id="create-note-fab"
+        data-testid="add-note-fab"
       >
         <AddIcon />
       </Fab>

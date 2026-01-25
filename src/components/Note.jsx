@@ -72,6 +72,7 @@ function Note(props) {
               <SaveLineIcon
                 color="var(--primary-muted-color)"
                 onClick={() => saveChanges()}
+                inputProps={{ 'data-testid': 'note-card-save' }}
               />
             )}
             <h1 className="note-title">{props.title}</h1>
@@ -99,7 +100,7 @@ function Note(props) {
                 }}
               />
             )}
-            <div id="menuIcon">
+            <div id="menuIcon"  data-testid= "note-card-menu-button" >
               <MoreHorizIcon onClick={handleFabClick} />
               {/* Menu for FAB options */}
               <Menu
@@ -108,7 +109,7 @@ function Note(props) {
                 onClose={handleMenuClose}
                 id="test"
               >
-                <MenuItem
+                <MenuItem inputProps={{ 'data-testid': 'note-card-menu-favorite-button' }}
                   onClick={() => {
                     setIsFavorite((prev) => {
                       FavoriteNote({ id: props.id, isFavorite: !prev });
@@ -127,15 +128,16 @@ function Note(props) {
                     });
                     handleMenuClose();
                   }}
+                  inputProps={{ 'data-testid': 'note-card-menu-pin-button' }}
                 >
                   <PushpinLineIcon style={{ marginRight: "10px" }} />
                   Pin Note
                 </MenuItem>
-                <MenuItem onClick={() => navigate(`/note/${props.id}`)}>
+                <MenuItem inputProps={{ 'data-testid': 'note-card-menu-edit-button' }} onClick={() => navigate(`/note/${props.id}`)}>
                   <EditNote style={{ marginRight: "10px" }} />
                   Edit Note
                 </MenuItem>
-                <MenuItem onClick={() => DeleteNote(props.id, props.setNotes)}>
+                <MenuItem inputProps={{ 'data-testid': 'note-card-menu-delete-button' }} onClick={() => DeleteNote(props.id, props.setNotes)}>
                   <DeleteIcon style={{ marginRight: "10px" }} />
                   Delete note
                 </MenuItem>
@@ -143,7 +145,7 @@ function Note(props) {
             </div>
           </div>
         </div>
-        <div className="note-content">
+        <div className="note-content" inputProps={{ 'data-testid': 'note-card-content' }}>
           {editor && <EditorContent editor={editor} />}
         </div>
 

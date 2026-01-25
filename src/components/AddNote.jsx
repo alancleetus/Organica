@@ -12,6 +12,7 @@ import ArrowLeftSLineIcon from "remixicon-react/ArrowLeftSLineIcon";
 import { generateColorForTag } from "../utils/generateColorForTag";
 import { CreateTag, FetchTagsByUser } from "../utils/tagsCrud";
 import AddLineIcon from "remixicon-react/AddLineIcon";
+
 function AddNote() {
   const navigate = useNavigate();
   const [editedTitle, setEditedTitle] = useState("");
@@ -142,7 +143,7 @@ function AddNote() {
   return (
     <div className="note-page">
       <div className="note-page-header">
-        <button className="note-page-back-button" onClick={handleCancelClick}>
+        <button className="note-page-back-button" data-testid="cancel-add-note" onClick={handleCancelClick}>
           <ArrowLeftSLineIcon />
         </button>
         <input
@@ -151,6 +152,7 @@ function AddNote() {
           value={editedTitle}
           onChange={(e) => setEditedTitle(e.target.value)}
           placeholder="New Task"
+          data-testid="note-title"
         />
       </div>
 
@@ -261,6 +263,7 @@ function AddNote() {
           onClick={handleSaveClick}
           className="notes-page-save-button"
           variant="contained"
+          data-testid="note-save"
         >
           Create Note
         </button>

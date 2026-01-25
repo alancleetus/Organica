@@ -108,6 +108,11 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
       slotAfter={<MenuBar />}
       extensions={extensions}
       content={content}
+      editorProps={{
+        attributes: {
+          'data-testid': 'note-content',
+        },
+      }}
     />
   );
 };

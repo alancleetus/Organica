@@ -9,7 +9,7 @@ const handleLogout = async () => {
   }
 };
 const Logout = () => {
-  return <button onClick={handleLogout}>Logout</button>;
+  return <button onClick={handleLogout} data-testid="logout-button">Logout</button>;
 };
 
 export default Logout;
