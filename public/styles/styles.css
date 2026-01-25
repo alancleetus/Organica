@@ -27,7 +27,7 @@
   --background-color: #f6f6f6;
   --text-color: black;
 
-  --primary-color: rgb(83, 208, 158);
+  --primary-color: #1f7a5a;
   --primary-muted-color: hsl(135, 70%, 92%);
 
   --header-bg-color: #ffffff;
@@ -211,20 +211,17 @@ form.create-note button:hover {
   flex-wrap: wrap;
   gap: 10px;
 }
+.custom-textfield .MuiInputLabel-root,
+.custom-textfield .MuiInputLabel-root.Mui-focused {
+  color: #7a4d00; /* dark amber/brown for readable label text */
+}
 
 .custom-textfield
   .MuiOutlinedInput-root.Mui-focused
   .MuiOutlinedInput-notchedOutline {
-  border-color: #f5ba13; /* Custom outline color */
+  border-color: #f5ba13; /* keep your accent for outline if you like */
 }
 
-.custom-textfield .MuiInputLabel-root {
-  color: #f5ba13; /* Custom label color */
-}
-
-.custom-textfield .MuiInputLabel-root.Mui-focused {
-  color: #f5ba13; /* Custom label color when focused */
-}
 
 .checkbox-list-item .hover-icons {
   opacity: 0;

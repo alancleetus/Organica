@@ -65,12 +65,15 @@ function Header({ toggleTheme, theme }) {
       {!isOnline && (
         <WifiOffLineIcon
           style={{ color: "red", float: "right", margin: "10px" }}
+          aria-label="Wifi offline"
+
         />
       )}
       <button
         className="dark-mode-button"
         style={{ marginRight: "10px" }}
         onClick={exportNotes}
+        aria-label="Export Notes"
       >
         <Download2LineIcon />
       </button>
@@ -78,6 +81,7 @@ function Header({ toggleTheme, theme }) {
         className="dark-mode-button"
         style={{ marginRight: "10px" }}
         onClick={toggleTheme}
+        aria-label={theme === "light" ? "Enable dark mode" : "Enable light mode"}
       >
         {theme === "light" ? <MoonLineIcon /> : <SunLineIcon />}
       </button>
