@@ -62,6 +62,7 @@ This project includes a production-style end-to-end (E2E) test suite built with 
 - **Test Type:** End-to-end (UI-driven)
 - **Auth Provider:** Firebase Authentication (test-only user)
 - **Data Store:** Firestore (tests create and clean up their own data)
+- **Accessibility:** automated WCAG checks using axe-core + Playwright (login and main flows)
 
 ### Coverage
 **Authentication & Routing**
