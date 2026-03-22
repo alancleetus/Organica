@@ -5,11 +5,10 @@ import { onAuthStateChanged } from "firebase/auth";
 import Header from "./Header";
 import Note from "./Note";
 import AddNoteFab from "./AddNoteFab";
+import AddNoteModal from "./AddNoteModal";
 import { fetchNotes } from "../utils/fetchNotes.js";
 import { formatTimestampToDate } from "../utils/formatTimestampToDate.js";
 import Sorter from "./Sorter";
-import HorizontalDatePicker from "./HorizontalDatePicker";
-import { FetchTagsByUser } from "../utils/tagsCrud.jsx";
 
 function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
@@ -18,14 +17,13 @@ function NotesManager({ theme, toggleTheme }) {
   const [sortingMethod, setSortingMethod] = useState(() => {
     return localStorage.getItem("notesSortingMethod") || "title";
   });
-  const [fetchedTags, setFetchedTags] = useState([]);
   const [isAscending, setIsAscending] = useState(() => {
     const savedSortDirection = localStorage.getItem("notesSortDirection");
     return savedSortDirection ? savedSortDirection === "asc" : true;
   });
   const [sortedNotes, setSortedNotes] = useState([]);
+  const [isAddNoteOpen, setIsAddNoteOpen] = useState(false);
 
-  /****  Redirect to login if not authenticated ****/
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -35,50 +33,36 @@ function NotesManager({ theme, toggleTheme }) {
       }
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, [navigate]);
 
-  /*****  Fetch tags when user is authenticated *****/
-  useEffect(() => {
-    if (user) {
-      FetchTagsByUser(user.uid)
-        .then((fetchedTags) => setFetchedTags(fetchedTags))
-        .catch((error) => console.error("Error fetching tags:", error));
-    }
-  }, [user]);
-
-  /*****  Fetch notes when the component mounts *****/
   useEffect(() => {
     const getNotes = async () => {
       if (user) {
         const fetchedNotes = await fetchNotes(user);
-        setNotes(fetchedNotes || []); // Ensure `notes` is always an array
+        setNotes(fetchedNotes || []);
       }
     };
 
     getNotes();
   }, [user]);
 
-  /*****  Fetch notes when route changes back to /main *****/
   useEffect(() => {
     const getNotes = async () => {
       if (user) {
         const fetchedNotes = await fetchNotes(user);
-        setNotes(fetchedNotes || []); // Update notes when navigating back to /main
+        setNotes(fetchedNotes || []);
       }
     };
 
     getNotes();
-  }, [user, navigate]); // Dependency on `navigate` ensures the fetch is triggered on route change
+  }, [user, navigate]);
 
-  /***** Sorting Mechanism *****/
   const sortNotes = (method) => {
-    if (!Array.isArray(notes)) return []; // Ensure `notes` is valid
+    if (!Array.isArray(notes)) return [];
 
     const sorted = [...notes];
 
-    // Sort by the selected method
     switch (method) {
       case "title":
         sorted.sort((a, b) => a.title.localeCompare(b.title));
@@ -136,11 +120,14 @@ function NotesManager({ theme, toggleTheme }) {
 
   return (
     <div className="page-body">
-      <AddNoteFab user={user} />
-      <Header toggleTheme={toggleTheme} theme={theme} />
-      <HorizontalDatePicker
-        onDateChange={(date) => console.log("date:", date)}
+      <AddNoteFab onClick={() => setIsAddNoteOpen(true)} />
+      <AddNoteModal
+        open={isAddNoteOpen}
+        onClose={() => setIsAddNoteOpen(false)}
+        user={user}
+        setNotes={setNotes}
       />
+      <Header toggleTheme={toggleTheme} theme={theme} />
 
       <div className="sectioned-div">
         <div className="section-title">
@@ -174,7 +161,7 @@ function NotesManager({ theme, toggleTheme }) {
             isFavorite={note.isFavorite}
             setNotes={setNotes}
             tags={note.tags}
-            fetchedTags={fetchedTags}
+            fetchedTags={[]}
             dueDateTime={note.dueDateTime}
             reminderDateTime={note.reminderDateTime}
           />

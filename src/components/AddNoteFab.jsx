@@ -1,16 +1,13 @@
 import { Fab } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { useNavigate } from "react-router-dom";
 
-function AddNoteFab() {
-  const navigate = useNavigate();
+function AddNoteFab({ onClick }) {
   return (
     <div>
-      {/* Floating Action Button */}
       <Fab
         color="primary"
         aria-label="add"
-        onClick={() => navigate(`/note/`)}
+        onClick={onClick}
         id="create-note-fab"
         data-testid="add-note-fab"
       >

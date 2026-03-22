@@ -183,8 +183,12 @@ function Note(props) {
                 }}
               />
             )}
-            <div id="menuIcon"  data-testid= "note-card-menu-button" >
-              <MoreHorizIcon onClick={handleFabClick} />
+            <div
+              id="menuIcon"
+              data-testid="note-card-menu-button"
+              onClick={handleFabClick}
+            >
+              <MoreHorizIcon />
               {/* Menu for FAB options */}
               <Menu
                 anchorEl={anchorEl}

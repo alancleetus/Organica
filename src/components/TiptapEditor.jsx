@@ -13,7 +13,13 @@ import SeparatorIcon from "remixicon-react/SeparatorIcon";
 
 import ArrowGoBackLineIcon from "remixicon-react/ArrowGoBackLineIcon";
 import ArrowGoForwardLineIcon from "remixicon-react/ArrowGoForwardLineIcon";
-const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
+const TipTapEditor = ({
+  setEditorContent,
+  initialContent = null,
+  toolbarMode = "full",
+  editorTestId = "note-content",
+  placeholder = "Type Something... ",
+}) => {
   const MenuBar = () => {
     const { editor } = useCurrentEditor();
     if (!editor) {
@@ -21,6 +27,8 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
     }
 
     setEditorContent(editor.getHTML());
+
+    const isMinimalToolbar = toolbarMode === "task-only";
 
     return (
       <div className="control-group">
@@ -38,51 +46,61 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
           >
             <CheckboxMultipleLineIcon />
           </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
-            className={
-              editor.isActive("bulletList")
-                ? "is-active editor-button"
-                : "editor-button"
-            }
-          >
-            <ListUnorderedIcon />
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            className={
-              editor.isActive("orderedList")
-                ? "is-active editor-button"
-                : "editor-button"
-            }
-          >
-            <ListOrderedIcon />
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().setHorizontalRule().run()}
-            className="editor-button "
-          >
-            <SeparatorIcon />
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().undo().run()}
-            disabled={!editor.can().chain().focus().undo().run()}
-            className="editor-button "
-          >
-            <ArrowGoBackLineIcon />
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().redo().run()}
-            disabled={!editor.can().chain().focus().redo().run()}
-            className="editor-button "
-          >
-            <ArrowGoForwardLineIcon />
-          </button>
+          {!isMinimalToolbar && (
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleBulletList().run()}
+              className={
+                editor.isActive("bulletList")
+                  ? "is-active editor-button"
+                  : "editor-button"
+              }
+            >
+              <ListUnorderedIcon />
+            </button>
+          )}
+          {!isMinimalToolbar && (
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              className={
+                editor.isActive("orderedList")
+                  ? "is-active editor-button"
+                  : "editor-button"
+              }
+            >
+              <ListOrderedIcon />
+            </button>
+          )}
+          {!isMinimalToolbar && (
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().setHorizontalRule().run()}
+              className="editor-button "
+            >
+              <SeparatorIcon />
+            </button>
+          )}
+          {!isMinimalToolbar && (
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().undo().run()}
+              disabled={!editor.can().chain().focus().undo().run()}
+              className="editor-button "
+            >
+              <ArrowGoBackLineIcon />
+            </button>
+          )}
+          {!isMinimalToolbar && (
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().redo().run()}
+              disabled={!editor.can().chain().focus().redo().run()}
+              className="editor-button "
+            >
+              <ArrowGoForwardLineIcon />
+            </button>
+          )}
         </div>
       </div>
     );
@@ -91,7 +109,7 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
   const extensions = [
     StarterKit,
     Placeholder.configure({
-      placeholder: "Type Something... ",
+      placeholder,
     }),
     TaskList.configure({
       HTMLAttributes: {
@@ -118,7 +136,7 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
       content={content}
       editorProps={{
         attributes: {
-          'data-testid': 'note-content',
+          'data-testid': editorTestId,
         },
       }}
     />

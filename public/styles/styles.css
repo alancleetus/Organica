@@ -38,6 +38,10 @@
 
   --create-note-bg-color: #f8f8f8;
   --create-note-shadow-color: rgb(138, 137, 137);
+  --create-note-surface: rgba(255, 255, 255, 0.92);
+  --create-note-surface-strong: rgba(255, 255, 255, 0.98);
+  --create-note-panel: rgba(255, 255, 255, 0.62);
+  --create-note-border: rgba(31, 122, 90, 0.12);
 
   --light-gray: hsl(227, 20%, 44%);
   --dark-gray: hsl(227, 20%, 19%);
@@ -62,6 +66,10 @@
 
   --create-note-bg-color: #191a1f;
   --create-note-shadow-color: #000;
+  --create-note-surface: rgba(25, 26, 31, 0.94);
+  --create-note-surface-strong: rgba(33, 36, 43, 0.98);
+  --create-note-panel: rgba(255, 255, 255, 0.04);
+  --create-note-border: rgba(255, 255, 255, 0.08);
 
   --badge-color: #fff;
   --badge-bg-color: #667485;
@@ -249,6 +257,12 @@ form.create-note button:hover {
   bottom: 20px;
   right: 20px;
   background-color: var(--primary-color);
+}
+
+@media (max-width: 640px) {
+  .page-body {
+    padding: 0 12px;
+  }
 }
 
 /* Basic editor styles */

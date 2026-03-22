@@ -18,3 +18,168 @@
   background-color: var(--create-note-bg-color);
   color: var(--text-color);
 }
+
+.create-note-backdrop {
+  backdrop-filter: blur(8px);
+  background: rgba(20, 26, 24, 0.18);
+}
+
+.create-note-modal {
+  border-radius: 24px !important;
+  border: 1px solid var(--create-note-border);
+  background:
+    radial-gradient(circle at top right, rgba(31, 122, 90, 0.08), transparent 35%),
+    linear-gradient(
+      180deg,
+      var(--create-note-surface),
+      var(--create-note-surface-strong)
+    );
+  box-shadow: 0 24px 60px rgba(16, 24, 20, 0.18);
+  overflow: hidden;
+}
+
+.create-note-modal-content {
+  padding: 0 !important;
+}
+
+.create-note-modal-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 22px 18px;
+}
+
+.create-note-head {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.create-note-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(31, 122, 90, 0.1);
+  color: var(--primary-color);
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+  font-size: 0.88rem;
+}
+
+.create-note-title {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 1.25rem;
+  font-family: "Gilroy-Bold", Arial, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.create-note-editor {
+  min-height: 180px;
+  border-radius: 18px;
+  background: var(--create-note-panel);
+  border: 1px solid var(--create-note-border);
+  padding: 12px 14px;
+}
+
+.create-note-editor > div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.create-note-editor .editor-button-group {
+  gap: 8px;
+}
+
+.create-note-editor .editor-button {
+  border-radius: 999px;
+  background: rgba(31, 122, 90, 0.08);
+  color: var(--primary-color);
+  padding: 7px;
+}
+
+.create-note-editor .editor-button.is-active {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.create-note-editor .tiptap[role="textbox"] {
+  min-height: 120px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-color);
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.create-note-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.create-note-actions::before {
+  content: "Notes save to your main board";
+  color: var(--light-gray);
+  font-size: 0.9rem;
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+}
+
+.create-note-close-button,
+.create-note-save-button {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-family: "Gilroy-Bold", Arial, sans-serif;
+  cursor: pointer;
+}
+
+.create-note-close-button {
+  background: rgba(31, 122, 90, 0.08);
+  color: var(--text-color);
+  border-color: rgba(31, 122, 90, 0.08);
+}
+
+.create-note-save-button {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.create-note-save-button:disabled,
+.create-note-close-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .create-note-modal {
+    margin: 12px;
+    width: calc(100% - 24px);
+  }
+
+  .create-note-modal-shell {
+    padding: 16px;
+  }
+
+  .create-note-editor {
+    min-height: 150px;
+    padding: 10px 12px;
+  }
+
+  .create-note-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .create-note-actions::before {
+    content: none;
+  }
+}

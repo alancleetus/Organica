@@ -20,6 +20,7 @@ export const CreateNote = async ({
   tags = [],
   dueDateTime = null,
   reminderDateTime = null,
+  setNotes,
 }) => {
   if (!user) {
     console.error("User is not authenticated");
@@ -45,10 +46,17 @@ export const CreateNote = async ({
 
   try {
     const docRef = await addDoc(collection(db, "notes"), note);
+    const createdNote = { ...note, id: docRef.id };
 
-    console.log("Added note:", { ...note, id: docRef.id });
+    if (setNotes) {
+      setNotes((prevNotes) => [createdNote, ...prevNotes]);
+    }
+
+    console.log("Added note:", createdNote);
+    return createdNote;
   } catch (error) {
     console.error("Error adding note:", error);
+    throw error;
   }
 };
 

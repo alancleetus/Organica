@@ -12,7 +12,6 @@ import NotesManager from "./NotesManager";
 import Login from "./auth/Login";
 import Register from "./auth/Register";
 import EditNote from "./EditNote";
-import AddNote from "./AddNote";
 
 import AuthProvider from "./auth/AuthProvider";
 import { PrivateRoute, PublicOnlyRoute } from "./auth/RouteGuards";
@@ -69,10 +68,7 @@ let App = () => {
               path="/edit/:id"
               element={<EditNote theme={theme} toggleTheme={toggleTheme} />}
             />
-            <Route
-              path="/note"
-              element={<AddNote theme={theme} toggleTheme={toggleTheme} />}
-            />
+            <Route path="/note" element={<Navigate to="/main" replace />} />
             <Route path="/" element={<Navigate to="/main" replace />} />
           </Route>
 
