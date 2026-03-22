@@ -1,25 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
-import {
-  UpdateNote,
-  DeleteNote,
-  PinNote,
-  FavoriteNote,
-} from "../utils/notesCrud";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Menu, MenuItem } from "@mui/material";
-import { useEditor } from "@tiptap/react";
-
-import StarterKit from "@tiptap/starter-kit";
-import TaskItem from "@tiptap/extension-task-item";
-import TaskList from "@tiptap/extension-task-list";
-import { EditorContent } from "@tiptap/react";
 import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
 import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import HeartFillIcon from "remixicon-react/HeartFillIcon";
 import SaveLineIcon from "remixicon-react/SaveLineIcon";
-import TaskListShortcut from "../utils/taskListShortcut";
+import { DeleteNote, PinNote, UpdateNote } from "../utils/notesCrud";
+import PlainTextNoteEditor from "./PlainTextNoteEditor";
+import { normalizeNoteContent } from "../utils/noteContent";
 
 const AUTOSAVE_DELAY_MS = 2500;
 
@@ -28,20 +18,24 @@ function Note(props) {
   const [isPinned, setIsPinned] = useState(props.isPinned);
   const [isFavorite, setIsFavorite] = useState(props.isFavorite);
   const [editedTitle, setEditedTitle] = useState(props.title || "");
-  const [updatedContent, setUpdateContent] = useState(props.content || "");
+  const [updatedContent, setUpdatedContent] = useState(
+    normalizeNoteContent(props.content || "")
+  );
   const [saveState, setSaveState] = useState("idle");
+
   const lastSavedNoteRef = useRef({
     title: props.title || "",
-    content: props.content || "",
+    content: normalizeNoteContent(props.content || ""),
   });
   const latestDraftRef = useRef({
     title: props.title || "",
-    content: props.content || "",
+    content: normalizeNoteContent(props.content || ""),
   });
   const queuedSaveRef = useRef(null);
   const isSavingRef = useRef(false);
-  const handleFabClick = (event) => setAnchorEl(event.currentTarget); // Open menu
-  const handleMenuClose = () => setAnchorEl(null); // Close menu
+
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
   const saveLabel =
     saveState === "saving"
@@ -51,28 +45,6 @@ function Note(props) {
         : saveState === "error"
           ? "Save failed"
           : "Ready";
-
-  const editor = useEditor({
-    editorProps: {
-      attributes: {
-        class: "note-editor-content", // You can customize classes if needed
-      },
-    },
-    extensions: [StarterKit, TaskList, TaskItem, TaskListShortcut],
-    content: props.content,
-    onUpdate: ({ editor }) => {
-      const nextContent = editor.getHTML();
-      setUpdateContent(nextContent);
-    },
-    onBlur: () => {
-      if (
-        latestDraftRef.current.title !== lastSavedNoteRef.current.title ||
-        latestDraftRef.current.content !== lastSavedNoteRef.current.content
-      ) {
-        saveChanges(latestDraftRef.current);
-      }
-    },
-  });
 
   useEffect(() => {
     latestDraftRef.current = {
@@ -88,7 +60,7 @@ function Note(props) {
 
   useEffect(() => {
     const nextTitle = props.title || "";
-    const nextContent = props.content || "";
+    const nextContent = normalizeNoteContent(props.content || "");
     const previousSaved = lastSavedNoteRef.current;
     const savedSnapshotChanged =
       nextTitle !== previousSaved.title || nextContent !== previousSaved.content;
@@ -107,12 +79,8 @@ function Note(props) {
     if (hasLocalEdits) return;
 
     setEditedTitle(nextTitle);
-    setUpdateContent(nextContent);
-
-    if (editor && editor.getHTML() !== nextContent) {
-      editor.commands.setContent(nextContent || "<p></p>", false);
-    }
-  }, [props.title, props.content, editedTitle, updatedContent, editor]);
+    setUpdatedContent(nextContent);
+  }, [props.title, props.content, editedTitle, updatedContent]);
 
   const hasPendingChanges =
     editedTitle !== lastSavedNoteRef.current.title ||
@@ -133,7 +101,7 @@ function Note(props) {
     }
   ) => {
     const nextTitle = noteToSave.title ?? "";
-    const nextContent = noteToSave.content ?? "<p></p>";
+    const nextContent = normalizeNoteContent(noteToSave.content ?? "");
 
     if (
       nextTitle === lastSavedNoteRef.current.title &&
@@ -158,6 +126,7 @@ function Note(props) {
         newContent: nextContent,
         setNotes: props.setNotes,
       });
+
       lastSavedNoteRef.current = {
         title: nextTitle,
         content: nextContent,
@@ -191,6 +160,15 @@ function Note(props) {
     return () => clearTimeout(autosaveTimer);
   }, [editedTitle, updatedContent, hasPendingChanges]);
 
+  const flushPendingSave = () => {
+    if (
+      latestDraftRef.current.title !== lastSavedNoteRef.current.title ||
+      latestDraftRef.current.content !== lastSavedNoteRef.current.content
+    ) {
+      saveChanges(latestDraftRef.current);
+    }
+  };
+
   return (
     <>
       <article className="note-card">
@@ -218,100 +196,74 @@ function Note(props) {
                 <SaveLineIcon color="var(--primary-muted-color)" />
               </button>
             )}
+
             <input
               className="note-title-input"
               data-testid="note-card-title-input"
               value={editedTitle}
               onChange={(event) => setEditedTitle(event.target.value)}
-              onBlur={() => {
-                if (
-                  latestDraftRef.current.title !==
-                    lastSavedNoteRef.current.title ||
-                  latestDraftRef.current.content !==
-                    lastSavedNoteRef.current.content
-                ) {
-                  saveChanges(latestDraftRef.current);
-                }
-              }}
+              onBlur={flushPendingSave}
               placeholder="Untitled note"
             />
           </div>
 
           <div className="note-header-right">
-            {isFavorite && (
-              <HeartFillIcon
-                onClick={() => {
-                  setIsFavorite((prev) => {
-                    FavoriteNote({ id: props.id, isFavorite: !prev });
-                    return !prev;
-                  });
-                  handleMenuClose();
-                }}
-              />
-            )}
-            {isPinned && (
-              <PushpinFillIcon
-                onClick={() => {
-                  setIsPinned((prev) => {
-                    PinNote(props.id, !prev, props.setNotes);
-                    return !prev;
-                  });
-                  handleMenuClose();
-                }}
-              />
-            )}
-            <div
+            <button
+              type="button"
+              className={`note-action-button${isFavorite ? " is-active" : ""}`}
+              aria-label={isFavorite ? "Unfavorite note" : "Favorite note"}
+              onClick={() => {
+                const nextFavorite = !isFavorite;
+                setIsFavorite(nextFavorite);
+                UpdateNote({
+                  id: props.id,
+                  isFavorite: nextFavorite,
+                  setNotes: props.setNotes,
+                });
+                handleMenuClose();
+              }}
+            >
+              {isFavorite ? <HeartFillIcon /> : <HeartLineIcon />}
+            </button>
+
+            <button
+              type="button"
+              className={`note-action-button${isPinned ? " is-active" : ""}`}
+              aria-label={isPinned ? "Unpin note" : "Pin note"}
+              onClick={() => {
+                const nextPinned = !isPinned;
+                setIsPinned(nextPinned);
+                PinNote(props.id, nextPinned, props.setNotes);
+                handleMenuClose();
+              }}
+            >
+              {isPinned ? <PushpinFillIcon /> : <PushpinLineIcon />}
+            </button>
+
+            <button
+              type="button"
               id="menuIcon"
+              aria-label="More note actions"
+              aria-expanded={Boolean(anchorEl)}
               data-testid="note-card-menu-button"
-              onClick={handleFabClick}
+              onClick={handleMenuOpen}
             >
               <MoreHorizIcon />
-              {/* Menu for FAB options */}
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-                id="test"
-              >
-                <MenuItem inputProps={{ 'data-testid': 'note-card-menu-favorite-button' }}
-                  onClick={() => {
-                    setIsFavorite((prev) => {
-                      FavoriteNote({ id: props.id, isFavorite: !prev });
-                      return !prev;
-                    });
-                    handleMenuClose();
-                  }}
-                >
-                  <HeartLineIcon style={{ marginRight: "10px" }} />
-                  Favorite Note
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    setIsPinned((prev) => {
-                      PinNote(props.id, !prev, props.setNotes);
-                      return !prev;
-                    });
-                    handleMenuClose();
-                  }}
-                   data-testid="note-card-menu-pin-button"
-                >
-                  <PushpinLineIcon style={{ marginRight: "10px" }} />
-                  Pin Note
-                </MenuItem>
-                <MenuItem data-testid="note-card-menu-delete-button"  onClick={() => DeleteNote(props.id, props.setNotes)}>
-                  <DeleteIcon style={{ marginRight: "10px" }} />
-                  Delete note
-                </MenuItem>
-              </Menu>
-            </div>
+            </button>
           </div>
         </div>
-        <div
-          className="note-content"
-          data-testid="note-card-content"
-        >
-          {editor && <EditorContent editor={editor} />}
+
+        <div className="note-content" data-testid="note-card-content">
+          <PlainTextNoteEditor
+            value={updatedContent}
+            onChange={setUpdatedContent}
+            onBlur={flushPendingSave}
+            editorTestId="note-card-content-editor"
+            placeholder="Start writing..."
+            className="note-detail-editor"
+          />
         </div>
+
         <div className="note-footer">
           <p className="note-save-state" data-state={saveState}>
             {saveLabel}
@@ -320,6 +272,23 @@ function Note(props) {
             {props.date}
           </p>
         </div>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+        >
+          <MenuItem
+            data-testid="note-card-menu-delete-button"
+            onClick={() => {
+              handleMenuClose();
+              DeleteNote(props.id, props.setNotes);
+            }}
+          >
+            <DeleteIcon style={{ marginRight: "10px" }} />
+            Delete note
+          </MenuItem>
+        </Menu>
       </article>
     </>
   );

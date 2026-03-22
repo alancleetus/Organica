@@ -1,26 +1,16 @@
-import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
-import HeartFillIcon from "remixicon-react/HeartFillIcon";
 import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import { PinNote, UpdateNote } from "../utils/notesCrud";
-
-function stripHtml(html = "") {
-  if (!html) return "";
-
-  return html
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+import { getPreviewItems, isChecklistContent } from "../utils/noteContent";
 
 function NoteListItem({ note, isSelected, onSelect, setNotes }) {
-  const previewText = stripHtml(note.content);
+  const previewItems = getPreviewItems(note.content).slice(0, 4);
+  const previewText = previewItems.map((item) => item.text).join(" ");
   const noteLabel = note.isPinned
     ? "Pinned"
     : note.isFavorite
       ? "Favorite"
-      : previewText.includes("[]") || previewText.includes("[x]")
+      : isChecklistContent(note.content) || previewText.includes("[ ]") || previewText.includes("[x]")
         ? "Checklist"
         : "Note";
 
@@ -54,10 +44,6 @@ function NoteListItem({ note, isSelected, onSelect, setNotes }) {
           </p>
           <span className="note-list-item-label">{noteLabel}</span>
         </div>
-        <div className="note-list-item-badges">
-          {note.isPinned && <PushpinFillIcon />}
-          {note.isFavorite && <HeartFillIcon />}
-        </div>
       </div>
 
       <div className="note-list-item-actions">
@@ -70,7 +56,7 @@ function NoteListItem({ note, isSelected, onSelect, setNotes }) {
             PinNote(note.id, !note.isPinned, setNotes);
           }}
         >
-          {note.isPinned ? <PushpinFillIcon /> : <PushpinLineIcon />}
+          <PushpinLineIcon />
         </button>
         <button
           type="button"
@@ -85,7 +71,7 @@ function NoteListItem({ note, isSelected, onSelect, setNotes }) {
             });
           }}
         >
-          {note.isFavorite ? <HeartFillIcon /> : <HeartLineIcon />}
+          <HeartLineIcon />
         </button>
       </div>
 
@@ -93,9 +79,30 @@ function NoteListItem({ note, isSelected, onSelect, setNotes }) {
         {note.title?.trim() || "Untitled note"}
       </h3>
 
-      <p className="note-list-item-preview">
-        {previewText || "No additional content yet."}
-      </p>
+      {previewItems.length ? (
+        <div className="note-list-item-preview">
+          {previewItems.map((item, index) => (
+            <div
+              key={`${note.id}-preview-${index}`}
+              className={`note-list-item-preview-line note-list-item-preview-line--${item.kind}`}
+            >
+              {item.kind === "task" && (
+                <span className="note-list-item-preview-marker" aria-hidden="true">
+                  {item.checked ? "[x]" : "[ ]"}
+                </span>
+              )}
+              {item.kind === "bullet" && (
+                <span className="note-list-item-preview-marker" aria-hidden="true">
+                  -
+                </span>
+              )}
+              <span>{item.text}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="note-list-item-preview">No additional content yet.</p>
+      )}
     </article>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@mui/material";
 import { CreateNote } from "../utils/notesCrud";
-import TipTapEditor from "./TiptapEditor";
+import PlainTextNoteEditor from "./PlainTextNoteEditor";
 
 function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
   const [title, setTitle] = useState("");
@@ -24,7 +24,7 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
     return () => clearTimeout(focusTimer);
   }, [open]);
 
-  const isEditorEmpty = !editorContent || editorContent === "<p></p>";
+  const isEditorEmpty = editorContent.trim() === "";
   const isNoteEmpty = title.trim() === "" && isEditorEmpty;
 
   const handleClose = () => {
@@ -44,7 +44,7 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
       const createdNote = await CreateNote({
         user,
         title: title.trim(),
-        content: editorContent || "<p></p>",
+        content: editorContent,
         setNotes,
       });
       if (createdNote && onCreated) {
@@ -89,26 +89,36 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
         onKeyDown={handleModalKeyDown}
       >
         <div className="create-note-modal-shell">
-          <input
-            ref={titleInputRef}
-            className="create-note-title"
-            type="text"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="Title"
-            data-testid="note-title"
-          />
+          <div className="create-note-header">
+            <div>
+              <p className="create-note-kicker">Quick note</p>
+              <input
+                ref={titleInputRef}
+                className="create-note-title"
+                type="text"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="Title"
+                data-testid="note-title"
+              />
+            </div>
+            <p className="create-note-shortcut">Cmd/Ctrl+Enter to save</p>
+          </div>
 
           <div className="create-note-editor">
-            <TipTapEditor
-              setEditorContent={setEditorContent}
-              toolbarMode="task-only"
+            <PlainTextNoteEditor
+              value={editorContent}
+              onChange={setEditorContent}
               editorTestId="note-content"
               placeholder="Take a note..."
+              className="create-note-editor-field"
             />
           </div>
 
           <div className="create-note-actions">
+            <p className="create-note-helper">
+              Saved to your main notes board
+            </p>
             <div className="create-note-action-buttons">
               <button
                 type="button"

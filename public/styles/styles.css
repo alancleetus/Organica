@@ -468,13 +468,6 @@ body {
   color: #67d2aa;
 }
 
-.note-list-item-badges {
-  display: flex;
-  gap: 8px;
-  color: var(--primary-color);
-  transition: opacity 0.18s ease;
-}
-
 .note-list-item-actions {
   position: absolute;
   top: 12px;
@@ -493,11 +486,6 @@ body {
   pointer-events: auto;
 }
 
-.note-list-item:hover .note-list-item-badges,
-.note-list-item:focus-visible .note-list-item-badges {
-  opacity: 0;
-}
-
 .note-list-item-action {
   width: 28px;
   height: 28px;
@@ -513,6 +501,8 @@ body {
 
 .note-list-item-action.is-active {
   color: var(--primary-color);
+  background: rgba(31, 122, 90, 0.08);
+  border-color: rgba(31, 122, 90, 0.16);
 }
 
 .note-list-item-title {
@@ -527,10 +517,31 @@ body {
   color: var(--light-gray);
   font-size: 0.92rem;
   line-height: 1.45;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   overflow: hidden;
+}
+
+.note-list-item-preview-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.note-list-item-preview-line span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-list-item-preview-marker {
+  flex-shrink: 0;
+  color: var(--primary-color);
+  font-size: 0.82rem;
+  line-height: 1.55;
 }
 
 .notes-detail-panel {
@@ -831,44 +842,44 @@ form.create-note button:hover {
 }
 
 .notes-list-scroll,
-.note-editor-content {
+.plain-note-textarea {
   scrollbar-width: thin;
   scrollbar-color: rgba(31, 122, 90, 0.32) transparent;
 }
 
 .notes-list-scroll::-webkit-scrollbar,
-.note-editor-content::-webkit-scrollbar {
+.plain-note-textarea::-webkit-scrollbar {
   width: 6px;
 }
 
 .notes-list-scroll::-webkit-scrollbar-track,
-.note-editor-content::-webkit-scrollbar-track {
+.plain-note-textarea::-webkit-scrollbar-track {
   background: transparent;
 }
 
 .notes-list-scroll::-webkit-scrollbar-thumb,
-.note-editor-content::-webkit-scrollbar-thumb {
+.plain-note-textarea::-webkit-scrollbar-thumb {
   background: rgba(31, 122, 90, 0.22);
   border-radius: 999px;
 }
 
 .notes-list-scroll::-webkit-scrollbar-thumb:hover,
-.note-editor-content::-webkit-scrollbar-thumb:hover {
+.plain-note-textarea::-webkit-scrollbar-thumb:hover {
   background: rgba(31, 122, 90, 0.36);
 }
 
 [data-theme="dark"] .notes-list-scroll,
-[data-theme="dark"] .note-editor-content {
+[data-theme="dark"] .plain-note-textarea {
   scrollbar-color: rgba(103, 210, 170, 0.36) transparent;
 }
 
 [data-theme="dark"] .notes-list-scroll::-webkit-scrollbar-thumb,
-[data-theme="dark"] .note-editor-content::-webkit-scrollbar-thumb {
+[data-theme="dark"] .plain-note-textarea::-webkit-scrollbar-thumb {
   background: rgba(103, 210, 170, 0.28);
 }
 
 [data-theme="dark"] .notes-list-scroll::-webkit-scrollbar-thumb:hover,
-[data-theme="dark"] .note-editor-content::-webkit-scrollbar-thumb:hover {
+[data-theme="dark"] .plain-note-textarea::-webkit-scrollbar-thumb:hover {
   background: rgba(103, 210, 170, 0.42);
 }
 
@@ -1084,10 +1095,6 @@ form.create-note button:hover {
     padding-right: 40px;
   }
 
-  .note-list-item-badges {
-    display: none;
-  }
-
   .note-list-item-actions {
     top: 10px;
     right: 10px;
@@ -1106,7 +1113,7 @@ form.create-note button:hover {
   .note-list-item-preview {
     font-size: 0.92rem;
     line-height: 1.45;
-    -webkit-line-clamp: 3;
+    gap: 3px;
   }
 
   .notes-detail-meta {
@@ -1250,65 +1257,3 @@ form.create-note button:hover {
   }
 }
 
-/* Basic editor styles */
-.tiptap {
-  :first-child {
-    margin-top: 0;
-  }
-
-  /* List styles */
-  ul,
-  ol {
-    padding: 0 1rem;
-    margin: 1.25rem 1rem 1.25rem 0.4rem;
-
-    li p {
-      margin-top: 0.25em;
-      margin-bottom: 0.25em;
-    }
-  }
-
-  /* Task list specific styles */
-  ul[data-type="taskList"] {
-    list-style: none;
-    margin-left: 0;
-    padding: 0;
-
-    li {
-      align-items: flex-start;
-      display: flex;
-
-      > label {
-        flex: 0 0 auto;
-        margin-right: 0.5rem;
-        user-select: none;
-      }
-
-      > div {
-        flex: 1 1 auto;
-      }
-    }
-
-    input[type="checkbox"] {
-      cursor: pointer;
-    }
-
-    ul[data-type="taskList"] {
-      margin: 0;
-    }
-  }
-}
-
-input[type="checkbox"] {
-  border: 2px solid red;
-  background-color: transparent;
-}
-ul[data-type="taskList"] {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-ul[data-type="taskList"] div {
-  display: inline-block;
-  padding-left: 5px;
-}

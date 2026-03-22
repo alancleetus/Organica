@@ -1,5 +1,6 @@
 import { db } from "../components/Firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
+import { normalizeNoteContent } from "./noteContent";
 
 export const fetchNotes = async (user) => {
   if (user) {
@@ -10,6 +11,7 @@ export const fetchNotes = async (user) => {
       const notesList = notesSnapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
+        content: normalizeNoteContent(doc.data().content || ""),
       }));
 
       return notesList;

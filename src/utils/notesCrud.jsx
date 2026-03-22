@@ -16,7 +16,7 @@ import { v4 as uuidv4 } from "uuid";
 export const CreateNote = async ({
   user,
   title,
-  content,
+  content = "",
   tags = [],
   dueDateTime = null,
   reminderDateTime = null,

@@ -11,6 +11,7 @@ import NoteListItem from "./NoteListItem";
 import { fetchNotes } from "../utils/fetchNotes.js";
 import { formatTimestampToDate } from "../utils/formatTimestampToDate.js";
 import Sorter from "./Sorter";
+import { getSearchableText, isChecklistContent } from "../utils/noteContent";
 
 function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
@@ -152,18 +153,17 @@ function NotesManager({ theme, toggleTheme }) {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return sortedNotes.filter((note) => {
-      const matchesFilter =
-        activeFilter === "all" ||
-        (activeFilter === "pinned" && note.isPinned) ||
-        (activeFilter === "favorites" && note.isFavorite) ||
-        (activeFilter === "tasks" &&
-          note.content?.includes('data-type="taskList"'));
+        const matchesFilter =
+          activeFilter === "all" ||
+          (activeFilter === "pinned" && note.isPinned) ||
+          (activeFilter === "favorites" && note.isFavorite) ||
+          (activeFilter === "tasks" && isChecklistContent(note.content));
 
       if (!matchesFilter) return false;
       if (!normalizedSearch) return true;
 
       const title = note.title?.toLowerCase() || "";
-      const content = note.content?.replace(/<[^>]*>/g, " ").toLowerCase() || "";
+      const content = getSearchableText(note.content);
       return (
         title.includes(normalizedSearch) || content.includes(normalizedSearch)
       );
@@ -224,9 +224,7 @@ function NotesManager({ theme, toggleTheme }) {
     visibleNotes.find((note) => note.id === selectedNoteId) || null;
   const pinnedCount = notes.filter((note) => note.isPinned).length;
   const favoriteCount = notes.filter((note) => note.isFavorite).length;
-  const checklistCount = notes.filter((note) =>
-    note.content?.includes('data-type="taskList"')
-  ).length;
+  const checklistCount = notes.filter((note) => isChecklistContent(note.content)).length;
   const hasScopedView = activeFilter !== "all" || searchTerm.trim() !== "";
 
   const handleSelectNote = (noteId) => {

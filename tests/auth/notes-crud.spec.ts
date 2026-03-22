@@ -13,10 +13,7 @@ async function createNote(page: Page, title: string, content: string) {
   await expect(page.getByTestId('note-title')).toBeVisible();
 
   await page.getByTestId('note-title').fill(title);
-
-  const editor = page.getByTestId('note-content');
-  await editor.click();
-  await page.keyboard.type(content);
+  await page.getByTestId('note-content').fill(content);
 
   await page.getByTestId('note-save').click();
 
@@ -95,11 +92,8 @@ test.describe('Notes CRUD (Firestore)', () => {
     await createNote(page, title, initialContent);
 
     const card = detailCard(page);
-    const contentArea = card.getByTestId('note-card-content').locator('.ProseMirror');
-
-    await contentArea.click();
-    await page.keyboard.press('Control+A');
-    await page.keyboard.type(updatedContent);
+    const contentArea = card.getByTestId('note-card-content-editor');
+    await contentArea.fill(updatedContent);
 
     await expect(card.getByTestId('note-card-save')).toBeVisible();
     await page.waitForTimeout(3000);
@@ -107,12 +101,12 @@ test.describe('Notes CRUD (Firestore)', () => {
 
     await page.reload();
     await focusNoteFromList(page, title);
-    await expect(detailCard(page).getByText(updatedContent)).toBeVisible();
+    await expect(detailCard(page).getByTestId('note-card-content-editor')).toHaveValue(updatedContent);
 
     await deleteSelectedNote(page, title);
   });
 
-  test('task checkbox changes autosave and persist after reload', async ({ page }) => {
+  test('task lines persist after reload', async ({ page }) => {
     await page.goto('/main');
 
     const title = `e2e-task-autosave-${Date.now()}`;
@@ -122,10 +116,8 @@ test.describe('Notes CRUD (Firestore)', () => {
     await expect(page.getByTestId('note-title')).toBeVisible();
 
     await page.getByTestId('note-title').fill(title);
-    await page.getByTestId('toggle-task-list').click();
-
-    const editor = page.getByTestId('note-content');
-    await editor.click();
+    await page.getByTestId('add-note-modal').getByTestId('toggle-task-list').click();
+    await page.getByTestId('note-content').click();
     await page.keyboard.type('Checkbox item');
 
     await page.getByTestId('note-save').click();
@@ -133,9 +125,9 @@ test.describe('Notes CRUD (Firestore)', () => {
     await expect(noteListItemByTitle(page, title)).toBeVisible();
 
     const card = detailCard(page);
-    const checkbox = card.locator('input[type="checkbox"]').first();
+    const contentArea = card.getByTestId('note-card-content-editor');
 
-    await checkbox.check();
+    await contentArea.fill('[x] Checkbox item');
     await expect(card.getByTestId('note-card-save')).toBeVisible();
     await page.waitForTimeout(3000);
     await expect(card.getByTestId('note-card-save')).not.toBeVisible();
@@ -143,8 +135,9 @@ test.describe('Notes CRUD (Firestore)', () => {
     await page.reload();
 
     await focusNoteFromList(page, title);
-    await expect(detailCard(page).locator('input[type="checkbox"]').first()).toBeChecked();
+    await expect(detailCard(page).getByTestId('note-card-content-editor')).toHaveValue('[x] Checkbox item');
 
     await deleteSelectedNote(page, title);
   });
 });
+

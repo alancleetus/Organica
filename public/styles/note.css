@@ -35,6 +35,24 @@
   flex-shrink: 0;
 }
 
+.note-action-button {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--light-gray);
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.note-action-button.is-active {
+  color: var(--primary-color);
+  background: rgba(31, 122, 90, 0.08);
+}
+
 .note-badge-div {
   flex-grow: 2;
 }
@@ -80,9 +98,13 @@
   height: 32px;
   border-radius: 999px;
   cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--light-gray);
 }
 
-#menuIcon:hover {
+#menuIcon:hover,
+.note-action-button:hover {
   background: rgba(31, 122, 90, 0.08);
 }
 
@@ -115,13 +137,53 @@
   pointer-events: none;
 }
 
-.note-editor-content {
+.plain-note-editor {
   display: flex;
   flex-direction: column;
   flex: 1;
-  overflow: hidden;
-  width: 100%;
   min-height: 0;
+  width: 100%;
+  gap: 8px;
+}
+
+.plain-note-toolbar {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.plain-note-toolbar-button {
+  border: 1px solid transparent;
+  background: rgba(31, 122, 90, 0.08);
+  color: var(--primary-color);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.plain-note-toolbar-button:hover {
+  background: rgba(31, 122, 90, 0.14);
+}
+
+.plain-note-textarea {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--text-color);
+  font-family: "Gilroy-Regular", Arial, sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.55;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 .note-footer {
   display: flex;
@@ -234,64 +296,16 @@ ul[role="menu"] li:hover {
   width: 100%;
 }
 
-.notes-detail-panel .note-editor-content {
-  flex: 1;
+.notes-detail-panel .note-detail-editor {
   height: 100%;
-  min-height: 0;
-  overflow: hidden;
   width: 100%;
 }
 
-.notes-detail-panel .note-content > div {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+.notes-detail-panel .note-detail-editor .plain-note-textarea {
+  height: 100%;
   padding-right: 8px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(31, 122, 90, 0.42) transparent;
+  overscroll-behavior: contain;
   cursor: text;
-  width: 100%;
-}
-
-.notes-detail-panel .note-content > div::-webkit-scrollbar {
-  width: 8px;
-}
-
-.notes-detail-panel .note-content > div::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.notes-detail-panel .note-content > div::-webkit-scrollbar-thumb {
-  background: rgba(31, 122, 90, 0.34);
-  border-radius: 999px;
-}
-
-.notes-detail-panel .note-content > div::-webkit-scrollbar-thumb:hover {
-  background: rgba(31, 122, 90, 0.5);
-}
-
-.notes-detail-panel .note-editor-content.ProseMirror {
-  height: 100%;
-  min-height: 100%;
-  overflow: visible;
-  outline: none;
-  width: 100%;
-}
-
-[data-theme="dark"] .notes-detail-panel .note-content > div {
-  scrollbar-color: rgba(103, 210, 170, 0.46) transparent;
-}
-
-[data-theme="dark"] .notes-detail-panel .note-content > div::-webkit-scrollbar-thumb {
-  background: rgba(103, 210, 170, 0.36);
-}
-
-[data-theme="dark"]
-  .notes-detail-panel
-  .note-content
-  > div::-webkit-scrollbar-thumb:hover {
-  background: rgba(103, 210, 170, 0.52);
 }
 
 .notes-detail-panel .note-save-button {
@@ -299,12 +313,12 @@ ul[role="menu"] li:hover {
 }
 
 .notes-detail-panel .note-save-button,
-.notes-detail-panel .note-header-right svg {
+.notes-detail-panel .note-header-right button {
   transition: transform 0.15s ease, color 0.15s ease;
 }
 
 .notes-detail-panel .note-save-button:hover,
-.notes-detail-panel .note-header-right svg:hover {
+.notes-detail-panel .note-header-right button:hover {
   transform: translateY(-1px);
 }
 
@@ -327,10 +341,6 @@ ul[role="menu"] li:hover {
     border-radius: 0;
   }
 
-  .notes-detail-panel .note-editor-content {
-    min-height: 0;
-  }
-
   .note-footer {
     flex-direction: row;
     align-items: center;
@@ -349,7 +359,7 @@ ul[role="menu"] li:hover {
     margin-bottom: 12px;
   }
 
-  .notes-detail-panel .note-content > div {
+  .notes-detail-panel .note-detail-editor .plain-note-textarea {
     padding-right: 4px;
   }
 
