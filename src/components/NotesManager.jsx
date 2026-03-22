@@ -78,18 +78,6 @@ function NotesManager({ theme, toggleTheme }) {
     getNotes();
   }, [user]);
 
-  /*****  Fetch notes when route changes back to /main *****/
-  useEffect(() => {
-    const getNotes = async () => {
-      if (user) {
-        const fetchedNotes = await fetchNotes(user);
-        setNotes(fetchedNotes || []); // Update notes when navigating back to /main
-      }
-    };
-
-    getNotes();
-  }, [user, navigate]); // Dependency on `navigate` ensures the fetch is triggered on route change
-
   /***** Sorting Mechanism *****/
   const sortNotes = (method) => {
     if (!Array.isArray(notes)) return []; // Ensure `notes` is valid
@@ -239,12 +227,19 @@ function NotesManager({ theme, toggleTheme }) {
   const checklistCount = notes.filter((note) =>
     note.content?.includes('data-type="taskList"')
   ).length;
+  const hasScopedView = activeFilter !== "all" || searchTerm.trim() !== "";
 
   const handleSelectNote = (noteId) => {
     setSelectedNoteId(noteId);
     if (isMobileLayout) {
       setMobileScreen("detail");
     }
+  };
+
+  const resetListView = () => {
+    setActiveFilter("all");
+    setSearchTerm("");
+    setMobileBrowseTab("notes");
   };
 
   const renderSidebar = () => (
@@ -372,8 +367,25 @@ function NotesManager({ theme, toggleTheme }) {
         ) : (
           <div className="notes-list-empty">
             <p className="notes-detail-label">No matches</p>
-            <h3>Nothing fits this view right now.</h3>
-            <p>Try a different filter, clear search, or create a new note.</p>
+            <h3>
+              {hasScopedView
+                ? "Your current view is hiding notes."
+                : "Nothing fits this view right now."}
+            </h3>
+            <p>
+              {hasScopedView
+                ? "Clear search and filters to show every note again."
+                : "Try a different filter, clear search, or create a new note."}
+            </p>
+            {hasScopedView && (
+              <button
+                type="button"
+                className="notes-list-reset"
+                onClick={resetListView}
+              >
+                Show all notes
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -400,7 +412,10 @@ function NotesManager({ theme, toggleTheme }) {
                 <button
                   type="button"
                   className="notes-mobile-back"
-                  onClick={() => setMobileScreen("browse")}
+                  onClick={() => {
+                    setMobileBrowseTab("notes");
+                    setMobileScreen("browse");
+                  }}
                 >
                   <ArrowLeftLineIcon />
                   <span>All Notes</span>

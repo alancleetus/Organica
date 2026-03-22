@@ -34,6 +34,10 @@ function Note(props) {
     title: props.title || "",
     content: props.content || "",
   });
+  const latestDraftRef = useRef({
+    title: props.title || "",
+    content: props.content || "",
+  });
   const queuedSaveRef = useRef(null);
   const isSavingRef = useRef(false);
   const handleFabClick = (event) => setAnchorEl(event.currentTarget); // Open menu
@@ -60,20 +64,55 @@ function Note(props) {
       const nextContent = editor.getHTML();
       setUpdateContent(nextContent);
     },
+    onBlur: () => {
+      if (
+        latestDraftRef.current.title !== lastSavedNoteRef.current.title ||
+        latestDraftRef.current.content !== lastSavedNoteRef.current.content
+      ) {
+        saveChanges(latestDraftRef.current);
+      }
+    },
   });
 
   useEffect(() => {
-    setEditedTitle(props.title || "");
-    setUpdateContent(props.content || "");
+    latestDraftRef.current = {
+      title: editedTitle,
+      content: updatedContent,
+    };
+  }, [editedTitle, updatedContent]);
+
+  useEffect(() => {
+    setIsPinned(props.isPinned);
+    setIsFavorite(props.isFavorite);
+  }, [props.isPinned, props.isFavorite]);
+
+  useEffect(() => {
+    const nextTitle = props.title || "";
+    const nextContent = props.content || "";
+    const previousSaved = lastSavedNoteRef.current;
+    const savedSnapshotChanged =
+      nextTitle !== previousSaved.title || nextContent !== previousSaved.content;
+
+    if (!savedSnapshotChanged) return;
+
+    const hasLocalEdits =
+      editedTitle !== previousSaved.title ||
+      updatedContent !== previousSaved.content;
+
     lastSavedNoteRef.current = {
-      title: props.title || "",
-      content: props.content || "",
+      title: nextTitle,
+      content: nextContent,
     };
 
-    if (editor && editor.getHTML() !== (props.content || "")) {
-      editor.commands.setContent(props.content || "<p></p>", false);
+    if (hasLocalEdits) return;
+
+    setEditedTitle(nextTitle);
+    setUpdateContent(nextContent);
+
+    if (editor && editor.getHTML() !== nextContent) {
+      editor.commands.setContent(nextContent || "<p></p>", false);
     }
-  }, [props.id, props.title, props.content, editor]);
+  }, [props.title, props.content, editedTitle, updatedContent, editor]);
 
   const hasPendingChanges =
     editedTitle !== lastSavedNoteRef.current.title ||
@@ -146,7 +185,7 @@ function Note(props) {
     if (!hasPendingChanges) return;
 
     const autosaveTimer = setTimeout(() => {
-      saveChanges();
+      saveChanges(latestDraftRef.current);
     }, AUTOSAVE_DELAY_MS);
 
     return () => clearTimeout(autosaveTimer);
@@ -184,6 +223,16 @@ function Note(props) {
               data-testid="note-card-title-input"
               value={editedTitle}
               onChange={(event) => setEditedTitle(event.target.value)}
+              onBlur={() => {
+                if (
+                  latestDraftRef.current.title !==
+                    lastSavedNoteRef.current.title ||
+                  latestDraftRef.current.content !==
+                    lastSavedNoteRef.current.content
+                ) {
+                  saveChanges(latestDraftRef.current);
+                }
+              }}
               placeholder="Untitled note"
             />
           </div>

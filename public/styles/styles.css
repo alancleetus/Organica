@@ -384,6 +384,18 @@ body {
   color: var(--light-gray);
 }
 
+.notes-list-reset {
+  width: fit-content;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--workspace-panel-border);
+  background: transparent;
+  color: var(--primary-color);
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+  cursor: pointer;
+}
+
 .note-list-item {
   width: 100%;
   border: 1px solid var(--workspace-panel-border);
