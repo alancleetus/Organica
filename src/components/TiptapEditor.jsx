@@ -26,6 +26,9 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
       <div className="control-group">
         <div className="button-group editor-button-group">
           <button
+            type="button"
+            data-testid="toggle-task-list"
+            aria-label="Toggle task list"
             onClick={() => editor.chain().focus().toggleTaskList().run()}
             className={
               editor.isActive("taskList")
@@ -36,6 +39,7 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
             <CheckboxMultipleLineIcon />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             className={
               editor.isActive("bulletList")
@@ -46,6 +50,7 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
             <ListUnorderedIcon />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             className={
               editor.isActive("orderedList")
@@ -56,12 +61,14 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
             <ListOrderedIcon />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
             className="editor-button "
           >
             <SeparatorIcon />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().chain().focus().undo().run()}
             className="editor-button "
@@ -69,6 +76,7 @@ const TipTapEditor = ({ setEditorContent, initialContent = null }) => {
             <ArrowGoBackLineIcon />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().chain().focus().redo().run()}
             className="editor-button "

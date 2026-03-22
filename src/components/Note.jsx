@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { v4 as uuidv4 } from "uuid";
 import { styled } from "@mui/material/styles";
@@ -30,6 +30,9 @@ import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import HeartFillIcon from "remixicon-react/HeartFillIcon";
 import SaveLineIcon from "remixicon-react/SaveLineIcon";
+
+const AUTOSAVE_DELAY_MS = 2500;
+
 function Note(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
@@ -38,6 +41,10 @@ function Note(props) {
 
   const [updatedContent, setUpdateContent] = useState("");
   const [contentChanged, setContentChanged] = useState(false);
+  const [saveState, setSaveState] = useState("idle");
+  const lastSavedContentRef = useRef(props.content || "");
+  const queuedSaveRef = useRef(null);
+  const isSavingRef = useRef(false);
   // Menu handlers
   const handleFabClick = (event) => setAnchorEl(event.currentTarget); // Open menu
   const handleMenuClose = () => setAnchorEl(null); // Close menu
@@ -53,27 +60,103 @@ function Note(props) {
     extensions: [StarterKit, TaskList, TaskItem],
     content: props.content,
     onUpdate: ({ editor }) => {
-      setUpdateContent(editor.getHTML());
+      const nextContent = editor.getHTML();
+
+      if (nextContent === lastSavedContentRef.current) {
+        setUpdateContent("");
+        setContentChanged(false);
+        setSaveState("idle");
+        return;
+      }
+
+      setUpdateContent(nextContent);
       setContentChanged(true);
+      setSaveState("pending");
     },
   });
 
-  const saveChanges = () => {
-    setContentChanged(false);
-    UpdateNote({ id: props.id, newContent: updatedContent });
-    setUpdateContent("");
+  useEffect(() => {
+    lastSavedContentRef.current = props.content || "";
+  }, [props.content]);
+
+  const saveChanges = async (contentToSave = updatedContent) => {
+    if (!contentToSave || contentToSave === lastSavedContentRef.current) {
+      setContentChanged(false);
+      setSaveState("idle");
+      return;
+    }
+
+    if (isSavingRef.current) {
+      queuedSaveRef.current = contentToSave;
+      return;
+    }
+
+    isSavingRef.current = true;
+    setSaveState("saving");
+
+    try {
+      await UpdateNote({
+        id: props.id,
+        newContent: contentToSave,
+        setNotes: props.setNotes,
+      });
+      lastSavedContentRef.current = contentToSave;
+      setUpdateContent("");
+      setContentChanged(false);
+      setSaveState("saved");
+    } catch (error) {
+      console.error("Error autosaving note:", error);
+      setSaveState("error");
+    } finally {
+      isSavingRef.current = false;
+
+      if (
+        queuedSaveRef.current &&
+        queuedSaveRef.current !== lastSavedContentRef.current
+      ) {
+        const queuedContent = queuedSaveRef.current;
+        queuedSaveRef.current = null;
+        saveChanges(queuedContent);
+      }
+    }
   };
+
+  useEffect(() => {
+    if (!contentChanged || !updatedContent) return;
+
+    const autosaveTimer = setTimeout(() => {
+      saveChanges(updatedContent);
+    }, AUTOSAVE_DELAY_MS);
+
+    return () => clearTimeout(autosaveTimer);
+  }, [contentChanged, updatedContent]);
+
   return (
     <>
       <article className="note-card">
         <div className="note-header">
           <div className="note-header-left">
-            {contentChanged && (
-              <SaveLineIcon
-                color="var(--primary-muted-color)"
+            {(contentChanged || saveState === "saving") && (
+              <button
+                type="button"
+                className="note-save-button"
+                data-testid="note-card-save"
+                aria-label={
+                  saveState === "saving" ? "Saving note" : "Save note now"
+                }
                 onClick={() => saveChanges()}
-                inputProps={{ 'data-testid': 'note-card-save' }}
-              />
+                disabled={saveState === "saving"}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  padding: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: saveState === "saving" ? "wait" : "pointer",
+                }}
+              >
+                <SaveLineIcon color="var(--primary-muted-color)" />
+              </button>
             )}
             <h1 className="note-title">{props.title}</h1>
           </div>

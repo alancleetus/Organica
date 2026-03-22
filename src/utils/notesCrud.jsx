@@ -138,6 +138,7 @@ export const UpdateNote = async ({
   tags,
   dueDateTime,
   reminderDateTime,
+  setNotes,
 }) => {
   try {
     const noteRef = doc(db, "notes", id); // Get the document reference
@@ -149,6 +150,7 @@ export const UpdateNote = async ({
     }
 
     const noteData = currentNote.data();
+    const modifiedDate = Date.now();
     const updatedFields = {
       title: newTitle !== undefined ? newTitle : noteData.title,
       content: newContent !== undefined ? newContent : noteData.content,
@@ -162,15 +164,24 @@ export const UpdateNote = async ({
         reminderDateTime !== undefined
           ? reminderDateTime
           : noteData.reminderDateTime,
-      modifiedDate: Date.now(), // Update the modified date
+      modifiedDate, // Update the modified date
     };
 
     await updateDoc(noteRef, updatedFields); // Update Firestore
+
+    if (setNotes) {
+      setNotes((prevNotes) =>
+        prevNotes.map((note) =>
+          note.id === id ? { ...note, ...updatedFields } : note
+        )
+      );
+    }
 
     console.log("Updated note with id:", id);
     console.log("Updated Fields: ", updatedFields);
   } catch (error) {
     console.error("Error updating note:", error);
+    throw error;
   }
 };
 export const AddTagsToNote = async (id, newTags, setNotes) => {
