@@ -144,6 +144,7 @@
   min-height: 0;
   width: 100%;
   gap: 8px;
+  position: relative;
 }
 
 .plain-note-toolbar {
@@ -191,6 +192,28 @@
   overflow-y: auto;
 }
 
+.plain-note-completed-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(31, 122, 90, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.plain-note-completed-label {
+  color: var(--light-gray);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.plain-note-completed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .plain-note-read-line {
   display: flex;
   align-items: flex-start;
@@ -217,19 +240,40 @@
 
 .plain-note-checklist-item {
   width: 100%;
-  border: none;
-  background: transparent;
   color: var(--text-color);
   display: flex;
   align-items: center;
   gap: 10px;
   text-align: left;
   padding: 4px 0;
-  cursor: pointer;
+  background: transparent;
 }
 
 .plain-note-checklist-item:hover {
   background: rgba(31, 122, 90, 0.04);
+}
+
+.plain-note-checklist-toggle,
+.plain-note-checklist-text-button {
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.plain-note-checklist-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.plain-note-checklist-text-button {
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+  cursor: text;
 }
 
 .plain-note-checklist-icon {
@@ -269,6 +313,17 @@
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.plain-note-textarea.is-hidden {
+  flex: 0;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 .note-footer {
   display: flex;
@@ -403,9 +458,6 @@ ul[role="menu"] li:hover {
   margin-bottom: 2px;
 }
 
-.notes-detail-panel .note-detail-editor .plain-note-textarea {
-  min-height: 120px;
-}
 
 .notes-detail-panel .note-detail-editor .plain-note-textarea:not(:focus) {
   color: transparent;
@@ -495,3 +547,4 @@ ul[role="menu"] li:hover {
     font-size: 0.78rem;
   }
 }
+

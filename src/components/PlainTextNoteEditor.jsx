@@ -143,6 +143,89 @@ function toggleChecklistItem(value = "", lineIndex) {
   return lines.join("\n");
 }
 
+function renderDisplayLine({
+  item,
+  editorTestId,
+  value,
+  onChange,
+  onEditStart,
+}) {
+  if (item.kind === "task") {
+    return (
+      <div
+        key={`${editorTestId}-task-${item.index}`}
+        className={`plain-note-checklist-item${item.checked ? " is-checked" : ""}`}
+        data-testid="note-checklist-item"
+      >
+        <button
+          type="button"
+          className="plain-note-checklist-toggle"
+          data-testid="note-checklist-toggle"
+          aria-label={item.checked ? "Mark task incomplete" : "Mark task complete"}
+          onClick={(event) => {
+            event.stopPropagation();
+            onChange(toggleChecklistItem(value, item.index));
+          }}
+        >
+          <span className="plain-note-checklist-icon" aria-hidden="true">
+            {item.checked ? <CheckboxCircleFillIcon /> : <CheckboxBlankCircleLineIcon />}
+          </span>
+        </button>
+        <button
+          type="button"
+          className="plain-note-checklist-text-button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onEditStart();
+          }}
+        >
+          <span className="plain-note-checklist-text">
+            {item.text || "Untitled task"}
+          </span>
+        </button>
+      </div>
+    );
+  }
+
+  if (item.kind === "bullet") {
+    return (
+      <div
+        key={`${editorTestId}-bullet-${item.index}`}
+        className="plain-note-read-line plain-note-read-line--bullet"
+      >
+        <span className="plain-note-read-marker" aria-hidden="true">
+          -
+        </span>
+        <span>{item.text}</span>
+      </div>
+    );
+  }
+
+  if (item.kind === "spacer") {
+    return (
+      <div
+        key={`${editorTestId}-spacer-${item.index}`}
+        className="plain-note-read-line plain-note-read-line--spacer"
+      />
+    );
+  }
+
+  return (
+    <div
+      key={`${editorTestId}-text-${item.index}`}
+      className="plain-note-read-line plain-note-read-line--text"
+      onMouseDown={(event) => {
+        if (event.detail > 1) {
+          event.preventDefault();
+          onEditStart();
+        }
+      }}
+    >
+      <span>{item.text}</span>
+    </div>
+  );
+}
+
 function PlainTextNoteEditor({
   value,
   onChange,
@@ -159,6 +242,14 @@ function PlainTextNoteEditor({
 
   const checklistItems = useMemo(() => parseChecklistItems(value), [value]);
   const displayLines = useMemo(() => parseDisplayLines(value), [value]);
+  const activeDisplayLines = useMemo(
+    () => displayLines.filter((item) => item.kind !== "task" || !item.checked),
+    [displayLines]
+  );
+  const completedDisplayLines = useMemo(
+    () => displayLines.filter((item) => item.kind === "task" && item.checked),
+    [displayLines]
+  );
   const currentLine = getCurrentLine(value, selectionStart);
   const isChecklistActive =
     /^\[( |x)\]\s?/i.test(currentLine) || checklistItems.length > 0;
@@ -195,7 +286,13 @@ function PlainTextNoteEditor({
   };
 
   return (
-    <div className={`plain-note-editor ${className}`.trim()}>
+    <div
+      className={`plain-note-editor ${
+        showChecklistPanel && displayLines.length > 0 && !isFocused
+          ? "is-read-mode "
+          : ""
+      }${className}`.trim()}
+    >
       <div className="plain-note-toolbar">
         <button
           type="button"
@@ -222,71 +319,44 @@ function PlainTextNoteEditor({
             }
           }}
         >
-          {displayLines.map((item) => {
-            if (item.kind === "task") {
-              return (
-                <button
-                  key={`${editorTestId}-task-${item.index}`}
-                  type="button"
-                  className={`plain-note-checklist-item${item.checked ? " is-checked" : ""}`}
-                  data-testid="note-checklist-item"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onChange(toggleChecklistItem(value, item.index));
-                  }}
-                >
-                  <span className="plain-note-checklist-icon" aria-hidden="true">
-                    {item.checked ? (
-                      <CheckboxCircleFillIcon />
-                    ) : (
-                      <CheckboxBlankCircleLineIcon />
-                    )}
-                  </span>
-                  <span className="plain-note-checklist-text">
-                    {item.text || "Untitled task"}
-                  </span>
-                </button>
-              );
-            }
+          {activeDisplayLines.map((item) =>
+            renderDisplayLine({
+              item,
+              editorTestId,
+              value,
+              onChange,
+              onEditStart: focusEditor,
+            })
+          )}
 
-            if (item.kind === "bullet") {
-              return (
-                <div
-                  key={`${editorTestId}-bullet-${item.index}`}
-                  className="plain-note-read-line plain-note-read-line--bullet"
-                >
-                  <span className="plain-note-read-marker" aria-hidden="true">
-                    -
-                  </span>
-                  <span>{item.text}</span>
-                </div>
-              );
-            }
-
-            if (item.kind === "spacer") {
-              return (
-                <div
-                  key={`${editorTestId}-spacer-${item.index}`}
-                  className="plain-note-read-line plain-note-read-line--spacer"
-                />
-              );
-            }
-
-            return (
-              <div
-                key={`${editorTestId}-text-${item.index}`}
-                className="plain-note-read-line plain-note-read-line--text"
-              >
-                <span>{item.text}</span>
+          {completedDisplayLines.length > 0 && (
+            <div className="plain-note-completed-section" data-testid="note-completed-section">
+              <p className="plain-note-completed-label">
+                Completed ({completedDisplayLines.length})
+              </p>
+              <div className="plain-note-completed-list">
+                {completedDisplayLines.map((item) =>
+                  renderDisplayLine({
+                    item,
+                    editorTestId,
+                    value,
+                    onChange,
+                    onEditStart: focusEditor,
+                  })
+                )}
               </div>
-            );
-          })}
+            </div>
+          )}
         </div>
       )}
 
       <textarea
         ref={textareaRef}
-        className="plain-note-textarea"
+        className={`plain-note-textarea${
+          showChecklistPanel && displayLines.length > 0 && !isFocused
+            ? " is-hidden"
+            : ""
+        }`}
         data-testid={editorTestId}
         value={value}
         onChange={(event) => onChange(event.target.value)}

@@ -92,6 +92,7 @@ test.describe('Notes CRUD (Firestore)', () => {
     await createNote(page, title, initialContent);
 
     const card = detailCard(page);
+    await card.getByTestId('note-read-panel').click();
     const contentArea = card.getByTestId('note-card-content-editor');
     await contentArea.fill(updatedContent);
     await page.waitForTimeout(3000);
@@ -112,7 +113,7 @@ test.describe('Notes CRUD (Firestore)', () => {
     await focusNoteFromList(page, title);
 
     const card = detailCard(page);
-    const checklistItem = card.getByTestId('note-checklist-item').first();
+    const checklistItem = card.getByTestId('note-checklist-toggle').first();
 
     await checklistItem.click();
     await page.waitForTimeout(3000);
@@ -125,6 +126,27 @@ test.describe('Notes CRUD (Firestore)', () => {
     await deleteSelectedNote(page, title);
   });
 
+
+  test('completed checklist items render in a separate section in view mode', async ({ page }) => {
+    await page.goto('/main');
+
+    const title = 'e2e-completed-section-' + Date.now();
+    const content = ['[ ] Open task', '[x] Done task', 'Plain note line'].join('\n');
+
+    await createNote(page, title, content);
+    await focusNoteFromList(page, title);
+
+    const card = detailCard(page);
+    const readPanel = card.getByTestId('note-read-panel');
+    const completedSection = card.getByTestId('note-completed-section');
+
+    await expect(readPanel).toContainText('Open task');
+    await expect(readPanel).toContainText('Plain note line');
+    await expect(completedSection).toContainText('Completed (1)');
+    await expect(completedSection).toContainText('Done task');
+
+    await deleteSelectedNote(page, title);
+  });
   test('checklist toggle applies to a full selected block', async ({ page }) => {
     await page.goto('/main');
 
@@ -157,3 +179,7 @@ test.describe('Notes CRUD (Firestore)', () => {
     await deleteSelectedNote(page, title);
   });
 });
+
+
+
+

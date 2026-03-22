@@ -846,44 +846,52 @@ form.create-note button:hover {
 }
 
 .notes-list-scroll,
-.plain-note-textarea {
+.plain-note-textarea,
+.plain-note-read-panel {
   scrollbar-width: thin;
   scrollbar-color: rgba(31, 122, 90, 0.32) transparent;
 }
 
 .notes-list-scroll::-webkit-scrollbar,
-.plain-note-textarea::-webkit-scrollbar {
+.plain-note-textarea::-webkit-scrollbar,
+.plain-note-read-panel::-webkit-scrollbar {
   width: 6px;
 }
 
 .notes-list-scroll::-webkit-scrollbar-track,
-.plain-note-textarea::-webkit-scrollbar-track {
+.plain-note-textarea::-webkit-scrollbar-track,
+.plain-note-read-panel::-webkit-scrollbar-track {
   background: transparent;
 }
 
 .notes-list-scroll::-webkit-scrollbar-thumb,
-.plain-note-textarea::-webkit-scrollbar-thumb {
+.plain-note-textarea::-webkit-scrollbar-thumb,
+.plain-note-read-panel::-webkit-scrollbar-thumb {
   background: rgba(31, 122, 90, 0.22);
   border-radius: 999px;
 }
 
 .notes-list-scroll::-webkit-scrollbar-thumb:hover,
-.plain-note-textarea::-webkit-scrollbar-thumb:hover {
+.plain-note-textarea::-webkit-scrollbar-thumb:hover,
+.plain-note-read-panel::-webkit-scrollbar-thumb:hover {
   background: rgba(31, 122, 90, 0.36);
 }
 
 [data-theme="dark"] .notes-list-scroll,
-[data-theme="dark"] .plain-note-textarea {
+[data-theme="dark"] .plain-note-textarea,
+[data-theme="dark"] .plain-note-read-panel {
   scrollbar-color: rgba(103, 210, 170, 0.36) transparent;
 }
 
 [data-theme="dark"] .notes-list-scroll::-webkit-scrollbar-thumb,
-[data-theme="dark"] .plain-note-textarea::-webkit-scrollbar-thumb {
+[data-theme="dark"] .plain-note-textarea::-webkit-scrollbar-thumb,
+[data-theme="dark"] .plain-note-read-panel::-webkit-scrollbar-thumb {
   background: rgba(103, 210, 170, 0.28);
 }
 
 [data-theme="dark"] .notes-list-scroll::-webkit-scrollbar-thumb:hover,
-[data-theme="dark"] .plain-note-textarea::-webkit-scrollbar-thumb:hover {
+[data-theme="dark"] .plain-note-textarea::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .plain-note-read-panel::-webkit-scrollbar-thumb:hover {
   background: rgba(103, 210, 170, 0.42);
 }
 
