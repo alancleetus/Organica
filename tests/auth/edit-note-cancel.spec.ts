@@ -5,6 +5,23 @@ test('Edit Note navigation, cancel edit, and cleanup', async ({ page }) => {
 
   const title = `e2e-nav-${Date.now()}`;
 
+  const noteListItemByTitle = (noteTitle: string) =>
+    page.locator('.note-list-item', {
+      has: page.locator('.note-list-item-title', { hasText: noteTitle }),
+    });
+
+  const noteCardByTitle = (noteTitle: string) =>
+    page.locator('article.note-card', {
+      has: page.locator('.note-title', { hasText: noteTitle }),
+    });
+
+  const focusNoteFromList = async (noteTitle: string) => {
+    const noteListItem = noteListItemByTitle(noteTitle);
+    await expect(noteListItem).toBeVisible();
+    await noteListItem.click();
+    await expect(noteCardByTitle(noteTitle)).toBeVisible();
+  };
+
   await page.getByTestId('add-note-fab').click();
   await expect(page.getByTestId('add-note-modal')).toBeVisible();
   await page.getByTestId('note-title').fill(title);
@@ -15,11 +32,9 @@ test('Edit Note navigation, cancel edit, and cleanup', async ({ page }) => {
 
   await page.getByTestId('note-save').click();
   await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
-  await expect(page.getByText(title)).toBeVisible();
 
-  const card = page.locator('article.note-card', {
-    has: page.getByText(title),
-  });
+  const card = noteCardByTitle(title);
+  await expect(card).toBeVisible();
 
   await card.getByTestId('note-card-menu-button').click();
   await page.getByTestId('note-card-menu-edit-button').click();
@@ -35,11 +50,12 @@ test('Edit Note navigation, cancel edit, and cleanup', async ({ page }) => {
   await page.locator('button.note-page-back-button').click();
 
   await expect(page).toHaveURL(/\/main/);
-  await expect(page.getByText(title)).toBeVisible();
-  await expect(page.getByText(attemptedTitle)).not.toBeVisible();
+  await focusNoteFromList(title);
+  await expect(page.getByRole('heading', { name: attemptedTitle })).not.toBeVisible();
 
-  await card.getByTestId('note-card-menu-button').click();
+  const refocusedCard = noteCardByTitle(title);
+  await refocusedCard.getByTestId('note-card-menu-button').click();
   await page.getByTestId('note-card-menu-delete-button').click();
 
-  await expect(page.getByText(title)).not.toBeVisible();
+  await expect(refocusedCard).not.toBeVisible();
 });

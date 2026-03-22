@@ -11,6 +11,23 @@ test('saving edit persists updated note data', async ({ page }) => {
     await page.waitForTimeout(msUntilNextMinute + 1000);
   };
 
+  const noteListItemByTitle = (noteTitle: string) =>
+    page.locator('.note-list-item', {
+      has: page.locator('.note-list-item-title', { hasText: noteTitle }),
+    });
+
+  const noteCardByTitle = (noteTitle: string) =>
+    page.locator('article.note-card', {
+      has: page.locator('.note-title', { hasText: noteTitle }),
+    });
+
+  const focusNoteFromList = async (noteTitle: string) => {
+    const noteListItem = noteListItemByTitle(noteTitle);
+    await expect(noteListItem).toBeVisible();
+    await noteListItem.click();
+    await expect(noteCardByTitle(noteTitle)).toBeVisible();
+  };
+
   await page.getByTestId('add-note-fab').click();
   await expect(page.getByTestId('add-note-modal')).toBeVisible();
   await page.getByTestId('note-title').fill(title);
@@ -21,11 +38,9 @@ test('saving edit persists updated note data', async ({ page }) => {
 
   await page.getByTestId('note-save').click();
   await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
-  await expect(page.getByText(title)).toBeVisible();
 
-  const card = page.locator('article.note-card', {
-    has: page.getByText(title),
-  });
+  const card = noteCardByTitle(title);
+  await expect(card).toBeVisible();
   const originalDateText = await card.getByTestId('note-card-date').textContent();
 
   await waitForNextMinuteBoundary();
@@ -44,11 +59,9 @@ test('saving edit persists updated note data', async ({ page }) => {
   await page.getByTestId('edit-note-save').click();
 
   await expect(page).toHaveURL(/\/main/);
-  await expect(page.getByText(updatedTitle)).toBeVisible();
+  await focusNoteFromList(updatedTitle);
 
-  const updatedCardWithNewTitle = page.locator('article.note-card', {
-    has: page.getByText(updatedTitle),
-  });
+  const updatedCardWithNewTitle = noteCardByTitle(updatedTitle);
   await expect(updatedCardWithNewTitle.getByTestId('note-card-date')).not.toHaveText(
     originalDateText || ''
   );

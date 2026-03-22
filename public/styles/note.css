@@ -135,3 +135,32 @@ ul[role="menu"] li:hover {
   padding: 10px;
   transition: all 0.3s ease-in-out;
 }
+
+.notes-detail-panel .note-card {
+  display: block;
+  margin: 0;
+  min-height: 100%;
+  padding: 20px;
+  border-radius: 22px;
+  box-shadow: none;
+  background: transparent;
+}
+
+.notes-detail-panel .note-title {
+  font-size: 2rem;
+  font-family: "Gilroy-Bold", Arial, sans-serif;
+}
+
+.notes-detail-panel .note-content {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.notes-detail-panel .note-editor-content {
+  min-height: 280px;
+}
+
+.notes-detail-panel .note-date {
+  align-self: flex-start;
+  margin-top: 18px;
+}

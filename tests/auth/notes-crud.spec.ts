@@ -17,20 +17,35 @@ async function createNote(page: Page, title: string, content: string) {
   await page.getByTestId('note-save').click();
 
   await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
-  await expect(page.getByText(title)).toBeVisible();
+  await expect(noteCardByTitle(page, title)).toBeVisible();
+}
+
+function noteListItemByTitle(page: Page, title: string): Locator {
+  return page.locator('.note-list-item', {
+    has: page.locator('.note-list-item-title', { hasText: title }),
+  });
 }
 
 function noteCardByTitle(page: Page, title: string): Locator {
-  return page.locator('article.note-card', { has: page.getByText(title) });
+  return page.locator('article.note-card', {
+    has: page.locator('.note-title', { hasText: title }),
+  });
+}
+
+async function focusNoteFromList(page: Page, title: string) {
+  const noteListItem = noteListItemByTitle(page, title);
+  await expect(noteListItem).toBeVisible();
+  await noteListItem.click();
+  await expect(noteCardByTitle(page, title)).toBeVisible();
 }
 
 async function deleteNoteFromCard(page: Page, title: string) {
+  await focusNoteFromList(page, title);
   const card = noteCardByTitle(page, title);
-  await expect(card).toBeVisible();
 
   await card.getByTestId('note-card-menu-button').click();
   await page.getByRole('menuitem', { name: /delete note/i }).click();
-  await expect(page.getByText(title)).not.toBeVisible();
+  await expect(noteCardByTitle(page, title)).not.toBeVisible();
 }
 
 test.describe('Notes CRUD (Firestore)', () => {
@@ -44,7 +59,7 @@ test.describe('Notes CRUD (Firestore)', () => {
     await createNote(page, title, content);
 
     await page.reload();
-    await expect(page.getByText(title)).toBeVisible();
+    await focusNoteFromList(page, title);
 
     await deleteNoteFromCard(page, title);
   });
@@ -92,7 +107,7 @@ test.describe('Notes CRUD (Firestore)', () => {
     await expect(card.getByTestId('note-card-save')).not.toBeVisible();
 
     await page.reload();
-    await expect(page.getByText(title)).toBeVisible();
+    await focusNoteFromList(page, title);
     await expect(noteCardByTitle(page, title).getByText(updatedContent)).toBeVisible();
 
     await deleteNoteFromCard(page, title);
@@ -116,7 +131,7 @@ test.describe('Notes CRUD (Firestore)', () => {
 
     await page.getByTestId('note-save').click();
     await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
-    await expect(page.getByText(title)).toBeVisible();
+    await expect(noteCardByTitle(page, title)).toBeVisible();
 
     const card = noteCardByTitle(page, title);
     const checkbox = card.locator('input[type="checkbox"]').first();
@@ -128,6 +143,7 @@ test.describe('Notes CRUD (Firestore)', () => {
 
     await page.reload();
 
+    await focusNoteFromList(page, title);
     const reloadedCard = noteCardByTitle(page, title);
     await expect(reloadedCard.locator('input[type="checkbox"]').first()).toBeChecked();
 
