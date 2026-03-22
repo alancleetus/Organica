@@ -4,8 +4,8 @@ import { auth } from "./Firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import Header from "./Header";
 import Note from "./Note";
-import AddNoteFab from "./AddNoteFab";
 import AddNoteModal from "./AddNoteModal";
+import AddNoteFab from "./AddNoteFab";
 import NoteListItem from "./NoteListItem";
 import { fetchNotes } from "../utils/fetchNotes.js";
 import { formatTimestampToDate } from "../utils/formatTimestampToDate.js";
@@ -149,13 +149,9 @@ function NotesManager({ theme, toggleTheme }) {
   const checklistCount = notes.filter((note) =>
     note.content?.includes('data-type="taskList"')
   ).length;
-  const displayName =
-    user?.displayName || user?.email?.split("@")[0] || "Organica User";
-  const userInitial = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="page-body">
-      <AddNoteFab onClick={() => setIsAddNoteOpen(true)} />
       <AddNoteModal
         open={isAddNoteOpen}
         onClose={() => setIsAddNoteOpen(false)}
@@ -163,60 +159,55 @@ function NotesManager({ theme, toggleTheme }) {
         user={user}
         setNotes={setNotes}
       />
-      <Header toggleTheme={toggleTheme} theme={theme} notes={notes} />
       <div className="notes-workspace">
         <aside className="notes-sidebar">
           <div className="notes-sidebar-top">
-            <div className="notes-sidebar-profile">
-              <div className="notes-sidebar-avatar" aria-hidden="true">
-                {userInitial}
-              </div>
-              <div>
-                <p className="notes-sidebar-profile-label">Workspace</p>
-                <h2>{displayName}</h2>
-              </div>
-            </div>
-
             <div className="notes-sidebar-brand">
-              <p className="notes-sidebar-kicker">My Notes</p>
+              <p className="notes-sidebar-kicker">Organica</p>
+              <h2 className="notes-sidebar-title">My Notes</h2>
               <p>Clean focus for your notes, ideas, and checklists.</p>
             </div>
-          </div>
 
-          <div className="notes-sidebar-section">
-            <button type="button" className="notes-sidebar-link is-active">
-              All Notes
-              <span>{sortedNotes.length}</span>
-            </button>
-            <button type="button" className="notes-sidebar-link">
-              Pinned
-              <span>{notes.filter((note) => note.isPinned).length}</span>
-            </button>
-            <button type="button" className="notes-sidebar-link">
-              Favorites
-              <span>{notes.filter((note) => note.isFavorite).length}</span>
-            </button>
+            <div className="notes-sidebar-section">
+              <button type="button" className="notes-sidebar-link is-active">
+                All Notes
+                <span>{sortedNotes.length}</span>
+              </button>
+              <button type="button" className="notes-sidebar-link">
+                Pinned
+                <span>{notes.filter((note) => note.isPinned).length}</span>
+              </button>
+              <button type="button" className="notes-sidebar-link">
+                Favorites
+                <span>{notes.filter((note) => note.isFavorite).length}</span>
+              </button>
+            </div>
           </div>
 
           <div className="notes-sidebar-summary">
-            <div className="notes-sidebar-summary-card">
-              <p>Quick Stats</p>
-              <strong>{sortedNotes.length} total notes</strong>
-            </div>
+            <p className="notes-sidebar-summary-title">Quick Stats</p>
             <div className="notes-sidebar-summary-grid">
+              <div>
+                <span>Total</span>
+                <strong>{sortedNotes.length}</strong>
+              </div>
               <div>
                 <span>Pinned</span>
                 <strong>{pinnedCount}</strong>
               </div>
               <div>
-                <span>Favorites</span>
+                <span>Favs</span>
                 <strong>{favoriteCount}</strong>
               </div>
               <div>
-                <span>Checklists</span>
+                <span>Tasks</span>
                 <strong>{checklistCount}</strong>
               </div>
             </div>
+          </div>
+
+          <div className="notes-sidebar-bottom">
+            <Header toggleTheme={toggleTheme} theme={theme} notes={notes} />
           </div>
         </aside>
 
@@ -232,10 +223,10 @@ function NotesManager({ theme, toggleTheme }) {
             <Sorter
               sortingOptions={[
                 { value: "title", label: "Title" },
-                { value: "creationDT", label: "Creation Date" },
-                { value: "modifiedDT", label: "Modified Date" },
-                { value: "dueDT", label: "Due Date" },
-                { value: "reminderDT", label: "Reminder Date" },
+                { value: "creationDT", label: "Created" },
+                { value: "modifiedDT", label: "Modified" },
+                { value: "dueDT", label: "Due" },
+                { value: "reminderDT", label: "Reminder" },
               ]}
               currentSorting={sortingMethod}
               onSortingChange={handleSortingChange}
@@ -253,6 +244,10 @@ function NotesManager({ theme, toggleTheme }) {
                 onSelect={setSelectedNoteId}
               />
             ))}
+          </div>
+
+          <div className="notes-list-footer">
+            <AddNoteFab onClick={() => setIsAddNoteOpen(true)} />
           </div>
         </section>
 

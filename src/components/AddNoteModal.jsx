@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@mui/material";
 import { CreateNote } from "../utils/notesCrud";
 import TipTapEditor from "./TiptapEditor";
-import CheckboxMultipleLineIcon from "remixicon-react/CheckboxMultipleLineIcon";
 
 function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
   const [title, setTitle] = useState("");
@@ -67,13 +66,6 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
     >
       <DialogContent className="create-note-modal-content">
         <div className="create-note-modal-shell">
-          <div className="create-note-head">
-            <div className="create-note-pill">
-              <CheckboxMultipleLineIcon />
-              <span>Checklist ready</span>
-            </div>
-          </div>
-
           <input
             className="create-note-title"
             type="text"
@@ -93,24 +85,26 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
           </div>
 
           <div className="create-note-actions">
-            <button
-              type="button"
-              className="create-note-close-button"
-              onClick={handleClose}
-              data-testid="cancel-add-note"
-              disabled={isSaving}
-            >
-              Close
-            </button>
-            <button
-              type="button"
-              className="create-note-save-button"
-              onClick={handleSave}
-              data-testid="note-save"
-              disabled={isSaving}
-            >
-              {isSaving ? "Saving..." : "Save"}
-            </button>
+            <div className="create-note-action-buttons">
+              <button
+                type="button"
+                className="create-note-close-button"
+                onClick={handleClose}
+                data-testid="cancel-add-note"
+                disabled={isSaving}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                className="create-note-save-button"
+                onClick={handleSave}
+                data-testid="note-save"
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving..." : "Save"}
+              </button>
+            </div>
           </div>
         </div>
       </DialogContent>

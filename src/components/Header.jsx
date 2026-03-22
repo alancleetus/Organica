@@ -8,7 +8,6 @@ import WifiOffLineIcon from "remixicon-react/WifiOffLineIcon";
 import Download2LineIcon from "remixicon-react/Download2LineIcon";
 
 import LogoutBoxRLineIcon from "remixicon-react/LogoutBoxRLineIcon";
-import LeafFillIcon from "remixicon-react/LeafFillIcon";
 
 function Header({ toggleTheme, theme, notes = [] }) {
   const [isOnline, setOnline] = useState(navigator.onLine);
@@ -47,24 +46,14 @@ function Header({ toggleTheme, theme, notes = [] }) {
   };
 
   return (
-    <header className="app-header">
-      <div className="app-header-brand">
-        <h1>
-          <LeafFillIcon />
-          Organica
-        </h1>
-        <p className="app-header-subtitle">
-          A calmer workspace for notes, ideas, and quick checklists.
-        </p>
-      </div>
-
-      <div className="app-header-actions">
-        {!isOnline && (
-          <div className="app-header-status" aria-label="Wifi offline">
-            <WifiOffLineIcon />
-            <span>Offline</span>
-          </div>
-        )}
+    <div className="sidebar-actions-shell">
+      {!isOnline && (
+        <div className="sidebar-status" aria-label="Wifi offline">
+          <WifiOffLineIcon />
+          <span>Offline</span>
+        </div>
+      )}
+      <div className="sidebar-actions">
         <button
           className="dark-mode-button"
           onClick={exportNotes}
@@ -91,7 +80,7 @@ function Header({ toggleTheme, theme, notes = [] }) {
           <LogoutBoxRLineIcon />
         </button>
       </div>
-    </header>
+    </div>
   );
 }
 

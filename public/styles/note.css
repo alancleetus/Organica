@@ -16,7 +16,7 @@
   justify-content: space-between; /* Align items left and right */
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 .note-header-left {
   display: flex;
@@ -24,13 +24,15 @@
   gap: 12px;
   align-items: flex-start;
   flex: 1;
+  min-width: 0;
 }
 .note-header-right {
   display: flex;
   flex-direction: row;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   color: var(--light-gray);
+  flex-shrink: 0;
 }
 
 .note-badge-div {
@@ -44,11 +46,13 @@
 
 .note-title-input {
   flex-grow: 1;
+  min-width: 0;
+  width: 100%;
   border: none;
   outline: none;
   background: transparent;
   color: var(--text-color);
-  font-size: 1.2rem;
+  font-size: 1.08rem;
   line-height: 1.15;
   font-family: "Gilroy-Bold", Arial, sans-serif;
 }
@@ -72,8 +76,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
   cursor: pointer;
 }
@@ -83,9 +87,13 @@
 }
 
 .note-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   flex-grow: 2;
   font-size: 0.95em;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   scrollbar-width: thin;
   color: var(--text-color);
   white-space: pre-wrap; /* Preserve whitespace and wrap text */
@@ -94,14 +102,21 @@
   word-break: break-word; /* Ensure URLs break properly */
 }
 .note-editor-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   overflow-y: auto;
+  width: 100%;
+  padding-bottom: 12px;
+  min-height: 0;
+  border-bottom: 1px solid rgba(31, 122, 90, 0.18);
 }
 .note-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--workspace-panel-border);
 }
 
@@ -175,35 +190,43 @@ ul[role="menu"] li:hover {
 }
 
 .notes-detail-panel .note-card {
-  display: block;
+  display: flex;
+  flex-direction: column;
   margin: 0;
-  min-height: 100%;
-  padding: 28px;
-  border-radius: 28px;
+  min-height: 0;
+  height: 100%;
+  padding: 10px 6px 8px 2px;
+  border-radius: 0;
   box-shadow: none;
   background: transparent;
 }
 
 .notes-detail-panel .note-title-input {
-  font-size: clamp(2rem, 2.4vw, 2.75rem);
+  font-size: clamp(1.6rem, 1.8vw, 2.1rem);
   font-family: "Gilroy-Bold", Arial, sans-serif;
 }
 
 .notes-detail-panel .note-content {
-  font-size: 1rem;
-  line-height: 1.7;
+  flex: 1;
+  min-height: 0;
+  font-size: 0.96rem;
+  line-height: 1.5;
+  max-width: 48rem;
 }
 
 .notes-detail-panel .note-editor-content {
-  min-height: 320px;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
 }
 
 .notes-detail-panel .note-save-button {
-  margin-top: 6px;
+  margin-top: 2px;
 }
 
 .notes-detail-panel .note-footer {
   margin-top: auto;
+  max-width: 48rem;
 }
 
 @media (max-width: 640px) {

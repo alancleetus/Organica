@@ -1,33 +1,33 @@
 div.sectioned-div {
   display: flex;
   flex-direction: row;
-  padding: 10px 0px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0;
 }
 
 div.sectioned-div > div.section-title {
   display: flex;
-  gap: 10px;
-  padding: none;
-  flex-grow: 2;
+  gap: 8px;
+  padding: 0;
+  flex: 1;
   align-items: center;
-}
-
-#sorter {
-  flex-grow: 1;
+  min-width: 0;
 }
 
 div.sectioned-div > div.section-title > p.section-badge {
   color: var(--badge-color);
   background-color: var(--badge-bg-color);
-  width: 20px; /* Adjust size for a square badge */
+  min-width: 20px;
   height: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 4px; /* Use this for slight rounding or 0 for sharp corners */
+  border-radius: 6px;
 
   font-size: 0.8em;
   font-weight: bold;
   font-family: "Gilroy-Medium", Arial, sans-serif;
-  line-height: 1; /* Ensure text doesn't cause layout issues */
+  line-height: 1;
 }

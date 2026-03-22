@@ -1,19 +1,19 @@
-import { Fab } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
 function AddNoteFab({ onClick }) {
   return (
-    <div>
-      <Fab
-        color="primary"
-        aria-label="add"
-        onClick={onClick}
-        id="create-note-fab"
-        data-testid="add-note-fab"
-      >
+    <button
+      type="button"
+      aria-label="add"
+      onClick={onClick}
+      id="create-note-fab"
+      data-testid="add-note-fab"
+    >
+      <span className="create-note-fab-icon">
         <AddIcon />
-      </Fab>
-    </div>
+      </span>
+      <span>Add note</span>
+    </button>
   );
 }
 

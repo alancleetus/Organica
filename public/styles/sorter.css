@@ -1,33 +1,57 @@
 .sorter {
   display: flex;
-  justify-items: center;
   align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
   color: var(--primary-color);
+  flex-shrink: 0;
 }
 
 #sorter-select {
   color: var(--primary-color);
-  border: none;
-  background-color: var(--background-color);
+  border: 1px solid var(--workspace-panel-border);
+  background-color: var(--workspace-surface-strong);
   font-family: "Gilroy-Medium";
-  font-size: var(--font-size-normal);
-
-  text-align: right;
-  /* Remove the default dropdown arrow */
-  appearance: none; /* Standard */
-  -webkit-appearance: none; /* Chrome, Safari, Edge */
-  -moz-appearance: none; /* Firefox */
+  font-size: 0.98rem;
+  height: 38px;
+  padding: 0 36px 0 12px;
+  border-radius: 10px;
+  text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   outline: none;
-
-  /* Optional: Add padding or adjust size to fit your design */
-  padding-right: 10px;
-  background-image: none; /* Remove background in some cases */
+  background-image: none;
+  min-width: 0;
+  max-width: 120px;
 }
 
 #sorter-select > option {
-  /* background-color: var(--create-note-bg-color); */
-  background-color: var(--background-color);
+  background-color: var(--workspace-surface-strong);
   color: var(--primary-color);
   font-family: "Gilroy-Medium", Arial, sans-serif;
-  text-align: right;
+  text-align: left;
+}
+
+.sorter button {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--workspace-panel-border);
+  background: var(--workspace-surface-strong);
+  color: var(--text-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .sorter {
+    width: 100%;
+  }
+
+  #sorter-select {
+    flex: 1;
+  }
 }
