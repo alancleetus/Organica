@@ -11,7 +11,6 @@ import "react-toastify/dist/ReactToastify.css";
 import NotesManager from "./NotesManager";
 import Login from "./auth/Login";
 import Register from "./auth/Register";
-import EditNote from "./EditNote";
 
 import AuthProvider from "./auth/AuthProvider";
 import { PrivateRoute, PublicOnlyRoute } from "./auth/RouteGuards";
@@ -64,10 +63,7 @@ let App = () => {
               path="/main"
               element={<NotesManager theme={theme} toggleTheme={toggleTheme} />}
             />
-            <Route
-              path="/edit/:id"
-              element={<EditNote theme={theme} toggleTheme={toggleTheme} />}
-            />
+            <Route path="/edit/:id" element={<Navigate to="/main" replace />} />
             <Route path="/note" element={<Navigate to="/main" replace />} />
             <Route path="/" element={<Navigate to="/main" replace />} />
           </Route>

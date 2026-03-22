@@ -3,6 +3,10 @@ import { test, expect, Page, Locator } from '@playwright/test';
 /**
  * Helpers
  */
+function detailCard(page: Page): Locator {
+  return page.locator('article.note-card').first();
+}
+
 async function createNote(page: Page, title: string, content: string) {
   await page.getByTestId('add-note-fab').click();
   await expect(page.getByTestId('add-note-modal')).toBeVisible();
@@ -17,7 +21,8 @@ async function createNote(page: Page, title: string, content: string) {
   await page.getByTestId('note-save').click();
 
   await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
-  await expect(noteCardByTitle(page, title)).toBeVisible();
+  await expect(noteListItemByTitle(page, title)).toBeVisible();
+  await expect(detailCard(page).getByTestId('note-card-title-input')).toHaveValue(title);
 }
 
 function noteListItemByTitle(page: Page, title: string): Locator {
@@ -26,26 +31,20 @@ function noteListItemByTitle(page: Page, title: string): Locator {
   });
 }
 
-function noteCardByTitle(page: Page, title: string): Locator {
-  return page.locator('article.note-card', {
-    has: page.locator('.note-title', { hasText: title }),
-  });
-}
-
 async function focusNoteFromList(page: Page, title: string) {
   const noteListItem = noteListItemByTitle(page, title);
   await expect(noteListItem).toBeVisible();
   await noteListItem.click();
-  await expect(noteCardByTitle(page, title)).toBeVisible();
+  await expect(detailCard(page).getByTestId('note-card-title-input')).toHaveValue(title);
 }
 
-async function deleteNoteFromCard(page: Page, title: string) {
+async function deleteSelectedNote(page: Page, title: string) {
   await focusNoteFromList(page, title);
-  const card = noteCardByTitle(page, title);
+  const card = detailCard(page);
 
   await card.getByTestId('note-card-menu-button').click();
   await page.getByRole('menuitem', { name: /delete note/i }).click();
-  await expect(noteCardByTitle(page, title)).not.toBeVisible();
+  await expect(noteListItemByTitle(page, title)).not.toBeVisible();
 }
 
 test.describe('Notes CRUD (Firestore)', () => {
@@ -61,7 +60,7 @@ test.describe('Notes CRUD (Firestore)', () => {
     await page.reload();
     await focusNoteFromList(page, title);
 
-    await deleteNoteFromCard(page, title);
+    await deleteSelectedNote(page, title);
   });
 
   test('cancel add-note closes modal without creating', async ({ page }) => {
@@ -95,7 +94,7 @@ test.describe('Notes CRUD (Firestore)', () => {
 
     await createNote(page, title, initialContent);
 
-    const card = noteCardByTitle(page, title);
+    const card = detailCard(page);
     const contentArea = card.getByTestId('note-card-content').locator('.ProseMirror');
 
     await contentArea.click();
@@ -108,9 +107,9 @@ test.describe('Notes CRUD (Firestore)', () => {
 
     await page.reload();
     await focusNoteFromList(page, title);
-    await expect(noteCardByTitle(page, title).getByText(updatedContent)).toBeVisible();
+    await expect(detailCard(page).getByText(updatedContent)).toBeVisible();
 
-    await deleteNoteFromCard(page, title);
+    await deleteSelectedNote(page, title);
   });
 
   test('task checkbox changes autosave and persist after reload', async ({ page }) => {
@@ -131,9 +130,9 @@ test.describe('Notes CRUD (Firestore)', () => {
 
     await page.getByTestId('note-save').click();
     await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
-    await expect(noteCardByTitle(page, title)).toBeVisible();
+    await expect(noteListItemByTitle(page, title)).toBeVisible();
 
-    const card = noteCardByTitle(page, title);
+    const card = detailCard(page);
     const checkbox = card.locator('input[type="checkbox"]').first();
 
     await checkbox.check();
@@ -144,9 +143,8 @@ test.describe('Notes CRUD (Firestore)', () => {
     await page.reload();
 
     await focusNoteFromList(page, title);
-    const reloadedCard = noteCardByTitle(page, title);
-    await expect(reloadedCard.locator('input[type="checkbox"]').first()).toBeChecked();
+    await expect(detailCard(page).locator('input[type="checkbox"]').first()).toBeChecked();
 
-    await deleteNoteFromCard(page, title);
+    await deleteSelectedNote(page, title);
   });
 });

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('saving edit persists updated note data', async ({ page }) => {
+test('editing note title in the detail pane autosaves and persists', async ({ page }) => {
   test.setTimeout(70000);
   await page.goto('/main');
 
@@ -16,16 +16,13 @@ test('saving edit persists updated note data', async ({ page }) => {
       has: page.locator('.note-list-item-title', { hasText: noteTitle }),
     });
 
-  const noteCardByTitle = (noteTitle: string) =>
-    page.locator('article.note-card', {
-      has: page.locator('.note-title', { hasText: noteTitle }),
-    });
+  const detailCard = () => page.locator('article.note-card').first();
 
   const focusNoteFromList = async (noteTitle: string) => {
     const noteListItem = noteListItemByTitle(noteTitle);
     await expect(noteListItem).toBeVisible();
     await noteListItem.click();
-    await expect(noteCardByTitle(noteTitle)).toBeVisible();
+    await expect(detailCard().getByTestId('note-card-title-input')).toHaveValue(noteTitle);
   };
 
   await page.getByTestId('add-note-fab').click();
@@ -39,35 +36,28 @@ test('saving edit persists updated note data', async ({ page }) => {
   await page.getByTestId('note-save').click();
   await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
 
-  const card = noteCardByTitle(title);
-  await expect(card).toBeVisible();
+  const card = detailCard();
+  await expect(card.getByTestId('note-card-title-input')).toHaveValue(title);
   const originalDateText = await card.getByTestId('note-card-date').textContent();
 
   await waitForNextMinuteBoundary();
 
-  await card.getByTestId('note-card-menu-button').click();
-  await page.getByTestId('note-card-menu-edit-button').click();
-
-  await expect(page).toHaveURL(/\/edit\/.+/);
-
-  const titleInput = page.locator('input.titleInput');
-  await expect(titleInput).toBeVisible();
-
   const updatedTitle = `${title}-should-save`;
-  await titleInput.fill(updatedTitle);
+  await card.getByTestId('note-card-title-input').fill(updatedTitle);
 
-  await page.getByTestId('edit-note-save').click();
+  await expect(card.getByTestId('note-card-save')).toBeVisible();
+  await page.waitForTimeout(3000);
+  await expect(card.getByTestId('note-card-save')).not.toBeVisible();
 
-  await expect(page).toHaveURL(/\/main/);
+  await page.reload();
   await focusNoteFromList(updatedTitle);
 
-  const updatedCardWithNewTitle = noteCardByTitle(updatedTitle);
-  await expect(updatedCardWithNewTitle.getByTestId('note-card-date')).not.toHaveText(
+  await expect(detailCard().getByTestId('note-card-date')).not.toHaveText(
     originalDateText || ''
   );
 
-  await updatedCardWithNewTitle.getByTestId('note-card-menu-button').click();
+  await detailCard().getByTestId('note-card-menu-button').click();
   await page.getByRole('menuitem', { name: /delete note/i }).click();
 
-  await expect(updatedCardWithNewTitle).not.toBeVisible();
+  await expect(noteListItemByTitle(updatedTitle)).not.toBeVisible();
 });

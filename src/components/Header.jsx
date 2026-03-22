@@ -10,7 +10,7 @@ import Download2LineIcon from "remixicon-react/Download2LineIcon";
 import LogoutBoxRLineIcon from "remixicon-react/LogoutBoxRLineIcon";
 import LeafFillIcon from "remixicon-react/LeafFillIcon";
 
-function Header({ toggleTheme, theme }) {
+function Header({ toggleTheme, theme, notes = [] }) {
   const [isOnline, setOnline] = useState(navigator.onLine);
 
   useEffect(() => {
@@ -29,17 +29,7 @@ function Header({ toggleTheme, theme }) {
 
   const exportNotes = async () => {
     try {
-      // Fetch all notes
-      const notesCollection = collection(db, "notes");
-      const q = query(notesCollection, where("userId", "==", user.uid));
-      const notesSnapshot = await getDocs(q);
-      const notesList = notesSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      // Create a JSON blob
-      const notesBlob = new Blob([JSON.stringify(notesList, null, 2)], {
+      const notesBlob = new Blob([JSON.stringify(notes, null, 2)], {
         type: "application/json",
       });
 
@@ -74,6 +64,7 @@ function Header({ toggleTheme, theme }) {
         style={{ marginRight: "10px" }}
         onClick={exportNotes}
         aria-label="Export Notes"
+        disabled={!notes.length}
       >
         <Download2LineIcon />
       </button>

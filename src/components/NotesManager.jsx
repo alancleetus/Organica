@@ -155,7 +155,7 @@ function NotesManager({ theme, toggleTheme }) {
         user={user}
         setNotes={setNotes}
       />
-      <Header toggleTheme={toggleTheme} theme={theme} />
+      <Header toggleTheme={toggleTheme} theme={theme} notes={notes} />
       <div className="notes-workspace">
         <aside className="notes-sidebar">
           <div className="notes-sidebar-brand">
@@ -237,10 +237,6 @@ function NotesManager({ theme, toggleTheme }) {
                 isPinned={selectedNote.isPinned}
                 isFavorite={selectedNote.isFavorite}
                 setNotes={setNotes}
-                tags={selectedNote.tags}
-                fetchedTags={[]}
-                dueDateTime={selectedNote.dueDateTime}
-                reminderDateTime={selectedNote.reminderDateTime}
               />
             </div>
           ) : (
