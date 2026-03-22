@@ -179,6 +179,8 @@
 .plain-note-read-panel {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   gap: 6px;
   padding: 2px 0 8px;
   border: none;
@@ -186,6 +188,7 @@
   width: 100%;
   text-align: left;
   cursor: text;
+  overflow-y: auto;
 }
 
 .plain-note-read-line {
@@ -194,6 +197,8 @@
   gap: 10px;
   color: var(--text-color);
   line-height: 1.5;
+  font-family: "Gilroy-Regular", Arial, sans-serif;
+  font-size: 0.98rem;
 }
 
 .plain-note-read-line--spacer {
@@ -240,6 +245,8 @@
 .plain-note-checklist-text {
   min-width: 0;
   line-height: 1.45;
+  font-family: "Gilroy-Regular", Arial, sans-serif;
+  font-size: 0.98rem;
 }
 
 .plain-note-checklist-item.is-checked .plain-note-checklist-text {
@@ -386,6 +393,12 @@ ul[role="menu"] li:hover {
   cursor: text;
 }
 
+.notes-detail-panel .note-detail-editor .plain-note-read-panel {
+  height: 100%;
+  padding-right: 8px;
+  overscroll-behavior: contain;
+}
+
 .notes-detail-panel .note-detail-editor .plain-note-toolbar {
   margin-bottom: 2px;
 }
@@ -456,6 +469,10 @@ ul[role="menu"] li:hover {
   }
 
   .notes-detail-panel .note-detail-editor .plain-note-textarea {
+    padding-right: 4px;
+  }
+
+  .notes-detail-panel .note-detail-editor .plain-note-read-panel {
     padding-right: 4px;
   }
 
