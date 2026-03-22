@@ -144,6 +144,14 @@ function NotesManager({ theme, toggleTheme }) {
 
   const selectedNote =
     sortedNotes.find((note) => note.id === selectedNoteId) || null;
+  const pinnedCount = notes.filter((note) => note.isPinned).length;
+  const favoriteCount = notes.filter((note) => note.isFavorite).length;
+  const checklistCount = notes.filter((note) =>
+    note.content?.includes('data-type="taskList"')
+  ).length;
+  const displayName =
+    user?.displayName || user?.email?.split("@")[0] || "Organica User";
+  const userInitial = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="page-body">
@@ -158,10 +166,21 @@ function NotesManager({ theme, toggleTheme }) {
       <Header toggleTheme={toggleTheme} theme={theme} notes={notes} />
       <div className="notes-workspace">
         <aside className="notes-sidebar">
-          <div className="notes-sidebar-brand">
-            <p className="notes-sidebar-kicker">Workspace</p>
-            <h2>My Notes</h2>
-            <p>Clean focus for your notes, ideas, and checklists.</p>
+          <div className="notes-sidebar-top">
+            <div className="notes-sidebar-profile">
+              <div className="notes-sidebar-avatar" aria-hidden="true">
+                {userInitial}
+              </div>
+              <div>
+                <p className="notes-sidebar-profile-label">Workspace</p>
+                <h2>{displayName}</h2>
+              </div>
+            </div>
+
+            <div className="notes-sidebar-brand">
+              <p className="notes-sidebar-kicker">My Notes</p>
+              <p>Clean focus for your notes, ideas, and checklists.</p>
+            </div>
           </div>
 
           <div className="notes-sidebar-section">
@@ -178,12 +197,36 @@ function NotesManager({ theme, toggleTheme }) {
               <span>{notes.filter((note) => note.isFavorite).length}</span>
             </button>
           </div>
+
+          <div className="notes-sidebar-summary">
+            <div className="notes-sidebar-summary-card">
+              <p>Quick Stats</p>
+              <strong>{sortedNotes.length} total notes</strong>
+            </div>
+            <div className="notes-sidebar-summary-grid">
+              <div>
+                <span>Pinned</span>
+                <strong>{pinnedCount}</strong>
+              </div>
+              <div>
+                <span>Favorites</span>
+                <strong>{favoriteCount}</strong>
+              </div>
+              <div>
+                <span>Checklists</span>
+                <strong>{checklistCount}</strong>
+              </div>
+            </div>
+          </div>
         </aside>
 
         <section className="notes-list-panel">
           <div className="sectioned-div notes-panel-header">
             <div className="section-title">
-              <h2>All Notes</h2>
+              <div>
+                <p className="notes-panel-kicker">Library</p>
+                <h2>All Notes</h2>
+              </div>
               <p className="section-badge">{sortedNotes.length}</p>
             </div>
             <Sorter
@@ -217,13 +260,20 @@ function NotesManager({ theme, toggleTheme }) {
           {selectedNote ? (
             <div className="notes-detail-shell">
               <div className="notes-detail-meta">
-                <p className="notes-detail-label">Selected Note</p>
-                <p className="notes-detail-date">
-                  Last updated{" "}
-                  {formatTimestampToDate(
-                    selectedNote.modifiedDate || selectedNote.creationDate
-                  )}
-                </p>
+                <div>
+                  <p className="notes-detail-label">Note Workspace</p>
+                  <p className="notes-detail-breadcrumb">
+                    My Notes / {selectedNote.title?.trim() || "Untitled note"}
+                  </p>
+                </div>
+                <div className="notes-detail-meta-pill">
+                  <span>Last updated</span>
+                  <p className="notes-detail-date">
+                    {formatTimestampToDate(
+                      selectedNote.modifiedDate || selectedNote.creationDate
+                    )}
+                  </p>
+                </div>
               </div>
 
               <Note

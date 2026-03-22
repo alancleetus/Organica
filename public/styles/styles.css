@@ -46,6 +46,8 @@
   --workspace-panel-border: rgba(31, 122, 90, 0.08);
   --workspace-card-bg: rgba(255, 255, 255, 0.72);
   --workspace-card-active: rgba(31, 122, 90, 0.08);
+  --workspace-surface-strong: rgba(255, 255, 255, 0.94);
+  --workspace-shadow: 0 26px 50px rgba(10, 20, 18, 0.08);
 
   --light-gray: hsl(227, 20%, 44%);
   --dark-gray: hsl(227, 20%, 19%);
@@ -78,6 +80,8 @@
   --workspace-panel-border: rgba(255, 255, 255, 0.08);
   --workspace-card-bg: rgba(255, 255, 255, 0.03);
   --workspace-card-active: rgba(31, 122, 90, 0.16);
+  --workspace-surface-strong: rgba(38, 42, 53, 0.96);
+  --workspace-shadow: 0 26px 50px rgba(0, 0, 0, 0.24);
 
   --badge-color: #fff;
   --badge-bg-color: #667485;
@@ -112,6 +116,12 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
   padding: 0px;
+  background-image: radial-gradient(
+      circle at top left,
+      rgba(31, 122, 90, 0.08),
+      transparent 28%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 24%);
   /* background-image: url("https://www.transparenttextures.com/patterns/cubes.png"); */
   /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
 }
@@ -133,23 +143,64 @@ body {
 .notes-detail-panel {
   background: var(--workspace-panel-bg);
   border: 1px solid var(--workspace-panel-border);
-  border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(10, 20, 18, 0.08);
+  border-radius: 28px;
+  box-shadow: var(--workspace-shadow);
   backdrop-filter: blur(10px);
 }
 
 .notes-sidebar {
-  padding: 20px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 24px;
 }
 
+.notes-sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.notes-sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 22px;
+  background: var(--workspace-surface-strong);
+  border: 1px solid var(--workspace-panel-border);
+}
+
+.notes-sidebar-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color), #9dd9c1);
+  color: white;
+  font-family: "Gilroy-Bold", Arial, sans-serif;
+  font-size: 1.1rem;
+}
+
+.notes-sidebar-profile-label {
+  color: var(--light-gray);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.notes-sidebar-profile h2 {
+  font-size: 1.2rem;
+  margin-top: 4px;
+}
+
 .notes-sidebar-brand {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .notes-sidebar-kicker {
@@ -158,11 +209,6 @@ body {
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.notes-sidebar-brand h2 {
-  font-size: 2rem;
-  line-height: 1;
 }
 
 .notes-sidebar-brand p:last-child {
@@ -182,13 +228,14 @@ body {
   align-items: center;
   width: 100%;
   border: none;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.02);
   color: var(--text-color);
-  padding: 14px 16px;
-  border-radius: 16px;
+  padding: 16px 18px;
+  border-radius: 18px;
   font-family: "Gilroy-Medium", Arial, sans-serif;
   font-size: 1rem;
   cursor: default;
+  border: 1px solid transparent;
 }
 
 .notes-sidebar-link span {
@@ -202,11 +249,60 @@ body {
 
 .notes-sidebar-link.is-active {
   background: var(--workspace-card-active);
+  border-color: rgba(31, 122, 90, 0.12);
+}
+
+.notes-sidebar-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notes-sidebar-summary-card,
+.notes-sidebar-summary-grid {
+  border-radius: 22px;
+  background: var(--workspace-surface-strong);
+  border: 1px solid var(--workspace-panel-border);
+}
+
+.notes-sidebar-summary-card {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notes-sidebar-summary-card p,
+.notes-sidebar-summary-grid span {
+  color: var(--light-gray);
+  font-size: 0.84rem;
+}
+
+.notes-sidebar-summary-card strong {
+  font-size: 1.15rem;
+}
+
+.notes-sidebar-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+}
+
+.notes-sidebar-summary-grid div {
+  padding: 16px 14px;
+  background: var(--workspace-surface-strong);
+}
+
+.notes-sidebar-summary-grid strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.15rem;
 }
 
 .notes-list-panel,
 .notes-detail-panel {
-  padding: 18px;
+  padding: 22px;
 }
 
 .notes-list-panel {
@@ -217,6 +313,7 @@ body {
 
 .notes-panel-header {
   padding: 0;
+  align-items: flex-start;
 }
 
 .notes-list-scroll {
@@ -230,9 +327,13 @@ body {
 .note-list-item {
   width: 100%;
   border: 1px solid var(--workspace-panel-border);
-  background: var(--workspace-card-bg);
-  border-radius: 18px;
-  padding: 16px;
+  background: linear-gradient(
+    180deg,
+    var(--workspace-surface-strong),
+    var(--workspace-card-bg)
+  );
+  border-radius: 22px;
+  padding: 18px;
   text-align: left;
   cursor: pointer;
   box-shadow: 0 12px 24px rgba(10, 20, 18, 0.04);
@@ -240,8 +341,12 @@ body {
 
 .note-list-item.is-selected {
   border-color: rgba(31, 122, 90, 0.22);
-  background: var(--workspace-card-active);
-  transform: translateY(-1px);
+  background: linear-gradient(
+    180deg,
+    rgba(31, 122, 90, 0.14),
+    var(--workspace-card-active)
+  );
+  transform: translateY(-1px) scale(1.01);
 }
 
 .note-list-item-top {
@@ -252,11 +357,29 @@ body {
   margin-bottom: 10px;
 }
 
+.note-list-item-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .note-list-item-date {
   color: var(--light-gray);
   font-size: 0.82rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.note-list-item-label {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(31, 122, 90, 0.08);
+  color: var(--primary-color);
+  font-size: 0.78rem;
+  font-family: "Gilroy-Medium", Arial, sans-serif;
 }
 
 .note-list-item-badges {
@@ -296,8 +419,9 @@ body {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  align-items: center;
-  padding: 6px 2px 0;
+  align-items: flex-end;
+  padding: 4px 2px 6px;
+  border-bottom: 1px solid var(--workspace-panel-border);
 }
 
 .notes-detail-label {
@@ -308,9 +432,34 @@ body {
   font-family: "Gilroy-Bold", Arial, sans-serif;
 }
 
-.notes-detail-date {
+.notes-detail-breadcrumb {
+  margin-top: 8px;
+  color: var(--dark-gray);
+  font-size: 1rem;
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+}
+
+.notes-detail-meta-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: var(--workspace-surface-strong);
+  border: 1px solid var(--workspace-panel-border);
+}
+
+.notes-detail-meta-pill span {
   color: var(--light-gray);
-  font-size: 0.92rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.notes-detail-date {
+  color: var(--text-color);
+  font-size: 0.95rem;
 }
 
 .notes-detail-empty {
@@ -344,16 +493,27 @@ body {
 }
 
 .dark-mode-button {
-  background: none;
-  border: none;
+  background: var(--workspace-surface-strong);
+  border: 1px solid var(--workspace-panel-border);
   cursor: pointer;
   color: var(--header-text-color);
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   outline: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dark-mode-button svg {
   vertical-align: middle;
+}
+
+.dark-mode-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 .custom-hyperlink {
   width: 100%;
@@ -494,6 +654,10 @@ form.create-note button:hover {
     padding: 16px;
   }
 
+  .notes-sidebar-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .notes-sidebar-section {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -518,6 +682,10 @@ form.create-note button:hover {
     grid-template-columns: 1fr;
   }
 
+  .notes-sidebar-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
   .notes-list-panel,
   .notes-detail-panel {
     padding: 14px;
@@ -525,6 +693,10 @@ form.create-note button:hover {
 
   .notes-detail-meta {
     flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .notes-detail-meta-pill {
     align-items: flex-start;
   }
 }

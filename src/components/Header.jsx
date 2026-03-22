@@ -47,45 +47,50 @@ function Header({ toggleTheme, theme, notes = [] }) {
   };
 
   return (
-    <header>
-      <h1>
-        <LeafFillIcon />
-        Organica
-      </h1>
-      {!isOnline && (
-        <WifiOffLineIcon
-          style={{ color: "red", float: "right", margin: "10px" }}
-          aria-label="Wifi offline"
+    <header className="app-header">
+      <div className="app-header-brand">
+        <h1>
+          <LeafFillIcon />
+          Organica
+        </h1>
+        <p className="app-header-subtitle">
+          A calmer workspace for notes, ideas, and quick checklists.
+        </p>
+      </div>
 
-        />
-      )}
-      <button
-        className="dark-mode-button"
-        style={{ marginRight: "10px" }}
-        onClick={exportNotes}
-        aria-label="Export Notes"
-        disabled={!notes.length}
-      >
-        <Download2LineIcon />
-      </button>
-      <button
-        className="dark-mode-button"
-        style={{ marginRight: "10px" }}
-        onClick={toggleTheme}
-        aria-label={theme === "light" ? "Enable dark mode" : "Enable light mode"}
-      >
-        {theme === "light" ? <MoonLineIcon /> : <SunLineIcon />}
-      </button>
-      <button
-        className="dark-mode-button"
-        onClick={() => {
-          handleLogout();
-          window.location.href = "/login";
-        }}
-        data-testid="logout-button"
-      >
-        <LogoutBoxRLineIcon />
-      </button>
+      <div className="app-header-actions">
+        {!isOnline && (
+          <div className="app-header-status" aria-label="Wifi offline">
+            <WifiOffLineIcon />
+            <span>Offline</span>
+          </div>
+        )}
+        <button
+          className="dark-mode-button"
+          onClick={exportNotes}
+          aria-label="Export Notes"
+          disabled={!notes.length}
+        >
+          <Download2LineIcon />
+        </button>
+        <button
+          className="dark-mode-button"
+          onClick={toggleTheme}
+          aria-label={theme === "light" ? "Enable dark mode" : "Enable light mode"}
+        >
+          {theme === "light" ? <MoonLineIcon /> : <SunLineIcon />}
+        </button>
+        <button
+          className="dark-mode-button"
+          onClick={() => {
+            handleLogout();
+            window.location.href = "/login";
+          }}
+          data-testid="logout-button"
+        >
+          <LogoutBoxRLineIcon />
+        </button>
+      </div>
     </header>
   );
 }

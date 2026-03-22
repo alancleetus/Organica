@@ -13,6 +13,13 @@ function stripHtml(html = "") {
 
 function NoteListItem({ note, isSelected, onSelect }) {
   const previewText = stripHtml(note.content);
+  const noteLabel = note.isPinned
+    ? "Pinned"
+    : note.isFavorite
+      ? "Favorite"
+      : previewText.includes("[]") || previewText.includes("[x]")
+        ? "Checklist"
+        : "Note";
 
   return (
     <button
@@ -22,15 +29,18 @@ function NoteListItem({ note, isSelected, onSelect }) {
       data-testid={isSelected ? "selected-note-list-item" : "note-list-item"}
     >
       <div className="note-list-item-top">
-        <p className="note-list-item-date">
-          {new Date(note.modifiedDate || note.creationDate).toLocaleDateString(
-            "en-US",
-            {
-              month: "short",
-              day: "numeric",
-            }
-          )}
-        </p>
+        <div className="note-list-item-meta">
+          <p className="note-list-item-date">
+            {new Date(note.modifiedDate || note.creationDate).toLocaleDateString(
+              "en-US",
+              {
+                month: "short",
+                day: "numeric",
+              }
+            )}
+          </p>
+          <span className="note-list-item-label">{noteLabel}</span>
+        </div>
         <div className="note-list-item-badges">
           {note.isPinned && <PushpinFillIcon />}
           {note.isFavorite && <HeartFillIcon />}
