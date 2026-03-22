@@ -6,7 +6,6 @@ import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
 import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import HeartFillIcon from "remixicon-react/HeartFillIcon";
-import SaveLineIcon from "remixicon-react/SaveLineIcon";
 import { DeleteNote, PinNote, UpdateNote } from "../utils/notesCrud";
 import PlainTextNoteEditor from "./PlainTextNoteEditor";
 import { normalizeNoteContent } from "../utils/noteContent";
@@ -174,29 +173,6 @@ function Note(props) {
       <article className="note-card">
         <div className="note-header">
           <div className="note-header-left">
-            {(hasPendingChanges || saveState === "saving") && (
-              <button
-                type="button"
-                className="note-save-button"
-                data-testid="note-card-save"
-                aria-label={
-                  saveState === "saving" ? "Saving note" : "Save note now"
-                }
-                onClick={() => saveChanges()}
-                disabled={saveState === "saving"}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  padding: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  cursor: saveState === "saving" ? "wait" : "pointer",
-                }}
-              >
-                <SaveLineIcon color="var(--primary-muted-color)" />
-              </button>
-            )}
-
             <input
               className="note-title-input"
               data-testid="note-card-title-input"
@@ -261,6 +237,7 @@ function Note(props) {
             editorTestId="note-card-content-editor"
             placeholder="Start writing..."
             className="note-detail-editor"
+            showChecklistPanel
           />
         </div>
 

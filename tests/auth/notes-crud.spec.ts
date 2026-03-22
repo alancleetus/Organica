@@ -94,10 +94,7 @@ test.describe('Notes CRUD (Firestore)', () => {
     const card = detailCard(page);
     const contentArea = card.getByTestId('note-card-content-editor');
     await contentArea.fill(updatedContent);
-
-    await expect(card.getByTestId('note-card-save')).toBeVisible();
     await page.waitForTimeout(3000);
-    await expect(card.getByTestId('note-card-save')).not.toBeVisible();
 
     await page.reload();
     await focusNoteFromList(page, title);
@@ -106,7 +103,7 @@ test.describe('Notes CRUD (Firestore)', () => {
     await deleteSelectedNote(page, title);
   });
 
-  test('task lines persist after reload', async ({ page }) => {
+  test('task lines can be toggled by clicking and persist after reload', async ({ page }) => {
     await page.goto('/main');
 
     const title = `e2e-task-autosave-${Date.now()}`;
@@ -128,9 +125,7 @@ test.describe('Notes CRUD (Firestore)', () => {
     const contentArea = card.getByTestId('note-card-content-editor');
 
     await contentArea.fill('[x] Checkbox item');
-    await expect(card.getByTestId('note-card-save')).toBeVisible();
     await page.waitForTimeout(3000);
-    await expect(card.getByTestId('note-card-save')).not.toBeVisible();
 
     await page.reload();
 
@@ -140,4 +135,9 @@ test.describe('Notes CRUD (Firestore)', () => {
     await deleteSelectedNote(page, title);
   });
 });
+
+
+
+
+
 

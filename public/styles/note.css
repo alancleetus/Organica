@@ -153,7 +153,7 @@
 }
 
 .plain-note-toolbar-button {
-  border: 1px solid transparent;
+  border: 1px solid rgba(31, 122, 90, 0.12);
   background: rgba(31, 122, 90, 0.08);
   color: var(--primary-color);
   width: 34px;
@@ -165,8 +165,81 @@
   cursor: pointer;
 }
 
+.plain-note-toolbar-button.is-active {
+  background: rgba(31, 122, 90, 0.14);
+  color: var(--primary-color);
+  border-color: rgba(31, 122, 90, 0.24);
+  box-shadow: none;
+}
+
 .plain-note-toolbar-button:hover {
   background: rgba(31, 122, 90, 0.14);
+}
+
+.plain-note-read-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 0 8px;
+}
+
+.plain-note-read-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+.plain-note-read-line--spacer {
+  min-height: 10px;
+}
+
+.plain-note-read-line--text,
+.plain-note-read-line--bullet {
+  padding: 2px 0;
+}
+
+.plain-note-read-marker {
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.plain-note-checklist-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.plain-note-checklist-item:hover {
+  background: rgba(31, 122, 90, 0.04);
+}
+
+.plain-note-checklist-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.plain-note-checklist-text {
+  min-width: 0;
+  line-height: 1.45;
+}
+
+.plain-note-checklist-item.is-checked .plain-note-checklist-text {
+  color: var(--light-gray);
+  text-decoration: line-through;
 }
 
 .plain-note-textarea {
@@ -306,6 +379,24 @@ ul[role="menu"] li:hover {
   padding-right: 8px;
   overscroll-behavior: contain;
   cursor: text;
+}
+
+.notes-detail-panel .note-detail-editor .plain-note-toolbar {
+  margin-bottom: 2px;
+}
+
+.notes-detail-panel .note-detail-editor .plain-note-textarea {
+  min-height: 120px;
+}
+
+.notes-detail-panel .note-detail-editor .plain-note-textarea:not(:focus) {
+  color: transparent;
+  caret-color: transparent;
+  user-select: none;
+}
+
+.notes-detail-panel .note-detail-editor .plain-note-textarea:not(:focus)::selection {
+  background: transparent;
 }
 
 .notes-detail-panel .note-save-button {
