@@ -94,8 +94,8 @@
   flex-grow: 2;
   font-size: 0.95em;
   margin-bottom: 16px;
-  scrollbar-width: thin;
   color: var(--text-color);
+  overflow: hidden;
   white-space: pre-wrap; /* Preserve whitespace and wrap text */
   word-wrap: break-word; /* Break long words */
   overflow-wrap: break-word; /* Modern equivalent */
@@ -105,7 +105,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   width: 100%;
   padding-bottom: 12px;
   min-height: 0;
@@ -192,9 +192,11 @@ ul[role="menu"] li:hover {
 .notes-detail-panel .note-card {
   display: flex;
   flex-direction: column;
+  flex: 1;
   margin: 0;
   min-height: 0;
   height: 100%;
+  overflow: hidden;
   padding: 10px 6px 8px 2px;
   border-radius: 0;
   box-shadow: none;
@@ -208,6 +210,7 @@ ul[role="menu"] li:hover {
 
 .notes-detail-panel .note-content {
   flex: 1;
+  height: 0;
   min-height: 0;
   font-size: 0.96rem;
   line-height: 1.5;
@@ -218,6 +221,55 @@ ul[role="menu"] li:hover {
   flex: 1;
   height: 100%;
   min-height: 0;
+  overflow: hidden;
+}
+
+.notes-detail-panel .note-content > div {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(31, 122, 90, 0.42) transparent;
+}
+
+.notes-detail-panel .note-content > div::-webkit-scrollbar {
+  width: 8px;
+}
+
+.notes-detail-panel .note-content > div::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notes-detail-panel .note-content > div::-webkit-scrollbar-thumb {
+  background: rgba(31, 122, 90, 0.34);
+  border-radius: 999px;
+}
+
+.notes-detail-panel .note-content > div::-webkit-scrollbar-thumb:hover {
+  background: rgba(31, 122, 90, 0.5);
+}
+
+.notes-detail-panel .note-editor-content.ProseMirror {
+  height: 100%;
+  min-height: 100%;
+  overflow: visible;
+}
+
+[data-theme="dark"] .notes-detail-panel .note-content > div {
+  scrollbar-color: rgba(103, 210, 170, 0.46) transparent;
+}
+
+[data-theme="dark"] .notes-detail-panel .note-content > div::-webkit-scrollbar-thumb {
+  background: rgba(103, 210, 170, 0.36);
+}
+
+[data-theme="dark"]
+  .notes-detail-panel
+  .note-content
+  > div::-webkit-scrollbar-thumb:hover {
+  background: rgba(103, 210, 170, 0.52);
 }
 
 .notes-detail-panel .note-save-button {
