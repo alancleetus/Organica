@@ -535,7 +535,7 @@ body {
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  width: min(100%, 900px);
+  width: 100%;
 }
 
 .notes-detail-meta {

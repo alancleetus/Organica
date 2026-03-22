@@ -260,7 +260,6 @@ function Note(props) {
         <div
           className="note-content"
           data-testid="note-card-content"
-          onClick={() => editor?.commands.focus("end")}
         >
           {editor && <EditorContent editor={editor} />}
         </div>

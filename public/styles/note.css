@@ -100,10 +100,19 @@
   word-wrap: break-word; /* Break long words */
   overflow-wrap: break-word; /* Modern equivalent */
   word-break: break-word; /* Ensure URLs break properly */
+  position: relative;
+  padding-bottom: 14px;
 }
 
-.note-card:focus-within .note-content {
-  border-bottom-color: rgba(31, 122, 90, 0.28);
+.note-content::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgba(31, 122, 90, 0.18);
+  pointer-events: none;
 }
 
 .note-editor-content {
@@ -112,9 +121,7 @@
   flex: 1;
   overflow: hidden;
   width: 100%;
-  padding-bottom: 12px;
   min-height: 0;
-  border-bottom: 1px solid rgba(31, 122, 90, 0.18);
 }
 .note-footer {
   display: flex;
@@ -224,7 +231,7 @@ ul[role="menu"] li:hover {
   min-height: 0;
   font-size: 0.96rem;
   line-height: 1.5;
-  max-width: 48rem;
+  width: 100%;
 }
 
 .notes-detail-panel .note-editor-content {
@@ -232,6 +239,7 @@ ul[role="menu"] li:hover {
   height: 100%;
   min-height: 0;
   overflow: hidden;
+  width: 100%;
 }
 
 .notes-detail-panel .note-content > div {
@@ -243,6 +251,7 @@ ul[role="menu"] li:hover {
   scrollbar-width: thin;
   scrollbar-color: rgba(31, 122, 90, 0.42) transparent;
   cursor: text;
+  width: 100%;
 }
 
 .notes-detail-panel .note-content > div::-webkit-scrollbar {
@@ -267,6 +276,7 @@ ul[role="menu"] li:hover {
   min-height: 100%;
   overflow: visible;
   outline: none;
+  width: 100%;
 }
 
 [data-theme="dark"] .notes-detail-panel .note-content > div {
@@ -300,11 +310,11 @@ ul[role="menu"] li:hover {
 
 .notes-detail-panel .note-footer {
   margin-top: auto;
-  max-width: 48rem;
+  width: 100%;
 }
 
-.notes-detail-panel .note-content > div:focus-within {
-  border-bottom: 1px solid rgba(31, 122, 90, 0.24);
+.notes-detail-panel .note-card:focus-within .note-content::after {
+  background: rgba(31, 122, 90, 0.28);
 }
 
 @media (max-width: 640px) {
