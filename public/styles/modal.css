@@ -112,9 +112,9 @@
 }
 
 .create-note-editor .plain-note-toolbar-button.is-active {
-  background: rgba(31, 122, 90, 0.14);
   color: var(--primary-color);
-  border-color: rgba(31, 122, 90, 0.24);
+  background: transparent;
+  border-color: transparent;
 }
 
 .create-note-editor .plain-note-textarea {

@@ -1,5 +1,7 @@
 import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
+import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
+import HeartFillIcon from "remixicon-react/HeartFillIcon";
 import { PinNote, UpdateNote } from "../utils/notesCrud";
 import { getPreviewItems, isChecklistContent } from "../utils/noteContent";
 
@@ -56,7 +58,7 @@ function NoteListItem({ note, isSelected, onSelect, setNotes }) {
             PinNote(note.id, !note.isPinned, setNotes);
           }}
         >
-          <PushpinLineIcon />
+          {note.isPinned ? <PushpinFillIcon /> : <PushpinLineIcon />}
         </button>
         <button
           type="button"
@@ -71,7 +73,7 @@ function NoteListItem({ note, isSelected, onSelect, setNotes }) {
             });
           }}
         >
-          <HeartLineIcon />
+          {note.isFavorite ? <HeartFillIcon /> : <HeartLineIcon />}
         </button>
       </div>
 

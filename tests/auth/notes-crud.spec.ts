@@ -108,23 +108,13 @@ test.describe('Notes CRUD (Firestore)', () => {
 
     const title = `e2e-task-autosave-${Date.now()}`;
 
-    await page.getByTestId('add-note-fab').click();
-    await expect(page.getByTestId('add-note-modal')).toBeVisible();
-    await expect(page.getByTestId('note-title')).toBeVisible();
-
-    await page.getByTestId('note-title').fill(title);
-    await page.getByTestId('add-note-modal').getByTestId('toggle-task-list').click();
-    await page.getByTestId('note-content').click();
-    await page.keyboard.type('Checkbox item');
-
-    await page.getByTestId('note-save').click();
-    await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
-    await expect(noteListItemByTitle(page, title)).toBeVisible();
+    await createNote(page, title, '[ ] Checkbox item');
+    await focusNoteFromList(page, title);
 
     const card = detailCard(page);
-    const contentArea = card.getByTestId('note-card-content-editor');
+    const checklistItem = card.getByTestId('note-checklist-item').first();
 
-    await contentArea.fill('[x] Checkbox item');
+    await checklistItem.click();
     await page.waitForTimeout(3000);
 
     await page.reload();
@@ -134,10 +124,36 @@ test.describe('Notes CRUD (Firestore)', () => {
 
     await deleteSelectedNote(page, title);
   });
+
+  test('checklist toggle applies to a full selected block', async ({ page }) => {
+    await page.goto('/main');
+
+    const title = `e2e-bulk-task-${Date.now()}`;
+    const content = ['first line', 'second line', 'third line'].join('\n');
+
+    await page.getByTestId('add-note-fab').click();
+    await expect(page.getByTestId('add-note-modal')).toBeVisible();
+    await page.getByTestId('note-title').fill(title);
+    await page.getByTestId('note-content').fill(content);
+
+    const modalEditor = page.getByTestId('note-content');
+    await modalEditor.click();
+    await page.keyboard.press('Control+A');
+    await page.getByTestId('add-note-modal').getByTestId('toggle-task-list').click();
+
+    await expect(modalEditor).toHaveValue(
+      ['[ ] first line', '[ ] second line', '[ ] third line'].join('\n')
+    );
+
+    await page.getByTestId('note-save').click();
+    await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
+    await focusNoteFromList(page, title);
+
+    const detailEditor = detailCard(page).getByTestId('note-card-content-editor');
+    await expect(detailEditor).toHaveValue(
+      ['[ ] first line', '[ ] second line', '[ ] third line'].join('\n')
+    );
+
+    await deleteSelectedNote(page, title);
+  });
 });
-
-
-
-
-
-

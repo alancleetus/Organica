@@ -1,24 +1,43 @@
 import CheckboxMultipleLineIcon from "remixicon-react/CheckboxMultipleLineIcon";
+import CheckboxMultipleFillIcon from "remixicon-react/CheckboxMultipleFillIcon";
 import CheckboxBlankCircleLineIcon from "remixicon-react/CheckboxBlankCircleLineIcon";
 import CheckboxCircleFillIcon from "remixicon-react/CheckboxCircleFillIcon";
 import { useMemo, useRef, useState } from "react";
 
 function toggleChecklistPrefix(value, selectionStart, selectionEnd) {
   const text = value || "";
-  const startOfLine = text.lastIndexOf("\n", Math.max(0, selectionStart - 1)) + 1;
-  const endOfLineIndex = text.indexOf("\n", selectionEnd);
+  const normalizedSelectionEnd =
+    selectionEnd > selectionStart && text[selectionEnd - 1] === "\n"
+      ? selectionEnd - 1
+      : selectionEnd;
+  const startOfLine =
+    text.lastIndexOf("\n", Math.max(0, selectionStart - 1)) + 1;
+  const endOfLineIndex = text.indexOf("\n", normalizedSelectionEnd);
   const endOfLine = endOfLineIndex === -1 ? text.length : endOfLineIndex;
-  const line = text.slice(startOfLine, endOfLine);
+  const selectedBlock = text.slice(startOfLine, endOfLine);
+  const lines = selectedBlock.split("\n");
+  const nonEmptyLines = lines.filter((line) => line.trim() !== "");
+  const shouldRemoveChecklist =
+    nonEmptyLines.length > 0 &&
+    nonEmptyLines.every((line) => /^\[( |x)\]\s?/i.test(line));
 
-  let nextLine = line;
-  if (/^\[( |x)\]\s?/i.test(line)) {
-    nextLine = line.replace(/^\[( |x)\]\s?/i, "");
-  } else {
-    nextLine = `[ ] ${line}`;
-  }
+  const nextLines = lines.map((line) => {
+    if (line.trim() === "") return line;
 
-  const nextValue = `${text.slice(0, startOfLine)}${nextLine}${text.slice(endOfLine)}`;
-  const cursorOffset = nextLine.length - line.length;
+    if (shouldRemoveChecklist) {
+      return line.replace(/^\[( |x)\]\s?/i, "");
+    }
+
+    if (/^\[( |x)\]\s?/i.test(line)) {
+      return line;
+    }
+
+    return `[ ] ${line}`;
+  });
+
+  const nextBlock = nextLines.join("\n");
+  const nextValue = `${text.slice(0, startOfLine)}${nextBlock}${text.slice(endOfLine)}`;
+  const cursorOffset = nextBlock.length - selectedBlock.length;
 
   return {
     value: nextValue,
@@ -144,6 +163,16 @@ function PlainTextNoteEditor({
   const isChecklistActive =
     /^\[( |x)\]\s?/i.test(currentLine) || checklistItems.length > 0;
 
+  const focusEditor = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    textarea.focus();
+    const cursorPosition = textarea.value.length;
+    textarea.setSelectionRange(cursorPosition, cursorPosition);
+    setSelectionStart(cursorPosition);
+  };
+
   const handleToggleChecklist = () => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -175,12 +204,24 @@ function PlainTextNoteEditor({
           aria-label="Toggle checklist line"
           onClick={handleToggleChecklist}
         >
-          <CheckboxMultipleLineIcon />
+          {isChecklistActive ? <CheckboxMultipleFillIcon /> : <CheckboxMultipleLineIcon />}
         </button>
       </div>
 
       {showChecklistPanel && displayLines.length > 0 && !isFocused && (
-        <div className="plain-note-read-panel" data-testid="note-read-panel">
+        <div
+          className="plain-note-read-panel"
+          data-testid="note-read-panel"
+          role="button"
+          tabIndex={0}
+          onClick={focusEditor}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              focusEditor();
+            }
+          }}
+        >
           {displayLines.map((item) => {
             if (item.kind === "task") {
               return (
@@ -189,10 +230,17 @@ function PlainTextNoteEditor({
                   type="button"
                   className={`plain-note-checklist-item${item.checked ? " is-checked" : ""}`}
                   data-testid="note-checklist-item"
-                  onClick={() => onChange(toggleChecklistItem(value, item.index))}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onChange(toggleChecklistItem(value, item.index));
+                  }}
                 >
                   <span className="plain-note-checklist-icon" aria-hidden="true">
-                    {item.checked ? <CheckboxCircleFillIcon /> : <CheckboxBlankCircleLineIcon />}
+                    {item.checked ? (
+                      <CheckboxCircleFillIcon />
+                    ) : (
+                      <CheckboxBlankCircleLineIcon />
+                    )}
                   </span>
                   <span className="plain-note-checklist-text">
                     {item.text || "Untitled task"}
@@ -208,7 +256,7 @@ function PlainTextNoteEditor({
                   className="plain-note-read-line plain-note-read-line--bullet"
                 >
                   <span className="plain-note-read-marker" aria-hidden="true">
-                    •
+                    -
                   </span>
                   <span>{item.text}</span>
                 </div>

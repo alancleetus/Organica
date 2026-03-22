@@ -362,6 +362,10 @@ body {
   color: var(--text-color);
   cursor: pointer;
   font-family: "Gilroy-Medium", Arial, sans-serif;
+  text-align: right;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .notes-filter-chip.is-active {
@@ -490,8 +494,8 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  border: 1px solid var(--workspace-panel-border);
-  background: var(--workspace-surface-strong);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--light-gray);
   display: inline-flex;
   align-items: center;
@@ -501,8 +505,8 @@ body {
 
 .note-list-item-action.is-active {
   color: var(--primary-color);
-  background: rgba(31, 122, 90, 0.08);
-  border-color: rgba(31, 122, 90, 0.16);
+  background: transparent;
+  border-color: transparent;
 }
 
 .note-list-item-title {

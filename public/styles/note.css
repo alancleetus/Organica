@@ -50,7 +50,7 @@
 
 .note-action-button.is-active {
   color: var(--primary-color);
-  background: rgba(31, 122, 90, 0.08);
+  background: transparent;
 }
 
 .note-badge-div {
@@ -153,8 +153,8 @@
 }
 
 .plain-note-toolbar-button {
-  border: 1px solid rgba(31, 122, 90, 0.12);
-  background: rgba(31, 122, 90, 0.08);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--primary-color);
   width: 34px;
   height: 34px;
@@ -166,14 +166,14 @@
 }
 
 .plain-note-toolbar-button.is-active {
-  background: rgba(31, 122, 90, 0.14);
   color: var(--primary-color);
-  border-color: rgba(31, 122, 90, 0.24);
+  background: transparent;
+  border-color: transparent;
   box-shadow: none;
 }
 
 .plain-note-toolbar-button:hover {
-  background: rgba(31, 122, 90, 0.14);
+  background: rgba(31, 122, 90, 0.06);
 }
 
 .plain-note-read-panel {
@@ -181,6 +181,11 @@
   flex-direction: column;
   gap: 6px;
   padding: 2px 0 8px;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: text;
 }
 
 .plain-note-read-line {
