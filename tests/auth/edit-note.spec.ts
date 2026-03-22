@@ -4,6 +4,11 @@ test('saving edit persists updated note data', async ({ page }) => {
   await page.goto('/main');
 
   const title = `e2e-nav-${Date.now()}`;
+  const waitForNextMinuteBoundary = async () => {
+    const now = new Date();
+    const msUntilNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+    await page.waitForTimeout(msUntilNextMinute + 1000);
+  };
 
   // ------------------------
   // Create note
@@ -19,13 +24,16 @@ test('saving edit persists updated note data', async ({ page }) => {
   await expect(page).toHaveURL(/\/main/);
   await expect(page.getByText(title)).toBeVisible();
 
-  // ------------------------
-  // Navigate to edit page via menu
-  // ------------------------
   const card = page.locator('article.note-card', {
     has: page.getByText(title),
   });
+  const originalDateText = await card.getByTestId('note-card-date').textContent();
 
+  await waitForNextMinuteBoundary();
+
+  // ------------------------
+  // Navigate to edit page via menu
+  // ------------------------
   await card.getByTestId('note-card-menu-button').click();
   await page.getByTestId('note-card-menu-edit-button').click();
 
@@ -45,6 +53,13 @@ test('saving edit persists updated note data', async ({ page }) => {
   // Back on main, updated title persists
   await expect(page).toHaveURL(/\/main/);
   await expect(page.getByText(updatedTitle)).toBeVisible();
+
+  const updatedCardWithNewTitle = page.locator('article.note-card', {
+    has: page.getByText(updatedTitle),
+  });
+  await expect(updatedCardWithNewTitle.getByTestId('note-card-date')).not.toHaveText(
+    originalDateText || ''
+  );
 
   // ------------------------
   // Cleanup

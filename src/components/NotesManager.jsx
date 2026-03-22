@@ -168,7 +168,7 @@ function NotesManager({ theme, toggleTheme }) {
             key={note.id}
             id={note.id}
             title={note.title}
-            date={formatTimestampToDate(note.creationDate)}
+            date={formatTimestampToDate(note.modifiedDate || note.creationDate)}
             content={note.content}
             isPinned={note.isPinned}
             isFavorite={note.isFavorite}

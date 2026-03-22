@@ -170,7 +170,9 @@ function Note(props) {
         </div>
         <div className="note-date">
           {!props.reminderDateTime && !props.dueDateTime && (
-            <p className="date-time-text">{props.date}</p>
+            <p className="date-time-text" data-testid="note-card-date">
+              {props.date}
+            </p>
           )}
 
           <div className="date-inner-container">
