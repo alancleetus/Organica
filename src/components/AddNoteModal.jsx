@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@mui/material";
 import { CreateNote } from "../utils/notesCrud";
 import TipTapEditor from "./TiptapEditor";
@@ -7,13 +7,21 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
   const [title, setTitle] = useState("");
   const [editorContent, setEditorContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const titleInputRef = useRef(null);
 
   useEffect(() => {
     if (!open) {
       setTitle("");
       setEditorContent("");
       setIsSaving(false);
+      return;
     }
+
+    const focusTimer = setTimeout(() => {
+      titleInputRef.current?.focus();
+    }, 50);
+
+    return () => clearTimeout(focusTimer);
   }, [open]);
 
   const isEditorEmpty = !editorContent || editorContent === "<p></p>";
@@ -50,6 +58,18 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
     }
   };
 
+  const handleModalKeyDown = (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+      event.preventDefault();
+      handleSave();
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      handleClose();
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -64,9 +84,13 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
         className: "create-note-backdrop",
       }}
     >
-      <DialogContent className="create-note-modal-content">
+      <DialogContent
+        className="create-note-modal-content"
+        onKeyDown={handleModalKeyDown}
+      >
         <div className="create-note-modal-shell">
           <input
+            ref={titleInputRef}
             className="create-note-title"
             type="text"
             value={title}

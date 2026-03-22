@@ -19,6 +19,7 @@ import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import HeartFillIcon from "remixicon-react/HeartFillIcon";
 import SaveLineIcon from "remixicon-react/SaveLineIcon";
+import TaskListShortcut from "../utils/taskListShortcut";
 
 const AUTOSAVE_DELAY_MS = 2500;
 
@@ -40,12 +41,12 @@ function Note(props) {
 
   const saveLabel =
     saveState === "saving"
-      ? "Saving..."
+      ? "Autosaving..."
       : saveState === "saved"
-        ? "Saved"
+        ? "All changes saved"
         : saveState === "error"
           ? "Save failed"
-          : "Edited";
+          : "Ready";
 
   const editor = useEditor({
     editorProps: {
@@ -53,7 +54,7 @@ function Note(props) {
         class: "note-editor-content", // You can customize classes if needed
       },
     },
-    extensions: [StarterKit, TaskList, TaskItem],
+    extensions: [StarterKit, TaskList, TaskItem, TaskListShortcut],
     content: props.content,
     onUpdate: ({ editor }) => {
       const nextContent = editor.getHTML();
@@ -256,7 +257,11 @@ function Note(props) {
             </div>
           </div>
         </div>
-        <div className="note-content" data-testid="note-card-content">
+        <div
+          className="note-content"
+          data-testid="note-card-content"
+          onClick={() => editor?.commands.focus("end")}
+        >
           {editor && <EditorContent editor={editor} />}
         </div>
         <div className="note-footer">

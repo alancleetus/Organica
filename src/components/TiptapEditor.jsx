@@ -5,6 +5,7 @@ import { EditorProvider, useCurrentEditor } from "@tiptap/react";
 import ListItem from "@tiptap/extension-list-item";
 import TextStyle from "@tiptap/extension-text-style";
 import Placeholder from "@tiptap/extension-placeholder";
+import TaskListShortcut from "../utils/taskListShortcut";
 import ListUnorderedIcon from "remixicon-react/ListUnorderedIcon";
 import ListOrderedIcon from "remixicon-react/ListOrderedIcon";
 import CheckboxMultipleLineIcon from "remixicon-react/CheckboxMultipleLineIcon";
@@ -37,6 +38,7 @@ const TipTapEditor = ({
             type="button"
             data-testid="toggle-task-list"
             aria-label="Toggle task list"
+            title="Toggle checklist (Ctrl/Cmd+Shift+7)"
             onClick={() => editor.chain().focus().toggleTaskList().run()}
             className={
               editor.isActive("taskList")
@@ -123,7 +125,7 @@ const TipTapEditor = ({
       },
       itemTypeName: "taskItem",
     }),
-    ,
+    TaskListShortcut,
     TextStyle.configure({ types: [ListItem.name] }),
   ];
 

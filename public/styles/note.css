@@ -101,6 +101,11 @@
   overflow-wrap: break-word; /* Modern equivalent */
   word-break: break-word; /* Ensure URLs break properly */
 }
+
+.note-card:focus-within .note-content {
+  border-bottom-color: rgba(31, 122, 90, 0.28);
+}
+
 .note-editor-content {
   display: flex;
   flex-direction: column;
@@ -124,6 +129,7 @@
   color: var(--light-gray);
   font-size: 0.82rem;
   letter-spacing: 0.02em;
+  transition: opacity 0.2s ease;
 }
 
 .note-save-state[data-state="saved"] {
@@ -208,6 +214,10 @@ ul[role="menu"] li:hover {
   font-family: "Gilroy-Bold", Arial, sans-serif;
 }
 
+.notes-detail-panel .note-title-input:focus {
+  outline: none;
+}
+
 .notes-detail-panel .note-content {
   flex: 1;
   height: 0;
@@ -232,6 +242,7 @@ ul[role="menu"] li:hover {
   padding-right: 8px;
   scrollbar-width: thin;
   scrollbar-color: rgba(31, 122, 90, 0.42) transparent;
+  cursor: text;
 }
 
 .notes-detail-panel .note-content > div::-webkit-scrollbar {
@@ -255,6 +266,7 @@ ul[role="menu"] li:hover {
   height: 100%;
   min-height: 100%;
   overflow: visible;
+  outline: none;
 }
 
 [data-theme="dark"] .notes-detail-panel .note-content > div {
@@ -276,27 +288,77 @@ ul[role="menu"] li:hover {
   margin-top: 2px;
 }
 
+.notes-detail-panel .note-save-button,
+.notes-detail-panel .note-header-right svg {
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.notes-detail-panel .note-save-button:hover,
+.notes-detail-panel .note-header-right svg:hover {
+  transform: translateY(-1px);
+}
+
 .notes-detail-panel .note-footer {
   margin-top: auto;
   max-width: 48rem;
 }
 
+.notes-detail-panel .note-content > div:focus-within {
+  border-bottom: 1px solid rgba(31, 122, 90, 0.24);
+}
+
 @media (max-width: 640px) {
   .note-header {
-    margin-bottom: 14px;
+    margin-bottom: 10px;
   }
 
   .notes-detail-panel .note-card {
-    padding: 18px;
-    border-radius: 20px;
+    padding: 8px 0 0;
+    border-radius: 0;
   }
 
   .notes-detail-panel .note-editor-content {
-    min-height: 220px;
+    min-height: 0;
   }
 
   .note-footer {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 10px;
+  }
+
+  .notes-detail-panel .note-title-input {
+    font-size: 1.15rem;
+  }
+
+  .notes-detail-panel .note-content {
+    font-size: 0.94rem;
+    line-height: 1.45;
+    margin-bottom: 12px;
+  }
+
+  .notes-detail-panel .note-content > div {
+    padding-right: 4px;
+  }
+
+  .notes-detail-panel .note-header-right {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .note-header {
+    gap: 10px;
+  }
+
+  .notes-detail-panel .note-title-input {
+    font-size: 1.05rem;
+  }
+
+  .note-save-state,
+  .note-date {
+    font-size: 0.78rem;
   }
 }

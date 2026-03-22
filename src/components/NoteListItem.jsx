@@ -1,5 +1,8 @@
 import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
 import HeartFillIcon from "remixicon-react/HeartFillIcon";
+import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
+import HeartLineIcon from "remixicon-react/HeartLineIcon";
+import { PinNote, UpdateNote } from "../utils/notesCrud";
 
 function stripHtml(html = "") {
   if (!html) return "";
@@ -11,7 +14,7 @@ function stripHtml(html = "") {
     .trim();
 }
 
-function NoteListItem({ note, isSelected, onSelect }) {
+function NoteListItem({ note, isSelected, onSelect, setNotes }) {
   const previewText = stripHtml(note.content);
   const noteLabel = note.isPinned
     ? "Pinned"
@@ -21,11 +24,21 @@ function NoteListItem({ note, isSelected, onSelect }) {
         ? "Checklist"
         : "Note";
 
+  const handleSelect = () => onSelect(note.id);
+
   return (
-    <button
-      type="button"
+    <article
       className={`note-list-item${isSelected ? " is-selected" : ""}`}
-      onClick={() => onSelect(note.id)}
+      onClick={handleSelect}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleSelect();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isSelected}
       data-testid={isSelected ? "selected-note-list-item" : "note-list-item"}
     >
       <div className="note-list-item-top">
@@ -47,6 +60,35 @@ function NoteListItem({ note, isSelected, onSelect }) {
         </div>
       </div>
 
+      <div className="note-list-item-actions">
+        <button
+          type="button"
+          className={`note-list-item-action${note.isPinned ? " is-active" : ""}`}
+          aria-label={note.isPinned ? "Unpin note" : "Pin note"}
+          onClick={(event) => {
+            event.stopPropagation();
+            PinNote(note.id, !note.isPinned, setNotes);
+          }}
+        >
+          {note.isPinned ? <PushpinFillIcon /> : <PushpinLineIcon />}
+        </button>
+        <button
+          type="button"
+          className={`note-list-item-action${note.isFavorite ? " is-active" : ""}`}
+          aria-label={note.isFavorite ? "Unfavorite note" : "Favorite note"}
+          onClick={(event) => {
+            event.stopPropagation();
+            UpdateNote({
+              id: note.id,
+              isFavorite: !note.isFavorite,
+              setNotes,
+            });
+          }}
+        >
+          {note.isFavorite ? <HeartFillIcon /> : <HeartLineIcon />}
+        </button>
+      </div>
+
       <h3 className="note-list-item-title">
         {note.title?.trim() || "Untitled note"}
       </h3>
@@ -54,7 +96,7 @@ function NoteListItem({ note, isSelected, onSelect }) {
       <p className="note-list-item-preview">
         {previewText || "No additional content yet."}
       </p>
-    </button>
+    </article>
   );
 }
 
