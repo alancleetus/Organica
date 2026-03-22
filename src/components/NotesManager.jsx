@@ -15,9 +15,14 @@ function NotesManager({ theme, toggleTheme }) {
   const [notes, setNotes] = useState([]);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
-  const [sortingMethod, setSortingMethod] = useState("title");
+  const [sortingMethod, setSortingMethod] = useState(() => {
+    return localStorage.getItem("notesSortingMethod") || "title";
+  });
   const [fetchedTags, setFetchedTags] = useState([]);
-  const [isAscending, setIsAscending] = useState(true); // Default to ascending
+  const [isAscending, setIsAscending] = useState(() => {
+    const savedSortDirection = localStorage.getItem("notesSortDirection");
+    return savedSortDirection ? savedSortDirection === "asc" : true;
+  });
   const [sortedNotes, setSortedNotes] = useState([]);
 
   /****  Redirect to login if not authenticated ****/
@@ -116,6 +121,14 @@ function NotesManager({ theme, toggleTheme }) {
   const toggleSortDirection = () => {
     setIsAscending((prev) => !prev);
   };
+
+  useEffect(() => {
+    localStorage.setItem("notesSortingMethod", sortingMethod);
+  }, [sortingMethod]);
+
+  useEffect(() => {
+    localStorage.setItem("notesSortDirection", isAscending ? "asc" : "desc");
+  }, [isAscending]);
 
   useEffect(() => {
     setSortedNotes(sortNotes(sortingMethod));
