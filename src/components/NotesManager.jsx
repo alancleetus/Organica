@@ -101,6 +101,7 @@ function NotesManager({ palette, setPalette }) {
     return localStorage.getItem("notesSearchTerm") || "";
   });
   const [isAddNoteOpen, setIsAddNoteOpen] = useState(false);
+  const [addNoteInitialType, setAddNoteInitialType] = useState("text");
   const [selectedNoteId, setSelectedNoteId] = useState(null);
   const [isMobileLayout, setIsMobileLayout] = useState(false);
   const [mobileBrowseTab, setMobileBrowseTab] = useState("notes");
@@ -141,6 +142,27 @@ function NotesManager({ palette, setPalette }) {
   }, [focusNoteId]);
   const overlayPushedRef = useRef(false);
   const pendingDeletesRef = useRef(new Map());
+
+  // Backs the PWA's home-screen long-press shortcuts (manifest.json),
+  // which land here as /main?new=note or /main?new=checklist — opens the
+  // create modal straight to that type instead of leaving the shortcut
+  // as a no-op. Runs once on mount; the param is stripped right after so
+  // refreshing or navigating back doesn't reopen the modal.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedType = params.get("new");
+    if (requestedType === "note" || requestedType === "checklist") {
+      setAddNoteInitialType(requestedType === "checklist" ? "checklist" : "text");
+      setIsAddNoteOpen(true);
+      params.delete("new");
+      const nextSearch = params.toString();
+      window.history.replaceState(
+        null,
+        "",
+        window.location.pathname + (nextSearch ? `?${nextSearch}` : "")
+      );
+    }
+  }, []);
 
   useEffect(() => {
     // Matches the CSS mobile-shell breakpoint (900px) in styles.css.
@@ -1382,6 +1404,7 @@ function NotesManager({ palette, setPalette }) {
     <div className="page-body">
       <AddNoteModal
         open={isAddNoteOpen}
+        initialType={addNoteInitialType}
         onClose={() => setIsAddNoteOpen(false)}
         onCreated={(createdNote) => {
           setSelectedNoteId(createdNote.id);

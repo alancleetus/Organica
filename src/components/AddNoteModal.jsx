@@ -5,9 +5,9 @@ import PlainTextNoteEditor from "./PlainTextNoteEditor";
 import ChecklistEditor from "./ChecklistEditor";
 import { trimNoteContent } from "../utils/noteContent";
 
-function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
+function AddNoteModal({ open, initialType = "text", onClose, onCreated, user, setNotes }) {
   const [title, setTitle] = useState("");
-  const [noteType, setNoteType] = useState("text");
+  const [noteType, setNoteType] = useState(initialType);
   const [editorContent, setEditorContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const titleInputRef = useRef(null);
@@ -21,11 +21,14 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
       return;
     }
 
+    setNoteType(initialType);
+
     const focusTimer = setTimeout(() => {
       titleInputRef.current?.focus();
     }, 50);
 
     return () => clearTimeout(focusTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const isEditorEmpty = editorContent.trim() === "";
