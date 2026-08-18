@@ -4,7 +4,7 @@
   flex-grow: 1;
   justify-content: space-between;
   background: var(--note-bg-color);
-  border-radius: 7px;
+  border-radius: var(--radius-lg);
   box-shadow: 0 2px 5px var(--note-shadow-color);
   padding: 10px;
   transition: all 0.3s ease-in-out;
@@ -41,7 +41,7 @@
   color: var(--light-gray);
   width: 32px;
   height: 32px;
-  border-radius: 999px;
+  border-radius: var(--radius);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -82,7 +82,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 4px; /* Use this for slight rounding or 0 for sharp corners */
+  border-radius: var(--radius);
 
   font-family: "Gilroy-Regular", Arial, sans-serif;
   line-height: 1; /* Ensure text doesn't cause layout issues */
@@ -96,7 +96,7 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 999px;
+  border-radius: var(--radius);
   cursor: pointer;
   border: 1px solid transparent;
   background: transparent;
@@ -105,7 +105,7 @@
 
 #menuIcon:hover,
 .note-action-button:hover {
-  background: rgba(31, 122, 90, 0.08);
+  background: var(--tint-medium);
 }
 
 .note-content {
@@ -133,8 +133,77 @@
   right: 0;
   bottom: 0;
   height: 1px;
-  background: rgba(31, 122, 90, 0.18);
+  background: var(--workspace-panel-border);
   pointer-events: none;
+}
+
+.note-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.note-tag-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px dashed var(--workspace-panel-border);
+  color: var(--light-gray);
+  border-radius: var(--radius);
+  padding: 3px 10px 3px 8px;
+  font-size: 0.74rem;
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+}
+
+.note-tag-add svg {
+  width: 13px;
+  height: 13px;
+}
+
+.note-tag-add:hover {
+  color: var(--text-color);
+  border-color: var(--light-gray);
+}
+
+.note-tag-input-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--editor-input-bg-color);
+  border-radius: var(--radius);
+  padding: 2px 4px 2px 10px;
+}
+
+.note-tag-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 0.78rem;
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+  width: 92px;
+}
+
+.note-tag-input-submit {
+  border: none;
+  background: var(--primary-color);
+  color: var(--accent-contrast);
+  border-radius: var(--radius);
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.note-tag-input-submit svg {
+  width: 12px;
+  height: 12px;
 }
 
 .plain-note-editor {
@@ -143,159 +212,7 @@
   flex: 1;
   min-height: 0;
   width: 100%;
-  gap: 8px;
   position: relative;
-}
-
-.plain-note-toolbar {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.plain-note-toolbar-button {
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--primary-color);
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.plain-note-toolbar-button.is-active {
-  color: var(--primary-color);
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
-
-.plain-note-toolbar-button:hover {
-  background: rgba(31, 122, 90, 0.06);
-}
-
-.plain-note-read-panel {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  gap: 6px;
-  padding: 2px 0 8px;
-  border: none;
-  background: transparent;
-  width: 100%;
-  text-align: left;
-  cursor: text;
-  overflow-y: auto;
-}
-
-.plain-note-completed-section {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(31, 122, 90, 0.14);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.plain-note-completed-label {
-  color: var(--light-gray);
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.plain-note-completed-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.plain-note-read-line {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  color: var(--text-color);
-  line-height: 1.5;
-  font-family: "Gilroy-Regular", Arial, sans-serif;
-  font-size: 0.98rem;
-}
-
-.plain-note-read-line--spacer {
-  min-height: 10px;
-}
-
-.plain-note-read-line--text,
-.plain-note-read-line--bullet {
-  padding: 2px 0;
-}
-
-.plain-note-read-marker {
-  color: var(--primary-color);
-  flex-shrink: 0;
-}
-
-.plain-note-checklist-item {
-  width: 100%;
-  color: var(--text-color);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-align: left;
-  padding: 4px 0;
-  background: transparent;
-}
-
-.plain-note-checklist-item:hover {
-  background: rgba(31, 122, 90, 0.04);
-}
-
-.plain-note-checklist-toggle,
-.plain-note-checklist-text-button {
-  border: none;
-  background: transparent;
-  color: inherit;
-  padding: 0;
-}
-
-.plain-note-checklist-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.plain-note-checklist-text-button {
-  min-width: 0;
-  flex: 1;
-  text-align: left;
-  cursor: text;
-}
-
-.plain-note-checklist-icon {
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-color);
-  flex-shrink: 0;
-}
-
-.plain-note-checklist-text {
-  min-width: 0;
-  line-height: 1.45;
-  font-family: "Gilroy-Regular", Arial, sans-serif;
-  font-size: 0.98rem;
-}
-
-.plain-note-checklist-item.is-checked .plain-note-checklist-text {
-  color: var(--light-gray);
-  text-decoration: line-through;
 }
 
 .plain-note-textarea {
@@ -315,15 +232,153 @@
   word-break: break-word;
 }
 
-.plain-note-textarea.is-hidden {
-  flex: 0;
-  height: 0 !important;
-  min-height: 0 !important;
+.checklist-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.checklist-editor-items {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 2px;
+  overflow-y: auto;
+}
+
+.checklist-editor-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 4px;
+  border-radius: var(--radius);
+}
+
+.checklist-editor-row:hover {
+  background: var(--tint-weak);
+}
+
+.checklist-editor-row:hover .checklist-editor-remove,
+.checklist-editor-row:focus-within .checklist-editor-remove {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.plain-note-checklist-toggle {
+  border: none;
+  background: transparent;
+  color: inherit;
   padding: 0;
-  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.plain-note-checklist-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.checklist-editor-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-color);
+  font-family: "Gilroy-Regular", Arial, sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  padding: 2px 0;
+}
+
+.checklist-editor-row.is-checked .checklist-editor-input {
+  color: var(--light-gray);
+  text-decoration: line-through;
+}
+
+.checklist-editor-remove {
+  border: none;
+  background: transparent;
+  color: var(--light-gray);
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
   opacity: 0;
-  overflow: hidden;
   pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.checklist-editor-remove:hover {
+  background: var(--tint-medium);
+  color: var(--text-color);
+}
+
+.checklist-editor-remove svg {
+  width: 16px;
+  height: 16px;
+}
+
+.checklist-editor-add-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 4px;
+  flex-shrink: 0;
+}
+
+.checklist-editor-add-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--light-gray);
+  flex-shrink: 0;
+}
+
+.checklist-editor-add-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.plain-note-completed-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--workspace-panel-border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.plain-note-completed-label {
+  color: var(--light-gray);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0 4px;
+}
+
+.plain-note-completed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 .note-footer {
   display: flex;
@@ -398,7 +453,7 @@ ul[role="menu"] li:hover {
   page-break-inside: avoid;
 
   background: var(--note-bg-color);
-  border-radius: 7px;
+  border-radius: var(--radius-lg);
   box-shadow: 0 2px 5px var(--note-shadow-color);
   padding: 10px;
   transition: all 0.3s ease-in-out;
@@ -448,25 +503,10 @@ ul[role="menu"] li:hover {
   cursor: text;
 }
 
-.notes-detail-panel .note-detail-editor .plain-note-read-panel {
+.notes-detail-panel .note-detail-editor .checklist-editor-items {
   height: 100%;
   padding-right: 8px;
   overscroll-behavior: contain;
-}
-
-.notes-detail-panel .note-detail-editor .plain-note-toolbar {
-  margin-bottom: 2px;
-}
-
-
-.notes-detail-panel .note-detail-editor .plain-note-textarea:not(:focus) {
-  color: transparent;
-  caret-color: transparent;
-  user-select: none;
-}
-
-.notes-detail-panel .note-detail-editor .plain-note-textarea:not(:focus)::selection {
-  background: transparent;
 }
 
 .notes-detail-panel .note-save-button {
@@ -489,7 +529,7 @@ ul[role="menu"] li:hover {
 }
 
 .notes-detail-panel .note-card:focus-within .note-content::after {
-  background: rgba(31, 122, 90, 0.28);
+  background: var(--primary-color);
 }
 
 @media (max-width: 640px) {
@@ -524,7 +564,7 @@ ul[role="menu"] li:hover {
     padding-right: 4px;
   }
 
-  .notes-detail-panel .note-detail-editor .plain-note-read-panel {
+  .notes-detail-panel .note-detail-editor .checklist-editor-items {
     padding-right: 4px;
   }
 

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lsof -ti:5173 -sTCP:LISTEN)",
+      "Bash(xargs -r kill)",
+      "Bash(nohup npx vite --force)",
+      "Bash(echo \"started pid $!\")",
+      "Bash(timeout 40 bash -c 'until curl -sf http://localhost:5173 >/dev/null; do sleep 1; done')",
+      "Read(//tmp/**)",
+      "Bash(grep -n \"^\\\\.notes-workspace\\\\|^\\\\.notes-sidebar,\\\\|^\\\\.notes-sidebar {\\\\|note-list-item.is-selected\\\\|notes-filter-chip\\\\|notes-mobile-tab\\\\.is-active\\\\|@media \\(max-width: 640px\\)\" /home/alan/Desktop/repos/Organica/public/styles/styles.css)"
+    ]
+  }
+}

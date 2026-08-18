@@ -1,0 +1,135 @@
+.settings-page {
+  max-width: 720px;
+  margin: 0 auto;
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 4px 4px 40px;
+}
+
+.settings-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-header h1 {
+  font-family: "Gilroy-Bold", Arial, sans-serif;
+  font-size: 1.6rem;
+}
+
+.settings-section {
+  background: var(--workspace-panel-bg);
+  border: 1px solid var(--workspace-panel-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--workspace-shadow);
+  padding: 20px;
+}
+
+.settings-section h2 {
+  font-family: "Gilroy-Bold", Arial, sans-serif;
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+}
+
+.settings-section-hint {
+  color: var(--light-gray);
+  font-size: 0.86rem;
+  margin-bottom: 18px;
+}
+
+.settings-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.settings-palette-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--workspace-panel-border);
+  border-radius: var(--radius);
+  background: var(--workspace-surface-strong);
+  cursor: pointer;
+  text-align: left;
+}
+
+.settings-palette-card:hover {
+  border-color: var(--primary-color);
+}
+
+.settings-palette-card.is-active {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+.settings-palette-swatches {
+  display: flex;
+}
+
+.settings-palette-swatch {
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  margin-right: -8px;
+}
+
+.settings-palette-swatch:first-child {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.settings-palette-swatch:last-child {
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin-right: 0;
+}
+
+.settings-palette-name {
+  display: flex;
+  flex-direction: column;
+  font-family: "Gilroy-Bold", Arial, sans-serif;
+  font-size: 0.92rem;
+  color: var(--text-color);
+}
+
+.settings-palette-mode {
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+  font-size: 0.76rem;
+  color: var(--light-gray);
+  font-weight: normal;
+}
+
+.settings-palette-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: var(--accent-contrast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-palette-check svg {
+  width: 12px;
+  height: 12px;
+}
+
+@media (max-width: 640px) {
+  .settings-page {
+    padding: 2px 2px 32px;
+    gap: 20px;
+  }
+
+  .settings-section {
+    padding: 16px;
+  }
+}

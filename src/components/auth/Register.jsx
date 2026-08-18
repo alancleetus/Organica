@@ -6,10 +6,8 @@ import { toast } from "react-toastify";
 import { TextField, Button, Container, Typography, Box } from "@mui/material";
 
 import HighlightIcon from "@mui/icons-material/Highlight";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness5Icon from "@mui/icons-material/Brightness5";
 
-const Register = ({ theme, toggleTheme }) => {
+const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -28,18 +26,6 @@ const Register = ({ theme, toggleTheme }) => {
 
   return (
     <>
-      <div style={{ width: "100%", textAlign: "right" }}>
-        <button
-          className="dark-mode-button"
-          style={{
-            marginRight: "10px",
-            color: "var(--primary-color)",
-          }}
-          onClick={toggleTheme}
-        >
-          {theme === "light" ? <Brightness4Icon /> : <Brightness5Icon />}{" "}
-        </button>
-      </div>
       <Container maxWidth="sm">
         <Box className="login-register-flexbox">
           <div className="login-register-container">

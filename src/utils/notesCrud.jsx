@@ -17,6 +17,7 @@ export const CreateNote = async ({
   user,
   title,
   content = "",
+  noteType = "text",
   tags = [],
   dueDateTime = null,
   reminderDateTime = null,
@@ -33,6 +34,7 @@ export const CreateNote = async ({
     key: uuidv4(),
     title,
     content,
+    noteType,
     userId: user.uid,
     creationDate,
     modifiedDate: creationDate, // Initially the same as creation date

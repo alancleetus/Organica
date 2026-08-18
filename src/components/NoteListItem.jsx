@@ -2,19 +2,17 @@ import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
 import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import HeartFillIcon from "remixicon-react/HeartFillIcon";
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import { PinNote, UpdateNote } from "../utils/notesCrud";
-import { getPreviewItems, isChecklistContent } from "../utils/noteContent";
+import { getPreviewItems } from "../utils/noteContent";
 
-function NoteListItem({ note, isSelected, onSelect, setNotes }) {
+const VISIBLE_TAG_COUNT = 2;
+
+function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {} }) {
   const previewItems = getPreviewItems(note.content).slice(0, 4);
-  const previewText = previewItems.map((item) => item.text).join(" ");
-  const noteLabel = note.isPinned
-    ? "Pinned"
-    : note.isFavorite
-      ? "Favorite"
-      : isChecklistContent(note.content) || previewText.includes("[ ]") || previewText.includes("[x]")
-        ? "Checklist"
-        : "Note";
+  const tags = note.tags || [];
+  const visibleTags = tags.slice(0, VISIBLE_TAG_COUNT);
+  const hiddenTagCount = tags.length - visibleTags.length;
 
   const handleSelect = () => onSelect(note.id);
 
@@ -44,7 +42,6 @@ function NoteListItem({ note, isSelected, onSelect, setNotes }) {
               }
             )}
           </p>
-          <span className="note-list-item-label">{noteLabel}</span>
         </div>
       </div>
 
@@ -104,6 +101,24 @@ function NoteListItem({ note, isSelected, onSelect, setNotes }) {
         </div>
       ) : (
         <p className="note-list-item-preview">No additional content yet.</p>
+      )}
+
+      {tags.length > 0 && (
+        <div className="tag-chip-row">
+          {visibleTags.map((tag) => (
+            <span
+              className={`tag-chip${tagColors[tag] ? " has-folder-color" : ""}`}
+              key={tag}
+              style={tagColors[tag] ? { "--folder-accent": tagColors[tag] } : undefined}
+            >
+              <FolderOutlinedIcon aria-hidden="true" />
+              <span className="tag-chip-label">{tag}</span>
+            </span>
+          ))}
+          {hiddenTagCount > 0 && (
+            <span className="tag-chip-more">+{hiddenTagCount} more</span>
+          )}
+        </div>
       )}
     </article>
   );

@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { handleLogout } from "./auth/Logout";
 
-import MoonLineIcon from "remixicon-react/MoonLineIcon";
-import SunLineIcon from "remixicon-react/SunLineIcon";
+import Settings3LineIcon from "remixicon-react/Settings3LineIcon";
 import WifiOffLineIcon from "remixicon-react/WifiOffLineIcon";
 import Download2LineIcon from "remixicon-react/Download2LineIcon";
 
 import LogoutBoxRLineIcon from "remixicon-react/LogoutBoxRLineIcon";
 
-function Header({ toggleTheme, theme, notes = [] }) {
+function Header({ notes = [] }) {
   const [isOnline, setOnline] = useState(navigator.onLine);
 
   useEffect(() => {
@@ -62,13 +62,9 @@ function Header({ toggleTheme, theme, notes = [] }) {
         >
           <Download2LineIcon />
         </button>
-        <button
-          className="dark-mode-button"
-          onClick={toggleTheme}
-          aria-label={theme === "light" ? "Enable dark mode" : "Enable light mode"}
-        >
-          {theme === "light" ? <MoonLineIcon /> : <SunLineIcon />}
-        </button>
+        <Link className="dark-mode-button" to="/settings" aria-label="Settings">
+          <Settings3LineIcon />
+        </Link>
         <button
           className="dark-mode-button"
           onClick={() => {

@@ -11,25 +11,31 @@ import "react-toastify/dist/ReactToastify.css";
 import NotesManager from "./NotesManager";
 import Login from "./auth/Login";
 import Register from "./auth/Register";
+import Settings from "./Settings";
 
 import AuthProvider from "./auth/AuthProvider";
 import { PrivateRoute, PublicOnlyRoute } from "./auth/RouteGuards";
 
+function resolveInitialPalette() {
+  const saved = localStorage.getItem("palette");
+  if (saved) return saved;
+
+  // One-time migration from the old light/dark-only toggle so existing
+  // users don't silently lose their preference.
+  const legacyTheme = localStorage.getItem("theme");
+  if (legacyTheme === "dark") return "monochrome-dark";
+  return "slate-light";
+}
+
 let App = () => {
-  /****** Toggle Darkmode Start *******/
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("theme") || "light";
-  });
+  /****** Color palette start *******/
+  const [palette, setPalette] = useState(resolveInitialPalette);
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme); // Apply the theme to the document
-    localStorage.setItem("theme", theme); // Save theme to local storage
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light"); // Toggle between light and dark themes
-  };
-  /****** Toggle Darkmode End *******/
+    document.documentElement.setAttribute("data-palette", palette);
+    localStorage.setItem("palette", palette);
+  }, [palette]);
+  /****** Color palette end *******/
 
   return (
     <Router>
@@ -48,20 +54,15 @@ let App = () => {
         
         <Routes>
           <Route element={<PublicOnlyRoute />}>
-            <Route
-              path="/login"
-              element={<Login theme={theme} toggleTheme={toggleTheme} />}
-            />
-            <Route
-              path="/register"
-              element={<Register theme={theme} toggleTheme={toggleTheme} />}
-            />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           </Route>
 
           <Route element={<PrivateRoute />}>
+            <Route path="/main" element={<NotesManager />} />
             <Route
-              path="/main"
-              element={<NotesManager theme={theme} toggleTheme={toggleTheme} />}
+              path="/settings"
+              element={<Settings palette={palette} setPalette={setPalette} />}
             />
             <Route path="/edit/:id" element={<Navigate to="/main" replace />} />
             <Route path="/note" element={<Navigate to="/main" replace />} />

@@ -1,14 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
+import CloseIcon from "@mui/icons-material/Close";
+import AddIcon from "@mui/icons-material/Add";
 import { Menu, MenuItem } from "@mui/material";
 import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
 import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import HeartFillIcon from "remixicon-react/HeartFillIcon";
-import { DeleteNote, PinNote, UpdateNote } from "../utils/notesCrud";
+import { DeleteNote, PinNote, UpdateNote, ReplaceTagsForNote } from "../utils/notesCrud";
 import PlainTextNoteEditor from "./PlainTextNoteEditor";
-import { normalizeNoteContent } from "../utils/noteContent";
+import ChecklistEditor from "./ChecklistEditor";
+import { normalizeNoteContent, resolveNoteType } from "../utils/noteContent";
 
 const AUTOSAVE_DELAY_MS = 2500;
 
@@ -16,6 +20,10 @@ function Note(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [isPinned, setIsPinned] = useState(props.isPinned);
   const [isFavorite, setIsFavorite] = useState(props.isFavorite);
+  const [tags, setTags] = useState(props.tags || []);
+  const [isAddingTag, setIsAddingTag] = useState(false);
+  const [tagDraft, setTagDraft] = useState("");
+  const tagInputRef = useRef(null);
   const [editedTitle, setEditedTitle] = useState(props.title || "");
   const [updatedContent, setUpdatedContent] = useState(
     normalizeNoteContent(props.content || "")
@@ -32,6 +40,7 @@ function Note(props) {
   });
   const queuedSaveRef = useRef(null);
   const isSavingRef = useRef(false);
+  const noteType = resolveNoteType({ noteType: props.noteType, content: props.content });
 
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
@@ -56,6 +65,35 @@ function Note(props) {
     setIsPinned(props.isPinned);
     setIsFavorite(props.isFavorite);
   }, [props.isPinned, props.isFavorite]);
+
+  useEffect(() => {
+    setTags(props.tags || []);
+  }, [props.tags]);
+
+  useEffect(() => {
+    if (isAddingTag) {
+      tagInputRef.current?.focus();
+    }
+  }, [isAddingTag]);
+
+  const handleAddTag = (event) => {
+    event.preventDefault();
+    const nextTag = tagDraft.trim();
+    setTagDraft("");
+    setIsAddingTag(false);
+
+    if (!nextTag || tags.includes(nextTag)) return;
+
+    const nextTags = [...tags, nextTag];
+    setTags(nextTags);
+    ReplaceTagsForNote(props.id, nextTags, props.setNotes);
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    const nextTags = tags.filter((tag) => tag !== tagToRemove);
+    setTags(nextTags);
+    ReplaceTagsForNote(props.id, nextTags, props.setNotes);
+  };
 
   useEffect(() => {
     const nextTitle = props.title || "";
@@ -229,16 +267,80 @@ function Note(props) {
           </div>
         </div>
 
+        <div className="note-tag-row">
+          {tags.map((tag) => (
+            <span
+              className={`tag-chip tag-chip-removable${props.tagColors?.[tag] ? " has-folder-color" : ""}`}
+              key={tag}
+              style={props.tagColors?.[tag] ? { "--folder-accent": props.tagColors[tag] } : undefined}
+            >
+              <FolderOutlinedIcon aria-hidden="true" />
+              <span className="tag-chip-label">{tag}</span>
+              <button
+                type="button"
+                className="tag-chip-remove"
+                aria-label={`Remove ${tag} folder`}
+                onClick={() => handleRemoveTag(tag)}
+              >
+                <CloseIcon />
+              </button>
+            </span>
+          ))}
+
+          {isAddingTag ? (
+            <form className="note-tag-input-form" onSubmit={handleAddTag}>
+              <input
+                ref={tagInputRef}
+                type="text"
+                className="note-tag-input"
+                placeholder="Folder name"
+                value={tagDraft}
+                onChange={(event) => setTagDraft(event.target.value)}
+                onBlur={() => {
+                  if (!tagDraft.trim()) setIsAddingTag(false);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    setTagDraft("");
+                    setIsAddingTag(false);
+                  }
+                }}
+              />
+              <button type="submit" className="note-tag-input-submit" aria-label="Add folder">
+                <AddIcon />
+              </button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              className="note-tag-add"
+              onClick={() => setIsAddingTag(true)}
+            >
+              <AddIcon />
+              <span>Folder</span>
+            </button>
+          )}
+        </div>
+
         <div className="note-content" data-testid="note-card-content">
-          <PlainTextNoteEditor
-            value={updatedContent}
-            onChange={setUpdatedContent}
-            onBlur={flushPendingSave}
-            editorTestId="note-card-content-editor"
-            placeholder="Start writing..."
-            className="note-detail-editor"
-            showChecklistPanel
-          />
+          {noteType === "checklist" ? (
+            <ChecklistEditor
+              value={updatedContent}
+              onChange={setUpdatedContent}
+              onBlur={flushPendingSave}
+              editorTestId="note-card-content-editor"
+              className="note-detail-editor"
+            />
+          ) : (
+            <PlainTextNoteEditor
+              value={updatedContent}
+              onChange={setUpdatedContent}
+              onBlur={flushPendingSave}
+              editorTestId="note-card-content-editor"
+              placeholder="Start writing..."
+              className="note-detail-editor"
+            />
+          )}
         </div>
 
         <div className="note-footer">

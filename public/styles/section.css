@@ -24,7 +24,7 @@ div.sectioned-div > div.section-title > p.section-badge {
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 6px;
+  border-radius: var(--radius);
 
   font-size: 0.8em;
   font-weight: bold;

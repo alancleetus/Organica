@@ -15,7 +15,7 @@
   font-size: 0.98rem;
   height: 38px;
   padding: 0 36px 0 12px;
-  border-radius: 10px;
+  border-radius: var(--radius);
   text-align: left;
   appearance: none;
   -webkit-appearance: none;
@@ -36,7 +36,7 @@
 .sorter button {
   width: 38px;
   height: 38px;
-  border-radius: 10px;
+  border-radius: var(--radius);
   border: 1px solid var(--workspace-panel-border);
   background: var(--workspace-surface-strong);
   color: var(--text-color);

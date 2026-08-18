@@ -25,16 +25,10 @@
 }
 
 .create-note-modal {
-  border-radius: 22px !important;
+  border-radius: var(--radius-lg) !important;
   border: 1px solid var(--create-note-border);
-  background:
-    radial-gradient(circle at top right, rgba(31, 122, 90, 0.08), transparent 28%),
-    linear-gradient(
-      180deg,
-      var(--create-note-surface),
-      var(--create-note-surface-strong)
-    );
-  box-shadow: 0 24px 60px rgba(16, 24, 20, 0.18);
+  background: var(--create-note-surface);
+  box-shadow: var(--shadow-pop);
   overflow: hidden;
   width: min(100%, 680px);
   max-height: min(78vh, 560px);
@@ -61,13 +55,39 @@
   gap: 12px;
 }
 
-.create-note-kicker {
-  color: var(--primary-color);
-  font-size: 0.74rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.create-note-type-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--radius);
+  background: var(--tint-weak);
+  margin-bottom: 10px;
+}
+
+.create-note-type-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--light-gray);
+  border-radius: calc(var(--radius) - 2px);
+  padding: 6px 12px;
   font-family: "Gilroy-Bold", Arial, sans-serif;
-  margin-bottom: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.create-note-type-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.create-note-type-button.is-active {
+  background: var(--surface);
+  color: var(--primary-color);
+  box-shadow: var(--shadow-card);
 }
 
 .create-note-shortcut {
@@ -93,8 +113,8 @@
   min-height: 160px;
   height: min(30vh, 260px);
   max-height: min(30vh, 260px);
-  border-radius: 16px;
-  background: rgba(31, 122, 90, 0.03);
+  border-radius: var(--radius);
+  background: var(--editor-input-bg-color);
   border: 1px solid var(--create-note-border);
   padding: 10px 12px 8px;
   overflow: hidden;
@@ -105,21 +125,13 @@
   height: 100%;
 }
 
-.create-note-editor .plain-note-toolbar-button {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-}
-
-.create-note-editor .plain-note-toolbar-button.is-active {
-  color: var(--primary-color);
-  background: transparent;
-  border-color: transparent;
-}
-
 .create-note-editor .plain-note-textarea {
   font-size: 0.98rem;
   line-height: 1.55;
+}
+
+.create-note-editor .checklist-editor-input {
+  font-size: 0.98rem;
 }
 
 .create-note-actions {
@@ -146,7 +158,7 @@
 .create-note-close-button,
 .create-note-save-button {
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: var(--radius);
   min-height: 40px;
   padding: 8px 15px;
   font-family: "Gilroy-Bold", Arial, sans-serif;
@@ -154,14 +166,14 @@
 }
 
 .create-note-close-button {
-  background: rgba(31, 122, 90, 0.08);
+  background: var(--tint-medium);
   color: var(--text-color);
-  border-color: rgba(31, 122, 90, 0.08);
+  border-color: transparent;
 }
 
 .create-note-save-button {
   background-color: var(--primary-color);
-  color: #fff;
+  color: var(--accent-contrast);
 }
 
 .create-note-save-button:disabled,

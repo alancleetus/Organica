@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@mui/material";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import { CreateNote } from "../utils/notesCrud";
 import PlainTextNoteEditor from "./PlainTextNoteEditor";
+import ChecklistEditor from "./ChecklistEditor";
 
 function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
   const [title, setTitle] = useState("");
+  const [noteType, setNoteType] = useState("text");
   const [editorContent, setEditorContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const titleInputRef = useRef(null);
@@ -12,6 +16,7 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
   useEffect(() => {
     if (!open) {
       setTitle("");
+      setNoteType("text");
       setEditorContent("");
       setIsSaving(false);
       return;
@@ -45,6 +50,7 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
         user,
         title: title.trim(),
         content: editorContent,
+        noteType,
         setNotes,
       });
       if (createdNote && onCreated) {
@@ -70,6 +76,12 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
     }
   };
 
+  const handleTypeChange = (nextType) => {
+    if (nextType === noteType) return;
+    setNoteType(nextType);
+    setEditorContent("");
+  };
+
   return (
     <Dialog
       open={open}
@@ -91,7 +103,26 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
         <div className="create-note-modal-shell">
           <div className="create-note-header">
             <div>
-              <p className="create-note-kicker">Quick note</p>
+              <div className="create-note-type-picker" role="group" aria-label="Note type">
+                <button
+                  type="button"
+                  className={`create-note-type-button${noteType === "text" ? " is-active" : ""}`}
+                  data-testid="note-type-text"
+                  onClick={() => handleTypeChange("text")}
+                >
+                  <DescriptionOutlinedIcon />
+                  <span>Note</span>
+                </button>
+                <button
+                  type="button"
+                  className={`create-note-type-button${noteType === "checklist" ? " is-active" : ""}`}
+                  data-testid="note-type-checklist"
+                  onClick={() => handleTypeChange("checklist")}
+                >
+                  <FactCheckOutlinedIcon />
+                  <span>Checklist</span>
+                </button>
+              </div>
               <input
                 ref={titleInputRef}
                 className="create-note-title"
@@ -106,13 +137,22 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
           </div>
 
           <div className="create-note-editor">
-            <PlainTextNoteEditor
-              value={editorContent}
-              onChange={setEditorContent}
-              editorTestId="note-content"
-              placeholder="Take a note..."
-              className="create-note-editor-field"
-            />
+            {noteType === "checklist" ? (
+              <ChecklistEditor
+                value={editorContent}
+                onChange={setEditorContent}
+                editorTestId="note-content"
+                className="create-note-editor-field"
+              />
+            ) : (
+              <PlainTextNoteEditor
+                value={editorContent}
+                onChange={setEditorContent}
+                editorTestId="note-content"
+                placeholder="Take a note..."
+                className="create-note-editor-field"
+              />
+            )}
           </div>
 
           <div className="create-note-actions">

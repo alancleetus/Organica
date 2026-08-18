@@ -1,6 +1,15 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ArrowLeftLineIcon from "remixicon-react/ArrowLeftLineIcon";
+import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
+import HeartLineIcon from "remixicon-react/HeartLineIcon";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import SearchIcon from "@mui/icons-material/Search";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
+import NotesOutlinedIcon from "@mui/icons-material/NotesOutlined";
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
+import PencilLineIcon from "remixicon-react/PencilLineIcon";
 import { auth } from "./Firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import Header from "./Header";
@@ -10,10 +19,46 @@ import AddNoteFab from "./AddNoteFab";
 import NoteListItem from "./NoteListItem";
 import { fetchNotes } from "../utils/fetchNotes.js";
 import { formatTimestampToDate } from "../utils/formatTimestampToDate.js";
+import { ReplaceTagsForNote } from "../utils/notesCrud";
+import { CreateTag, UpdateTag, DeleteTag, FetchTagsByUser } from "../utils/tagsCrud";
 import Sorter from "./Sorter";
 import { getSearchableText, isChecklistContent } from "../utils/noteContent";
 
-function NotesManager({ theme, toggleTheme }) {
+const RESERVED_FILTERS = ["all", "pinned", "favorites", "tasks", "notes-only"];
+
+// Curated, distinct hues a folder can be color-coded with — rendered via
+// color-mix() in styles.css so each one adapts to whichever theme palette
+// is active instead of needing a hand-tuned value per theme.
+export const FOLDER_COLORS = [
+  { id: "red", hex: "#EF4444" },
+  { id: "orange", hex: "#F97316" },
+  { id: "amber", hex: "#F59E0B" },
+  { id: "green", hex: "#22C55E" },
+  { id: "teal", hex: "#14B8A6" },
+  { id: "blue", hex: "#3B82F6" },
+  { id: "indigo", hex: "#6366F1" },
+  { id: "purple", hex: "#A855F7" },
+  { id: "pink", hex: "#EC4899" },
+];
+
+function filterLabel(filter) {
+  switch (filter) {
+    case "all":
+      return "All Notes";
+    case "pinned":
+      return "Pinned";
+    case "favorites":
+      return "Favorites";
+    case "tasks":
+      return "Tasks";
+    case "notes-only":
+      return "Notes Only";
+    default:
+      return filter;
+  }
+}
+
+function NotesManager() {
   const [notes, setNotes] = useState([]);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
@@ -36,6 +81,9 @@ function NotesManager({ theme, toggleTheme }) {
   const [isMobileLayout, setIsMobileLayout] = useState(false);
   const [mobileBrowseTab, setMobileBrowseTab] = useState("notes");
   const [mobileScreen, setMobileScreen] = useState("browse");
+  const [renamingFolder, setRenamingFolder] = useState(null);
+  const [folderRenameDraft, setFolderRenameDraft] = useState("");
+  const [tagDocs, setTagDocs] = useState([]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)");
@@ -77,6 +125,18 @@ function NotesManager({ theme, toggleTheme }) {
     };
 
     getNotes();
+  }, [user]);
+
+  /***** Fetch folder color assignments (tagsCrud.jsx) *****/
+  useEffect(() => {
+    const getTagDocs = async () => {
+      if (user) {
+        const fetchedTags = await FetchTagsByUser(user.uid);
+        setTagDocs(fetchedTags || []);
+      }
+    };
+
+    getTagDocs();
   }, [user]);
 
   /***** Sorting Mechanism *****/
@@ -157,7 +217,10 @@ function NotesManager({ theme, toggleTheme }) {
           activeFilter === "all" ||
           (activeFilter === "pinned" && note.isPinned) ||
           (activeFilter === "favorites" && note.isFavorite) ||
-          (activeFilter === "tasks" && isChecklistContent(note.content));
+          (activeFilter === "tasks" && isChecklistContent(note.content)) ||
+          (activeFilter === "notes-only" && !isChecklistContent(note.content)) ||
+          (!RESERVED_FILTERS.includes(activeFilter) &&
+            (note.tags || []).includes(activeFilter));
 
       if (!matchesFilter) return false;
       if (!normalizedSearch) return true;
@@ -169,6 +232,43 @@ function NotesManager({ theme, toggleTheme }) {
       );
     });
   }, [sortedNotes, activeFilter, searchTerm]);
+
+  // Tags already live on every note (notesCrud.jsx); "folders" are just the
+  // set of tags currently in use, derived once and shared by both the
+  // desktop sidebar list and the mobile grid.
+  const folders = useMemo(() => {
+    const counts = new Map();
+    notes.forEach((note) => {
+      (note.tags || []).forEach((tag) => {
+        counts.set(tag, (counts.get(tag) || 0) + 1);
+      });
+    });
+    return Array.from(counts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [notes]);
+
+  // tagName -> { id, colorId } for folders that have been color-coded via
+  // the tagsCrud.jsx sidecar collection (notes only store tag *names*, so
+  // this is a separate lookup, not part of the note itself).
+  const tagColorDocsByName = useMemo(() => {
+    const map = new Map();
+    tagDocs.forEach((doc) => {
+      map.set(doc.tagName, doc);
+    });
+    return map;
+  }, [tagDocs]);
+
+  // tagName -> hex, the shape NoteListItem/Note actually consume.
+  const tagColors = useMemo(() => {
+    const colorsById = new Map(FOLDER_COLORS.map((c) => [c.id, c.hex]));
+    const result = {};
+    tagColorDocsByName.forEach((doc, name) => {
+      const hex = colorsById.get(doc.tagColor);
+      if (hex) result[name] = hex;
+    });
+    return result;
+  }, [tagColorDocsByName]);
 
   useEffect(() => {
     const handleKeyboardShortcuts = (event) => {
@@ -234,73 +334,326 @@ function NotesManager({ theme, toggleTheme }) {
     }
   };
 
+  // Used by both the Library rows and the Folders group: on mobile, picking
+  // a filter from the Folders tab should jump straight to the (now
+  // filtered) note list, not leave the user staring at the same tab.
+  const handleFilterSelect = (filterValue) => {
+    setActiveFilter(filterValue);
+    if (isMobileLayout) {
+      setMobileBrowseTab("notes");
+    }
+  };
+
   const resetListView = () => {
     setActiveFilter("all");
     setSearchTerm("");
     setMobileBrowseTab("notes");
   };
 
-  const renderSidebar = () => (
+  const startRenamingFolder = (folderName) => {
+    setRenamingFolder(folderName);
+    setFolderRenameDraft(folderName);
+  };
+
+  const cancelRenamingFolder = () => {
+    setRenamingFolder(null);
+    setFolderRenameDraft("");
+  };
+
+  // Folders are just tags in use (see the `folders` memo above) — renaming
+  // one means re-tagging every note that carries it. If a note already has
+  // the new name too, the rename just merges into it rather than erroring.
+  // The color assignment (if any) is a separate doc keyed by name, so it
+  // gets renamed alongside the notes or the color would silently "stick"
+  // to the old, now-unused name.
+  const commitFolderRename = (oldName) => {
+    const nextName = folderRenameDraft.trim();
+    setRenamingFolder(null);
+    setFolderRenameDraft("");
+
+    if (!nextName || nextName === oldName) return;
+
+    notes
+      .filter((note) => (note.tags || []).includes(oldName))
+      .forEach((note) => {
+        const nextTags = Array.from(
+          new Set(note.tags.map((tag) => (tag === oldName ? nextName : tag)))
+        );
+        ReplaceTagsForNote(note.id, nextTags, setNotes);
+      });
+
+    const existingColorDoc = tagColorDocsByName.get(oldName);
+    if (existingColorDoc) {
+      UpdateTag({ id: existingColorDoc.id, tagName: nextName }).then(() => {
+        setTagDocs((prev) =>
+          prev.map((doc) =>
+            doc.id === existingColorDoc.id ? { ...doc, tagName: nextName } : doc
+          )
+        );
+      });
+    }
+
+    if (activeFilter === oldName) {
+      setActiveFilter(nextName);
+    }
+  };
+
+  // Assign (or clear, colorId === null) a folder's color. Create-or-update
+  // against the tagsCrud.jsx doc for this name, since a folder may not have
+  // one yet the first time a color is picked. Clearing deletes the doc
+  // outright rather than writing a falsy tagColor — UpdateTag's own guard
+  // rejects an update where neither tagName nor tagColor is truthy.
+  const handleFolderColorChange = (folderName, colorId) => {
+    const existing = tagColorDocsByName.get(folderName);
+
+    if (!colorId) {
+      if (existing) {
+        DeleteTag(existing.id).then(() => {
+          setTagDocs((prev) => prev.filter((doc) => doc.id !== existing.id));
+        });
+      }
+      return;
+    }
+
+    if (existing) {
+      UpdateTag({ id: existing.id, tagColor: colorId }).then(() => {
+        setTagDocs((prev) =>
+          prev.map((doc) =>
+            doc.id === existing.id ? { ...doc, tagColor: colorId } : doc
+          )
+        );
+      });
+      return;
+    }
+
+    CreateTag({ userId: user.uid, tagName: folderName, tagColor: colorId }).then(
+      (created) => {
+        if (created) setTagDocs((prev) => [...prev, created]);
+      }
+    );
+  };
+
+  const renderColorSwatchRow = (folderName) => {
+    const currentColorId = tagColorDocsByName.get(folderName)?.tagColor || null;
+
+    return (
+      <div className="folder-color-swatch-row">
+        <button
+          type="button"
+          className={`folder-color-swatch-none${!currentColorId ? " is-active" : ""}`}
+          aria-label="No folder color"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => handleFolderColorChange(folderName, null)}
+        />
+        {FOLDER_COLORS.map((color) => (
+          <button
+            type="button"
+            key={color.id}
+            className={`folder-color-swatch${currentColorId === color.id ? " is-active" : ""}`}
+            style={{ "--swatch-color": color.hex }}
+            aria-label={`Set folder color to ${color.id}`}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => handleFolderColorChange(folderName, color.id)}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  const renderSearchInput = () => (
+    <div className="notes-search-field">
+      <SearchIcon aria-hidden="true" />
+      <input
+        ref={searchInputRef}
+        type="search"
+        className="notes-search-input"
+        placeholder="Search notes"
+        value={searchTerm}
+        onChange={(event) => setSearchTerm(event.target.value)}
+        data-testid="notes-search-input"
+      />
+    </div>
+  );
+
+  const renderSidebar = (foldersAsGrid = false) => (
     <aside className="notes-sidebar">
       <div className="notes-sidebar-top">
-        <div className="notes-sidebar-brand">
-          <p className="notes-sidebar-kicker">Organica</p>
-          <h2 className="notes-sidebar-title">My Notes</h2>
-          <p>Clean focus for your notes, ideas, and checklists.</p>
+        <div className="notes-sidebar-profile">
+          <span className="notes-avatar" aria-hidden="true">
+            <PersonOutlineIcon />
+          </span>
+          <span className="notes-sidebar-profile-name">
+            {user?.email || "My workspace"}
+          </span>
         </div>
 
+        {renderSearchInput()}
+
         <div className="notes-sidebar-section">
+          <p className="notes-sidebar-group-label">Library</p>
           <button
             type="button"
             className={`notes-sidebar-link${activeFilter === "all" ? " is-active" : ""}`}
-            onClick={() => setActiveFilter("all")}
+            onClick={() => handleFilterSelect("all")}
           >
-            All Notes
-            <span>{sortedNotes.length}</span>
+            <DescriptionOutlinedIcon />
+            <span className="notes-sidebar-link-label">All Notes</span>
+            <span className="notes-sidebar-link-count">{sortedNotes.length}</span>
           </button>
           <button
             type="button"
             className={`notes-sidebar-link${activeFilter === "pinned" ? " is-active" : ""}`}
-            onClick={() => setActiveFilter("pinned")}
+            onClick={() => handleFilterSelect("pinned")}
           >
-            Pinned
-            <span>{pinnedCount}</span>
+            <PushpinLineIcon />
+            <span className="notes-sidebar-link-label">Pinned</span>
+            <span className="notes-sidebar-link-count">{pinnedCount}</span>
           </button>
           <button
             type="button"
             className={`notes-sidebar-link${activeFilter === "favorites" ? " is-active" : ""}`}
-            onClick={() => setActiveFilter("favorites")}
+            onClick={() => handleFilterSelect("favorites")}
           >
-            Favorites
-            <span>{favoriteCount}</span>
+            <HeartLineIcon />
+            <span className="notes-sidebar-link-label">Favorites</span>
+            <span className="notes-sidebar-link-count">{favoriteCount}</span>
+          </button>
+          <button
+            type="button"
+            className={`notes-sidebar-link${activeFilter === "tasks" ? " is-active" : ""}`}
+            onClick={() => handleFilterSelect("tasks")}
+          >
+            <FactCheckOutlinedIcon />
+            <span className="notes-sidebar-link-label">Tasks</span>
+            <span className="notes-sidebar-link-count">{checklistCount}</span>
+          </button>
+          <button
+            type="button"
+            className={`notes-sidebar-link${activeFilter === "notes-only" ? " is-active" : ""}`}
+            onClick={() => handleFilterSelect("notes-only")}
+          >
+            <NotesOutlinedIcon />
+            <span className="notes-sidebar-link-label">Notes Only</span>
+            <span className="notes-sidebar-link-count">{notes.length - checklistCount}</span>
           </button>
         </div>
-      </div>
 
-      <div className="notes-sidebar-summary">
-        <p className="notes-sidebar-summary-title">Quick Stats</p>
-        <div className="notes-sidebar-summary-grid">
-          <div>
-            <span>Total</span>
-            <strong>{sortedNotes.length}</strong>
-          </div>
-          <div>
-            <span>Pinned</span>
-            <strong>{pinnedCount}</strong>
-          </div>
-          <div>
-            <span>Favs</span>
-            <strong>{favoriteCount}</strong>
-          </div>
-          <div>
-            <span>Tasks</span>
-            <strong>{checklistCount}</strong>
-          </div>
+        <div className="notes-sidebar-folders-section">
+          <p className="notes-sidebar-group-label">Folders</p>
+          {folders.length === 0 ? (
+            <p className="notes-sidebar-folders-empty">
+              Add a tag to a note to create your first folder.
+            </p>
+          ) : foldersAsGrid ? (
+            <div className="notes-folder-grid">
+              {folders.map((folder) =>
+                renamingFolder === folder.name ? (
+                  <form
+                    key={folder.name}
+                    className="notes-folder-tile notes-folder-tile-rename"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      commitFolderRename(folder.name);
+                    }}
+                  >
+                    <div className="notes-folder-rename-name-row">
+                      <FolderOutlinedIcon aria-hidden="true" />
+                      <input
+                        autoFocus
+                        className="notes-folder-rename-input"
+                        value={folderRenameDraft}
+                        onChange={(event) => setFolderRenameDraft(event.target.value)}
+                        onBlur={() => commitFolderRename(folder.name)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Escape") cancelRenamingFolder();
+                        }}
+                      />
+                    </div>
+                    {renderColorSwatchRow(folder.name)}
+                  </form>
+                ) : (
+                  <div className="notes-folder-tile-wrap" key={folder.name}>
+                    <button
+                      type="button"
+                      className={`notes-folder-tile${tagColors[folder.name] ? " has-folder-color" : ""}`}
+                      style={tagColors[folder.name] ? { "--folder-accent": tagColors[folder.name] } : undefined}
+                      onClick={() => handleFilterSelect(folder.name)}
+                    >
+                      <FolderOutlinedIcon aria-hidden="true" />
+                      <span className="notes-folder-tile-label">{folder.name}</span>
+                      <span className="notes-folder-tile-count">
+                        {folder.count} note{folder.count === 1 ? "" : "s"}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className="notes-folder-rename-trigger"
+                      aria-label={`Rename ${folder.name} folder`}
+                      onClick={() => startRenamingFolder(folder.name)}
+                    >
+                      <PencilLineIcon />
+                    </button>
+                  </div>
+                )
+              )}
+            </div>
+          ) : (
+            <div className="notes-sidebar-folders">
+              {folders.map((folder) =>
+                renamingFolder === folder.name ? (
+                  <form
+                    key={folder.name}
+                    className="notes-sidebar-link notes-sidebar-link-rename"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      commitFolderRename(folder.name);
+                    }}
+                  >
+                    <div className="notes-folder-rename-name-row">
+                      <FolderOutlinedIcon />
+                      <input
+                        autoFocus
+                        className="notes-folder-rename-input"
+                        value={folderRenameDraft}
+                        onChange={(event) => setFolderRenameDraft(event.target.value)}
+                        onBlur={() => commitFolderRename(folder.name)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Escape") cancelRenamingFolder();
+                        }}
+                      />
+                    </div>
+                    {renderColorSwatchRow(folder.name)}
+                  </form>
+                ) : (
+                  <div className="notes-sidebar-link-wrap" key={folder.name}>
+                    <button
+                      type="button"
+                      className={`notes-sidebar-link${activeFilter === folder.name ? " is-active" : ""}${tagColors[folder.name] ? " has-folder-color" : ""}`}
+                      style={tagColors[folder.name] ? { "--folder-accent": tagColors[folder.name] } : undefined}
+                      onClick={() => handleFilterSelect(folder.name)}
+                    >
+                      <FolderOutlinedIcon />
+                      <span className="notes-sidebar-link-label">{folder.name}</span>
+                      <span className="notes-sidebar-link-count">{folder.count}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="notes-folder-rename-trigger"
+                      aria-label={`Rename ${folder.name} folder`}
+                      onClick={() => startRenamingFolder(folder.name)}
+                    >
+                      <PencilLineIcon />
+                    </button>
+                  </div>
+                )
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       <div className="notes-sidebar-bottom">
-        <Header toggleTheme={toggleTheme} theme={theme} notes={notes} />
+        <Header notes={notes} />
       </div>
     </aside>
   );
@@ -311,7 +664,7 @@ function NotesManager({ theme, toggleTheme }) {
         <div className="section-title">
           <div>
             <p className="notes-panel-kicker">Library</p>
-            <h2>All Notes</h2>
+            <h2>{filterLabel(activeFilter)}</h2>
           </div>
           <p className="section-badge">{visibleNotes.length}</p>
         </div>
@@ -330,21 +683,15 @@ function NotesManager({ theme, toggleTheme }) {
         />
       </div>
 
+      <AddNoteFab onClick={() => setIsAddNoteOpen(true)} />
+
       <div className="notes-list-tools">
-        <input
-          ref={searchInputRef}
-          type="search"
-          className="notes-search-input"
-          placeholder="Search notes"
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-          data-testid="notes-search-input"
-        />
+        {isMobileLayout && renderSearchInput()}
         <button
           type="button"
           className={`notes-filter-chip${activeFilter === "tasks" ? " is-active" : ""}`}
           onClick={() =>
-            setActiveFilter((prev) => (prev === "tasks" ? "all" : "tasks"))
+            handleFilterSelect(activeFilter === "tasks" ? "all" : "tasks")
           }
         >
           Tasks
@@ -360,6 +707,7 @@ function NotesManager({ theme, toggleTheme }) {
               isSelected={note.id === selectedNoteId}
               onSelect={handleSelectNote}
               setNotes={setNotes}
+              tagColors={tagColors}
             />
           ))
         ) : (
@@ -386,10 +734,6 @@ function NotesManager({ theme, toggleTheme }) {
             )}
           </div>
         )}
-      </div>
-
-      <div className="notes-list-footer">
-        <AddNoteFab onClick={() => setIsAddNoteOpen(true)} />
       </div>
     </section>
   );
@@ -438,8 +782,11 @@ function NotesManager({ theme, toggleTheme }) {
               selectedNote.modifiedDate || selectedNote.creationDate
             )}
             content={selectedNote.content}
+            noteType={selectedNote.noteType}
             isPinned={selectedNote.isPinned}
             isFavorite={selectedNote.isFavorite}
+            tags={selectedNote.tags || []}
+            tagColors={tagColors}
             setNotes={setNotes}
           />
         </div>
@@ -488,14 +835,14 @@ function NotesManager({ theme, toggleTheme }) {
                 </button>
                 <button
                   type="button"
-                  className={`notes-mobile-tab${mobileBrowseTab === "organize" ? " is-active" : ""}`}
-                  onClick={() => setMobileBrowseTab("organize")}
+                  className={`notes-mobile-tab${mobileBrowseTab === "folders" ? " is-active" : ""}`}
+                  onClick={() => setMobileBrowseTab("folders")}
                 >
-                  Organize
+                  Folders
                 </button>
               </div>
 
-              {mobileBrowseTab === "notes" ? renderListPanel() : renderSidebar()}
+              {mobileBrowseTab === "notes" ? renderListPanel() : renderSidebar(true)}
             </>
           ) : (
             renderDetailPanel(true)

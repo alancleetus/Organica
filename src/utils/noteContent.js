@@ -106,6 +106,40 @@ export function isChecklistContent(content = "") {
   return getPreviewItems(content).some((item) => item.kind === "task");
 }
 
+export function resolveNoteType(note) {
+  if (note?.noteType === "checklist" || note?.noteType === "text") {
+    return note.noteType;
+  }
+  return isChecklistContent(note?.content) ? "checklist" : "text";
+}
+
+export function checklistContentToItems(content = "") {
+  return normalizeNoteContent(content)
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const taskMatch = line.match(/^\[(x| )\]\s*(.*)$/i);
+      if (taskMatch) {
+        return { checked: taskMatch[1].toLowerCase() === "x", text: taskMatch[2].trim() };
+      }
+
+      const bulletMatch = line.match(/^[-*]\s+(.*)$/);
+      if (bulletMatch) {
+        return { checked: false, text: bulletMatch[1].trim() };
+      }
+
+      return { checked: false, text: line };
+    });
+}
+
+export function checklistItemsToContent(items = []) {
+  return items
+    .filter((item) => item.text.trim() !== "")
+    .map((item) => `${item.checked ? "[x]" : "[ ]"} ${item.text.trim()}`)
+    .join("\n");
+}
+
 export function getSearchableText(content = "") {
   return normalizeNoteContent(content).toLowerCase();
 }
