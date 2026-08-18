@@ -4,6 +4,9 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import UnarchiveOutlinedIcon from "@mui/icons-material/UnarchiveOutlined";
+import ContentCopyOutlinedIcon from "@mui/icons-material/ContentCopyOutlined";
+import FileCopyOutlinedIcon from "@mui/icons-material/FileCopyOutlined";
+import CenterFocusStrongOutlinedIcon from "@mui/icons-material/CenterFocusStrongOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import { Menu, MenuItem } from "@mui/material";
@@ -14,9 +17,9 @@ import HeartFillIcon from "remixicon-react/HeartFillIcon";
 import { PinNote, UpdateNote, ReplaceTagsForNote } from "../utils/notesCrud";
 import PlainTextNoteEditor from "./PlainTextNoteEditor";
 import ChecklistEditor from "./ChecklistEditor";
-import { normalizeNoteContent, resolveNoteType } from "../utils/noteContent";
+import { normalizeNoteContent, resolveNoteType, trimNoteContent } from "../utils/noteContent";
 
-const AUTOSAVE_DELAY_MS = 2500;
+const AUTOSAVE_DELAY_MS = 1200;
 
 function Note(props) {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -46,6 +49,14 @@ function Note(props) {
 
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
+
+  const handleCopyText = async () => {
+    try {
+      await navigator.clipboard.writeText(updatedContent);
+    } catch (error) {
+      console.error("Error copying note text:", error);
+    }
+  };
 
   const saveLabel =
     saveState === "saving"
@@ -159,10 +170,16 @@ function Note(props) {
     setSaveState("saving");
 
     try {
+      // Trimmed only for what actually reaches Firestore — comparisons
+      // above and lastSavedNoteRef below stay keyed on the untrimmed
+      // value so they still match the live editor state exactly. If
+      // they didn't, a trailing space the trim just removed would make
+      // updatedContent/editedTitle look permanently "still different
+      // from last save," and autosave would fire on a loop forever.
       await UpdateNote({
         id: props.id,
-        newTitle: nextTitle,
-        newContent: nextContent,
+        newTitle: nextTitle.trim(),
+        newContent: trimNoteContent(nextContent),
         setNotes: props.setNotes,
       });
 
@@ -208,6 +225,14 @@ function Note(props) {
     }
   };
 
+  // For checklist actions with no text field to blur (toggling, removing,
+  // reordering) — saves the content ChecklistEditor just produced directly,
+  // rather than reading it back out of state, since setUpdatedContent's
+  // update wouldn't have landed yet if this ran right after it.
+  const handleChecklistImmediateSave = (content) => {
+    saveChanges({ title: latestDraftRef.current.title, content });
+  };
+
   return (
     <>
       <article className="note-card">
@@ -220,6 +245,7 @@ function Note(props) {
               onChange={(event) => setEditedTitle(event.target.value)}
               onBlur={flushPendingSave}
               placeholder="Untitled note"
+              readOnly={props.isReadOnly}
             />
           </div>
 
@@ -307,7 +333,16 @@ function Note(props) {
                     setIsAddingTag(false);
                   }
                 }}
+                list={`note-folder-suggestions-${props.id}`}
+                autoComplete="off"
               />
+              <datalist id={`note-folder-suggestions-${props.id}`}>
+                {(props.existingFolders || [])
+                  .filter((folderName) => !tags.includes(folderName))
+                  .map((folderName) => (
+                    <option key={folderName} value={folderName} />
+                  ))}
+              </datalist>
               <button type="submit" className="note-tag-input-submit" aria-label="Add folder">
                 <AddIcon />
               </button>
@@ -329,9 +364,11 @@ function Note(props) {
             <ChecklistEditor
               value={updatedContent}
               onChange={setUpdatedContent}
+              onImmediateSave={handleChecklistImmediateSave}
               onBlur={flushPendingSave}
               editorTestId="note-card-content-editor"
               className="note-detail-editor"
+              readOnly={props.isReadOnly}
             />
           ) : (
             <PlainTextNoteEditor
@@ -341,13 +378,14 @@ function Note(props) {
               editorTestId="note-card-content-editor"
               placeholder="Start writing..."
               className="note-detail-editor"
+              readOnly={props.isReadOnly}
             />
           )}
         </div>
 
         <div className="note-footer">
           <p className="note-save-state" data-state={saveState}>
-            {saveLabel}
+            {props.isReadOnly ? "Read-only" : saveLabel}
           </p>
           <p className="note-date" data-testid="note-card-date">
             {props.date}
@@ -359,6 +397,36 @@ function Note(props) {
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
         >
+          <MenuItem
+            data-testid="note-card-menu-focus-button"
+            onClick={() => {
+              handleMenuClose();
+              props.onToggleFocus?.();
+            }}
+          >
+            <CenterFocusStrongOutlinedIcon style={{ marginRight: "10px" }} />
+            {props.isFocusNote ? "Unpin focus note" : "Pin as focus note"}
+          </MenuItem>
+          <MenuItem
+            data-testid="note-card-menu-copy-button"
+            onClick={() => {
+              handleMenuClose();
+              handleCopyText();
+            }}
+          >
+            <ContentCopyOutlinedIcon style={{ marginRight: "10px" }} />
+            Copy text
+          </MenuItem>
+          <MenuItem
+            data-testid="note-card-menu-duplicate-button"
+            onClick={() => {
+              handleMenuClose();
+              props.onDuplicate?.();
+            }}
+          >
+            <FileCopyOutlinedIcon style={{ marginRight: "10px" }} />
+            Duplicate note
+          </MenuItem>
           <MenuItem
             data-testid="note-card-menu-archive-button"
             onClick={() => {

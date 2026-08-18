@@ -13,6 +13,7 @@ import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import NotesOutlinedIcon from "@mui/icons-material/NotesOutlined";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
+import FolderOffOutlinedIcon from "@mui/icons-material/FolderOffOutlined";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import { auth } from "./Firebase";
 import { useAuth } from "./auth/AuthProvider";
@@ -22,6 +23,11 @@ import {
   LIBRARY_FILTERS,
   loadLibraryOrder,
   saveLibraryOrder,
+  loadLibraryLabels,
+  saveLibraryLabels,
+  loadDisabledLibraryFilters,
+  saveDisabledLibraryFilters,
+  getLibraryLabel,
 } from "../utils/bottomBarConfig";
 
 // Swatch previews shown on each card. The actual theme is applied via the
@@ -150,16 +156,34 @@ const LIBRARY_ICONS = {
   favorites: HeartLineIcon,
   tasks: FactCheckOutlinedIcon,
   "notes-only": NotesOutlinedIcon,
+  uncategorized: FolderOffOutlinedIcon,
   archived: ArchiveOutlinedIcon,
 };
 
-function Settings({ palette, setPalette, fontScheme, setFontScheme }) {
+const FONT_SIZES = [
+  { id: "small", label: "Small" },
+  { id: "medium", label: "Medium" },
+  { id: "large", label: "Large" },
+];
+
+function Settings({
+  palette,
+  setPalette,
+  fontScheme,
+  setFontScheme,
+  fontSize,
+  setFontSize,
+}) {
   const { user } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [isSavingName, setIsSavingName] = useState(false);
   const [nameSaved, setNameSaved] = useState(false);
   const [avatarSeed, setAvatarSeed] = useState(() => loadAvatarSeed(user?.uid));
   const [libraryOrder, setLibraryOrder] = useState(() => loadLibraryOrder());
+  const [libraryLabels, setLibraryLabels] = useState(() => loadLibraryLabels());
+  const [disabledFilters, setDisabledFilters] = useState(
+    () => new Set(loadDisabledLibraryFilters())
+  );
 
   useEffect(() => {
     if (user) setDisplayName(user.displayName || "");
@@ -198,13 +222,33 @@ function Settings({ palette, setPalette, fontScheme, setFontScheme }) {
     saveLibraryOrder(next);
   };
 
+  const handleLibraryLabelChange = (filterId, label) => {
+    setLibraryLabels((prev) => {
+      const next = { ...prev, [filterId]: label };
+      saveLibraryLabels(next);
+      return next;
+    });
+  };
+
+  const handleToggleLibraryFilter = (filterId) => {
+    setDisabledFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(filterId)) {
+        next.delete(filterId);
+      } else {
+        next.add(filterId);
+      }
+      saveDisabledLibraryFilters(Array.from(next));
+      return next;
+    });
+  };
+
   return (
     <div className="page-body">
       <div className="settings-page">
         <div className="settings-header">
-          <Link to="/main" className="notes-mobile-back">
+          <Link to="/main" className="settings-back-link" aria-label="Back to notes">
             <ArrowLeftLineIcon />
-            <span>Back to notes</span>
           </Link>
           <div>
             <p className="notes-detail-label">Preferences</p>
@@ -379,43 +423,105 @@ function Settings({ palette, setPalette, fontScheme, setFontScheme }) {
         </section>
 
         <section className="settings-section">
+          <h2>Text size</h2>
+          <p className="settings-section-hint">Scales all the text in the app.</p>
+
+          <div className="settings-size-picker" role="group" aria-label="Text size">
+            {FONT_SIZES.map((option) => {
+              const isActive = fontSize === option.id;
+              return (
+                <button
+                  type="button"
+                  key={option.id}
+                  className={`settings-size-button${isActive ? " is-active" : ""}`}
+                  onClick={() => setFontSize(option.id)}
+                  aria-pressed={isActive}
+                >
+                  <span
+                    className={`settings-size-sample settings-size-sample--${option.id}`}
+                  >
+                    Aa
+                  </span>
+                  <span>{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="settings-section">
           <h2>Library order</h2>
           <p className="settings-section-hint">
-            Reorder your library views. The first three also become the mobile bottom
-            bar, alongside Folders.
+            Reorder and rename your library views. The first three also become the
+            mobile bottom bar, alongside Folders.
           </p>
 
           <div className="settings-reorder-list">
-            {libraryOrder.map((filterId, index) => {
-              const Icon = LIBRARY_ICONS[filterId];
-              const label = LIBRARY_FILTERS.find((filter) => filter.id === filterId)?.label;
+            {(() => {
+              let enabledSeen = 0;
+              return libraryOrder.map((filterId, index) => {
+                const Icon = LIBRARY_ICONS[filterId];
+                const defaultLabel = LIBRARY_FILTERS.find(
+                  (filter) => filter.id === filterId
+                )?.label;
+                // Falls back to the default only when never touched
+                // (undefined) — once the field holds "" mid-edit, this
+                // keeps showing that empty string instead of snapping back
+                // to the default and fighting whatever's being typed.
+                const inputValue = libraryLabels[filterId] ?? defaultLabel ?? filterId;
+                const isEnabled = !disabledFilters.has(filterId);
+                const isBottomBarSlot = isEnabled && enabledSeen < 3;
+                if (isEnabled) enabledSeen += 1;
 
-              return (
-                <div className="settings-reorder-row" key={filterId}>
-                  {Icon && <Icon />}
-                  <span className="settings-reorder-label">{label}</span>
-                  {index < 3 && <span className="settings-reorder-badge">Bottom bar</span>}
-                  <div className="settings-reorder-controls">
-                    <button
-                      type="button"
-                      disabled={index === 0}
-                      onClick={() => moveLibraryItem(index, -1)}
-                      aria-label={`Move ${label} up`}
-                    >
-                      <ArrowUpSLineIcon />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={index === libraryOrder.length - 1}
-                      onClick={() => moveLibraryItem(index, 1)}
-                      aria-label={`Move ${label} down`}
-                    >
-                      <ArrowDownSLineIcon />
-                    </button>
+                return (
+                  <div
+                    className={`settings-reorder-row${isEnabled ? "" : " is-disabled"}`}
+                    key={filterId}
+                  >
+                    <label className="settings-reorder-toggle">
+                      <input
+                        type="checkbox"
+                        checked={isEnabled}
+                        onChange={() => handleToggleLibraryFilter(filterId)}
+                        aria-label={`Show ${defaultLabel || filterId} in the library list`}
+                      />
+                      <span className="settings-reorder-toggle-track" aria-hidden="true" />
+                    </label>
+                    {Icon && <Icon />}
+                    <input
+                      type="text"
+                      className="settings-reorder-label-input"
+                      value={inputValue}
+                      onChange={(event) =>
+                        handleLibraryLabelChange(filterId, event.target.value)
+                      }
+                      aria-label={`Rename ${defaultLabel || filterId}`}
+                    />
+                    {isBottomBarSlot && (
+                      <span className="settings-reorder-badge">Bottom bar</span>
+                    )}
+                    <div className="settings-reorder-controls">
+                      <button
+                        type="button"
+                        disabled={index === 0}
+                        onClick={() => moveLibraryItem(index, -1)}
+                        aria-label={`Move ${defaultLabel || filterId} up`}
+                      >
+                        <ArrowUpSLineIcon />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={index === libraryOrder.length - 1}
+                        onClick={() => moveLibraryItem(index, 1)}
+                        aria-label={`Move ${defaultLabel || filterId} down`}
+                      >
+                        <ArrowDownSLineIcon />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              });
+            })()}
           </div>
         </section>
       </div>

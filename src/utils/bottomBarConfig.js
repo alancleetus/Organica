@@ -4,17 +4,49 @@
 // reordering the list in Settings reorders both places at once, and
 // there's only ever one order to reason about.
 export const LIBRARY_FILTERS = [
-  { id: "all", label: "Notes" },
+  { id: "all", label: "All" },
   { id: "pinned", label: "Pinned" },
-  { id: "tasks", label: "Tasks" },
+  { id: "tasks", label: "Lists" },
   { id: "favorites", label: "Favorites" },
-  { id: "notes-only", label: "Notes Only" },
+  { id: "notes-only", label: "Notes" },
+  { id: "uncategorized", label: "Uncategorized" },
   { id: "archived", label: "Archived" },
 ];
+
+// The sidebar's Library group splits these into full rows (the "real"
+// views worth their own line) vs. a single compact icon-only row
+// (glanceable extras that don't each need a whole row of space).
+export const PRIMARY_LIBRARY_FILTERS = ["all", "notes-only", "tasks", "uncategorized"];
+export const QUICK_LIBRARY_FILTERS = ["pinned", "favorites", "archived"];
 
 export const DEFAULT_LIBRARY_ORDER = LIBRARY_FILTERS.map((filter) => filter.id);
 export const BOTTOM_BAR_SLOTS = 3;
 const STORAGE_KEY = "libraryOrder";
+const LABELS_STORAGE_KEY = "libraryLabels";
+
+// User-renamed labels, keyed by filter id. Falls back to each filter's
+// default label wherever a custom one hasn't been set — this is the one
+// place both the sidebar and the list-panel heading read a library
+// filter's display name from, so a rename in Settings shows up
+// everywhere instead of drifting out of sync with a second hardcoded copy.
+export function loadLibraryLabels() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LABELS_STORAGE_KEY));
+    if (saved && typeof saved === "object") return saved;
+  } catch {
+    // malformed storage — fall through to the default
+  }
+  return {};
+}
+
+export function saveLibraryLabels(labels) {
+  localStorage.setItem(LABELS_STORAGE_KEY, JSON.stringify(labels));
+}
+
+export function getLibraryLabel(filterId, customLabels = {}) {
+  if (customLabels[filterId]?.trim()) return customLabels[filterId];
+  return LIBRARY_FILTERS.find((filter) => filter.id === filterId)?.label || filterId;
+}
 
 export function loadLibraryOrder() {
   try {
@@ -36,4 +68,26 @@ export function loadLibraryOrder() {
 
 export function saveLibraryOrder(order) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(order));
+}
+
+const DISABLED_STORAGE_KEY = "libraryDisabled";
+
+// Filters the user has turned off entirely (e.g. "I don't use
+// Favorites") — hidden from both the sidebar's Library section and the
+// mobile bottom bar, distinct from just reordering them.
+export function loadDisabledLibraryFilters() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(DISABLED_STORAGE_KEY));
+    if (Array.isArray(saved)) {
+      const validIds = new Set(LIBRARY_FILTERS.map((filter) => filter.id));
+      return saved.filter((id) => validIds.has(id));
+    }
+  } catch {
+    // malformed storage — fall through to the default
+  }
+  return [];
+}
+
+export function saveDisabledLibraryFilters(disabled) {
+  localStorage.setItem(DISABLED_STORAGE_KEY, JSON.stringify(disabled));
 }

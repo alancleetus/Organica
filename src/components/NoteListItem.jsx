@@ -11,7 +11,9 @@ import { getPreviewItems } from "../utils/noteContent";
 const VISIBLE_TAG_COUNT = 2;
 
 function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {} }) {
-  const previewItems = getPreviewItems(note.content).slice(0, 2);
+  const previewItems = getPreviewItems(note.content)
+    .filter((item) => !(item.kind === "task" && item.checked))
+    .slice(0, 2);
   const tags = note.tags || [];
   const visibleTags = tags.slice(0, VISIBLE_TAG_COUNT);
   const hiddenTagCount = tags.length - visibleTags.length;
@@ -32,6 +34,12 @@ function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {} }) 
       tabIndex={0}
       aria-pressed={isSelected}
       data-testid={isSelected ? "selected-note-list-item" : "note-list-item"}
+      draggable
+      onDragStart={(event) => {
+        event.dataTransfer.effectAllowed = "copy";
+        event.dataTransfer.setData("application/x-organica-note-id", note.id);
+        event.dataTransfer.setData("text/plain", note.id);
+      }}
     >
       <div className="note-list-item-top">
         <div className="note-list-item-meta">

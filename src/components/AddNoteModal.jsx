@@ -3,6 +3,7 @@ import { Dialog, DialogContent } from "@mui/material";
 import { CreateNote } from "../utils/notesCrud";
 import PlainTextNoteEditor from "./PlainTextNoteEditor";
 import ChecklistEditor from "./ChecklistEditor";
+import { trimNoteContent } from "../utils/noteContent";
 
 function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
   const [title, setTitle] = useState("");
@@ -32,6 +33,14 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
 
   const handleClose = () => {
     if (isSaving) return;
+
+    if (!isNoteEmpty) {
+      const confirmDiscard = window.confirm(
+        "Discard this note? Your changes won't be saved."
+      );
+      if (!confirmDiscard) return;
+    }
+
     onClose();
   };
 
@@ -47,7 +56,7 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
       const createdNote = await CreateNote({
         user,
         title: title.trim(),
-        content: editorContent,
+        content: trimNoteContent(editorContent),
         noteType,
         setNotes,
       });

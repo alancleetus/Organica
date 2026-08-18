@@ -2,6 +2,7 @@ import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckboxBlankCircleLineIcon from "remixicon-react/CheckboxBlankCircleLineIcon";
 import CheckboxCircleFillIcon from "remixicon-react/CheckboxCircleFillIcon";
+import DragMove2LineIcon from "remixicon-react/DragMove2LineIcon";
 import { useEffect, useRef, useState } from "react";
 import { checklistContentToItems, checklistItemsToContent } from "../utils/noteContent";
 
@@ -15,14 +16,48 @@ function itemsFromContent(content) {
   return checklistContentToItems(content).map((item) => ({ ...item, id: nextId() }));
 }
 
-function ChecklistRow({ item, autoFocus, registerRef, onToggle, onTextChange, onBlur, onKeyDown, onRemove }) {
+function ChecklistRow({
+  item,
+  autoFocus,
+  registerRef,
+  onToggle,
+  onTextChange,
+  onBlur,
+  onKeyDown,
+  onRemove,
+  readOnly,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  isDragOver,
+}) {
   return (
-    <div className={`checklist-editor-row${item.checked ? " is-checked" : ""}`} data-testid="note-checklist-item">
+    <div
+      className={`checklist-editor-row${item.checked ? " is-checked" : ""}${
+        isDragOver ? " is-drag-over" : ""
+      }`}
+      data-testid="note-checklist-item"
+      onDragOver={readOnly ? undefined : (event) => onDragOver(event, item.id)}
+      onDrop={readOnly ? undefined : (event) => onDrop(event, item.id)}
+    >
+      {!readOnly && (
+        <span
+          className="checklist-editor-drag-handle"
+          draggable
+          aria-label="Reorder item"
+          onDragStart={(event) => onDragStart(event, item.id)}
+          onDragEnd={onDragEnd}
+        >
+          <DragMove2LineIcon />
+        </span>
+      )}
       <button
         type="button"
         className="plain-note-checklist-toggle"
         aria-label={item.checked ? "Mark task incomplete" : "Mark task complete"}
         onClick={() => onToggle(item.id)}
+        disabled={readOnly}
       >
         <span className="plain-note-checklist-icon" aria-hidden="true">
           {item.checked ? <CheckboxCircleFillIcon /> : <CheckboxBlankCircleLineIcon />}
@@ -38,27 +73,41 @@ function ChecklistRow({ item, autoFocus, registerRef, onToggle, onTextChange, on
         onChange={(event) => onTextChange(item.id, event.target.value)}
         onBlur={onBlur}
         onKeyDown={(event) => onKeyDown(event, item.id)}
+        readOnly={readOnly}
       />
-      <button
-        type="button"
-        className="checklist-editor-remove"
-        aria-label="Remove item"
-        tabIndex={-1}
-        onClick={() => onRemove(item.id)}
-      >
-        <CloseIcon />
-      </button>
+      {!readOnly && (
+        <button
+          type="button"
+          className="checklist-editor-remove"
+          aria-label="Remove item"
+          tabIndex={-1}
+          onClick={() => onRemove(item.id)}
+        >
+          <CloseIcon />
+        </button>
+      )}
     </div>
   );
 }
 
-function ChecklistEditor({ value, onChange, onBlur, editorTestId, autoFocus = false, className = "" }) {
+function ChecklistEditor({
+  value,
+  onChange,
+  onImmediateSave,
+  onBlur,
+  editorTestId,
+  autoFocus = false,
+  className = "",
+  readOnly = false,
+}) {
   const [items, setItems] = useState(() => itemsFromContent(value));
   const [draft, setDraft] = useState("");
+  const [dragOverId, setDragOverId] = useState(null);
   const lastSerializedRef = useRef(checklistItemsToContent(items));
   const draftInputRef = useRef(null);
   const itemRefs = useRef(new Map());
   const pendingFocusIdRef = useRef(null);
+  const draggedIdRef = useRef(null);
 
   useEffect(() => {
     const incoming = value || "";
@@ -74,11 +123,16 @@ function ChecklistEditor({ value, onChange, onBlur, editorTestId, autoFocus = fa
     pendingFocusIdRef.current = null;
   });
 
-  const commit = (nextItems) => {
+  // Toggling and reordering are discrete, deliberate actions with no
+  // text field involved — so there's no blur event to flush a pending
+  // save the way typing gets one, and no reason to make either wait out
+  // the debounce meant for "still typing." Both save immediately instead.
+  const commit = (nextItems, { immediate = false } = {}) => {
     setItems(nextItems);
     const serialized = checklistItemsToContent(nextItems);
     lastSerializedRef.current = serialized;
     onChange(serialized);
+    if (immediate) onImmediateSave?.(serialized);
   };
 
   const registerRef = (id, node) => {
@@ -87,7 +141,10 @@ function ChecklistEditor({ value, onChange, onBlur, editorTestId, autoFocus = fa
   };
 
   const handleToggle = (id) => {
-    commit(items.map((item) => (item.id === id ? { ...item, checked: !item.checked } : item)));
+    commit(
+      items.map((item) => (item.id === id ? { ...item, checked: !item.checked } : item)),
+      { immediate: true }
+    );
   };
 
   const handleTextChange = (id, text) => {
@@ -95,7 +152,10 @@ function ChecklistEditor({ value, onChange, onBlur, editorTestId, autoFocus = fa
   };
 
   const handleRemove = (id) => {
-    commit(items.filter((item) => item.id !== id));
+    commit(
+      items.filter((item) => item.id !== id),
+      { immediate: true }
+    );
   };
 
   const handleItemKeyDown = (event, id) => {
@@ -115,8 +175,50 @@ function ChecklistEditor({ value, onChange, onBlur, editorTestId, autoFocus = fa
     setDraft("");
   };
 
+  const handleDragStart = (event, id) => {
+    draggedIdRef.current = id;
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", id);
+  };
+
+  const handleDragOver = (event, id) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    if (id !== draggedIdRef.current) setDragOverId(id);
+  };
+
+  const handleDrop = (event, targetId) => {
+    event.preventDefault();
+    setDragOverId(null);
+
+    const sourceId = draggedIdRef.current;
+    draggedIdRef.current = null;
+    if (!sourceId || sourceId === targetId) return;
+
+    const sourceIndex = items.findIndex((item) => item.id === sourceId);
+    const targetIndex = items.findIndex((item) => item.id === targetId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const next = [...items];
+    const [moved] = next.splice(sourceIndex, 1);
+    next.splice(targetIndex, 0, moved);
+    commit(next, { immediate: true });
+  };
+
+  const handleDragEnd = () => {
+    draggedIdRef.current = null;
+    setDragOverId(null);
+  };
+
   const activeItems = items.filter((item) => !item.checked);
   const completedItems = items.filter((item) => item.checked);
+
+  const dragHandlers = {
+    onDragStart: handleDragStart,
+    onDragOver: handleDragOver,
+    onDrop: handleDrop,
+    onDragEnd: handleDragEnd,
+  };
 
   return (
     <div className={`checklist-editor ${className}`.trim()} data-testid={editorTestId}>
@@ -132,34 +234,40 @@ function ChecklistEditor({ value, onChange, onBlur, editorTestId, autoFocus = fa
             onBlur={onBlur}
             onKeyDown={handleItemKeyDown}
             onRemove={handleRemove}
+            readOnly={readOnly}
+            isDragOver={dragOverId === item.id}
+            {...dragHandlers}
           />
         ))}
 
-        <form
-          className="checklist-editor-add-row"
-          onSubmit={(event) => {
-            event.preventDefault();
-            addDraftItem();
-            draftInputRef.current?.focus();
-          }}
-        >
-          <span className="checklist-editor-add-icon" aria-hidden="true">
-            <AddIcon />
-          </span>
-          <input
-            ref={draftInputRef}
-            type="text"
-            className="checklist-editor-input checklist-editor-add-input"
-            value={draft}
-            placeholder="Add item"
-            autoFocus={autoFocus && activeItems.length === 0}
-            onChange={(event) => setDraft(event.target.value)}
-            onBlur={() => {
+        {!readOnly && (
+          <form
+            className="checklist-editor-add-row"
+            onSubmit={(event) => {
+              event.preventDefault();
               addDraftItem();
-              onBlur?.();
+              draftInputRef.current?.focus();
             }}
-          />
-        </form>
+          >
+            <span className="checklist-editor-drag-handle-spacer" aria-hidden="true" />
+            <span className="checklist-editor-add-icon" aria-hidden="true">
+              <AddIcon />
+            </span>
+            <input
+              ref={draftInputRef}
+              type="text"
+              className="checklist-editor-input checklist-editor-add-input"
+              value={draft}
+              placeholder="Add item"
+              autoFocus={autoFocus && activeItems.length === 0}
+              onChange={(event) => setDraft(event.target.value)}
+              onBlur={() => {
+                addDraftItem();
+                onBlur?.();
+              }}
+            />
+          </form>
+        )}
 
         {completedItems.length > 0 && (
           <div className="plain-note-completed-section" data-testid="note-completed-section">
@@ -176,6 +284,9 @@ function ChecklistEditor({ value, onChange, onBlur, editorTestId, autoFocus = fa
                   onBlur={onBlur}
                   onKeyDown={handleItemKeyDown}
                   onRemove={handleRemove}
+                  readOnly={readOnly}
+                  isDragOver={dragOverId === item.id}
+                  {...dragHandlers}
                 />
               ))}
             </div>

@@ -15,9 +15,9 @@ import { v4 as uuidv4 } from "uuid";
 const tagsCollection = collection(db, "tags"); // Tags collection reference
 
 // Create a new tag
-export const CreateTag = async ({ userId, tagName, tagColor }) => {
-  if (!userId || !tagName || !tagColor) {
-    console.error("All fields are required to create a tag");
+export const CreateTag = async ({ userId, tagName, tagColor = null, tagHidden = false }) => {
+  if (!userId || !tagName) {
+    console.error("User and tag name are required to create a tag");
     return;
   }
 
@@ -26,6 +26,7 @@ export const CreateTag = async ({ userId, tagName, tagColor }) => {
     userId, // Link the tag to the user
     tagName,
     tagColor,
+    tagHidden,
     creationDate: Date.now(),
     modifiedDate: Date.now(),
   };
@@ -62,10 +63,19 @@ export const FetchTagsByUser = async (userId) => {
   }
 };
 
-// Update a tag
-export const UpdateTag = async ({ id, tagName, tagColor }) => {
-  if (!id || (!tagName && !tagColor)) {
-    console.error("Tag ID and at least one field to update are required");
+// Update a tag. Fields left as `undefined` are untouched; pass `null`
+// (for tagColor) or `false` (for tagHidden) to explicitly clear them —
+// unlike a truthy check, `undefined` vs. an explicit falsy value are
+// distinguishable here, so clearing a field no longer requires deleting
+// and recreating the whole doc.
+export const UpdateTag = async ({ id, tagName, tagColor, tagHidden }) => {
+  if (!id) {
+    console.error("Tag ID is required to update a tag");
+    return;
+  }
+
+  if (tagName === undefined && tagColor === undefined && tagHidden === undefined) {
+    console.error("At least one field to update is required");
     return;
   }
 
@@ -79,8 +89,10 @@ export const UpdateTag = async ({ id, tagName, tagColor }) => {
     }
 
     const updatedFields = {
-      tagName: tagName || currentTag.data().tagName,
-      tagColor: tagColor || currentTag.data().tagColor,
+      tagName: tagName !== undefined ? tagName : currentTag.data().tagName,
+      tagColor: tagColor !== undefined ? tagColor : currentTag.data().tagColor,
+      tagHidden:
+        tagHidden !== undefined ? tagHidden : currentTag.data().tagHidden || false,
       modifiedDate: Date.now(),
     };
 
@@ -103,6 +115,7 @@ export const DeleteTag = async (id) => {
     const tagRef = doc(db, "tags", id);
     await deleteDoc(tagRef);
     console.log("Deleted tag with ID:", id);
+    return true;
   } catch (error) {
     console.error("Error deleting tag:", error);
   }

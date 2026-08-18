@@ -5,24 +5,38 @@ import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import NotesOutlinedIcon from "@mui/icons-material/NotesOutlined";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
+import FolderOffOutlinedIcon from "@mui/icons-material/FolderOffOutlined";
 import PencilLineIcon from "remixicon-react/PencilLineIcon";
+import EyeLineIcon from "remixicon-react/EyeLineIcon";
+import EyeOffLineIcon from "remixicon-react/EyeOffLineIcon";
+import DeleteBinLineIcon from "remixicon-react/DeleteBinLineIcon";
 import { auth } from "./Firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import Header from "./Header";
 import Note from "./Note";
 import AddNoteModal from "./AddNoteModal";
+import FocusNotePanel from "./FocusNotePanel";
 import AddNoteFab from "./AddNoteFab";
 import NoteListItem from "./NoteListItem";
 import { fetchNotes } from "../utils/fetchNotes.js";
 import { formatTimestampToDate } from "../utils/formatTimestampToDate.js";
-import { ReplaceTagsForNote, DeleteNote, ArchiveNote } from "../utils/notesCrud";
+import { ReplaceTagsForNote, DeleteNote, ArchiveNote, CreateNote } from "../utils/notesCrud";
 import { toast } from "react-toastify";
-import { LIBRARY_FILTERS, loadLibraryOrder } from "../utils/bottomBarConfig";
+import {
+  LIBRARY_FILTERS,
+  PRIMARY_LIBRARY_FILTERS,
+  QUICK_LIBRARY_FILTERS,
+  loadLibraryOrder,
+  loadLibraryLabels,
+  loadDisabledLibraryFilters,
+  getLibraryLabel,
+} from "../utils/bottomBarConfig";
 import { loadAvatarSeed } from "../utils/identicon";
 import Identicon from "./Identicon";
 import { CreateTag, UpdateTag, DeleteTag, FetchTagsByUser } from "../utils/tagsCrud";
@@ -35,6 +49,7 @@ const BOTTOM_BAR_ICONS = {
   favorites: HeartLineIcon,
   tasks: FactCheckOutlinedIcon,
   "notes-only": NotesOutlinedIcon,
+  uncategorized: FolderOffOutlinedIcon,
   archived: ArchiveOutlinedIcon,
 };
 
@@ -44,6 +59,7 @@ const RESERVED_FILTERS = [
   "favorites",
   "tasks",
   "notes-only",
+  "uncategorized",
   "archived",
 ];
 
@@ -61,25 +77,6 @@ export const FOLDER_COLORS = [
   { id: "purple", hex: "#A855F7" },
   { id: "pink", hex: "#EC4899" },
 ];
-
-function filterLabel(filter) {
-  switch (filter) {
-    case "all":
-      return "All Notes";
-    case "pinned":
-      return "Pinned";
-    case "favorites":
-      return "Favorites";
-    case "tasks":
-      return "Tasks";
-    case "notes-only":
-      return "Notes Only";
-    case "archived":
-      return "Archived";
-    default:
-      return filter;
-  }
-}
 
 function NotesManager({ palette, setPalette }) {
   const [notes, setNotes] = useState([]);
@@ -105,10 +102,37 @@ function NotesManager({ palette, setPalette }) {
   const [mobileBrowseTab, setMobileBrowseTab] = useState("notes");
   const [mobileScreen, setMobileScreen] = useState("browse");
   const [renamingFolder, setRenamingFolder] = useState(null);
+  const [dragOverFolder, setDragOverFolder] = useState(null);
+  const [folderOrder, setFolderOrder] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("folderOrder"));
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  });
   const [folderRenameDraft, setFolderRenameDraft] = useState("");
   const [tagDocs, setTagDocs] = useState([]);
   const [libraryOrder] = useState(() => loadLibraryOrder());
+  const [libraryLabels] = useState(() => loadLibraryLabels());
+  const [disabledLibraryFilters] = useState(
+    () => new Set(loadDisabledLibraryFilters())
+  );
+  const enabledLibraryOrder = libraryOrder.filter(
+    (filterId) => !disabledLibraryFilters.has(filterId)
+  );
   const [avatarSeed] = useState(() => loadAvatarSeed(user?.uid));
+  const [focusNoteId, setFocusNoteId] = useState(
+    () => localStorage.getItem("focusNoteId") || null
+  );
+
+  useEffect(() => {
+    if (focusNoteId) {
+      localStorage.setItem("focusNoteId", focusNoteId);
+    } else {
+      localStorage.removeItem("focusNoteId");
+    }
+  }, [focusNoteId]);
   const overlayPushedRef = useRef(false);
   const pendingDeletesRef = useRef(new Map());
 
@@ -279,6 +303,73 @@ function NotesManager({ palette, setPalette }) {
     [notes, sortingMethod, isAscending]
   );
 
+  // tagName -> { id, tagColor, tagHidden } for folders that carry metadata
+  // via the tagsCrud.jsx sidecar collection (notes only store tag *names*,
+  // so this is a separate lookup, not part of the note itself).
+  const tagColorDocsByName = useMemo(() => {
+    const map = new Map();
+    tagDocs.forEach((doc) => {
+      map.set(doc.tagName, doc);
+    });
+    return map;
+  }, [tagDocs]);
+
+  // Hidden folders (e.g. a personal tracker) are metadata-backed, not
+  // purely derived from notes-in-use, so they keep showing up in the
+  // sidebar (and stay navigable/deletable) even once emptied out — a
+  // regular folder just disappears once its last note is untagged.
+  const hiddenFolderNames = useMemo(() => {
+    const names = new Set();
+    tagColorDocsByName.forEach((doc, name) => {
+      if (doc.tagHidden) names.add(name);
+    });
+    return names;
+  }, [tagColorDocsByName]);
+
+  // Tags already live on every note (notesCrud.jsx); "folders" are just the
+  // set of tags currently in use, derived once and shared by both the
+  // desktop sidebar list and the mobile grid.
+  const folders = useMemo(() => {
+    const counts = new Map();
+    notes.forEach((note) => {
+      (note.tags || []).forEach((tag) => {
+        counts.set(tag, (counts.get(tag) || 0) + 1);
+      });
+    });
+    hiddenFolderNames.forEach((name) => {
+      if (!counts.has(name)) counts.set(name, 0);
+    });
+
+    const list = Array.from(counts.entries()).map(([name, count]) => ({
+      name,
+      count,
+      isHidden: hiddenFolderNames.has(name),
+    }));
+
+    // Folders in the saved custom order come first, in that order; any
+    // folder not in it (new, or never manually reordered) is appended
+    // alphabetically after, so newly-created folders still show up
+    // predictably instead of vanishing from the sort entirely.
+    const orderIndex = new Map(folderOrder.map((name, index) => [name, index]));
+    return list.sort((a, b) => {
+      const aIndex = orderIndex.has(a.name) ? orderIndex.get(a.name) : Infinity;
+      const bIndex = orderIndex.has(b.name) ? orderIndex.get(b.name) : Infinity;
+      if (aIndex !== bIndex) return aIndex - bIndex;
+      return a.name.localeCompare(b.name);
+    });
+  }, [notes, hiddenFolderNames, folderOrder]);
+
+  // tagName -> hex, the shape NoteListItem/Note actually consume.
+  const tagColors = useMemo(() => {
+    const colorsById = new Map(FOLDER_COLORS.map((c) => [c.id, c.hex]));
+    const result = {};
+    tagColorDocsByName.forEach((doc, name) => {
+      const hex = colorsById.get(doc.tagColor);
+      if (hex) result[name] = hex;
+    });
+    return result;
+  }, [tagColorDocsByName]);
+
   const visibleNotes = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -294,10 +385,21 @@ function NotesManager({ palette, setPalette }) {
           (activeFilter === "favorites" && note.isFavorite) ||
           (activeFilter === "tasks" && isChecklistContent(note.content)) ||
           (activeFilter === "notes-only" && !isChecklistContent(note.content)) ||
+          (activeFilter === "uncategorized" && (note.tags || []).length === 0) ||
           (!RESERVED_FILTERS.includes(activeFilter) &&
             (note.tags || []).includes(activeFilter));
 
         if (!matchesFilter) return false;
+
+        // A note tagged into a hidden folder (e.g. a personal tracker)
+        // only shows up while browsing that folder directly, or while
+        // actively searching — passive browsing (All Notes, Pinned,
+        // other folders...) is what it stays out of, not search.
+        const noteTags = note.tags || [];
+        const hasHiddenTag = noteTags.some((tag) => hiddenFolderNames.has(tag));
+        const viewingThatHiddenFolder =
+          hiddenFolderNames.has(activeFilter) && noteTags.includes(activeFilter);
+        if (hasHiddenTag && !viewingThatHiddenFolder && !normalizedSearch) return false;
       }
 
       if (!normalizedSearch) return true;
@@ -308,44 +410,7 @@ function NotesManager({ palette, setPalette }) {
         title.includes(normalizedSearch) || content.includes(normalizedSearch)
       );
     });
-  }, [sortedNotes, activeFilter, searchTerm]);
-
-  // Tags already live on every note (notesCrud.jsx); "folders" are just the
-  // set of tags currently in use, derived once and shared by both the
-  // desktop sidebar list and the mobile grid.
-  const folders = useMemo(() => {
-    const counts = new Map();
-    notes.forEach((note) => {
-      (note.tags || []).forEach((tag) => {
-        counts.set(tag, (counts.get(tag) || 0) + 1);
-      });
-    });
-    return Array.from(counts.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [notes]);
-
-  // tagName -> { id, colorId } for folders that have been color-coded via
-  // the tagsCrud.jsx sidecar collection (notes only store tag *names*, so
-  // this is a separate lookup, not part of the note itself).
-  const tagColorDocsByName = useMemo(() => {
-    const map = new Map();
-    tagDocs.forEach((doc) => {
-      map.set(doc.tagName, doc);
-    });
-    return map;
-  }, [tagDocs]);
-
-  // tagName -> hex, the shape NoteListItem/Note actually consume.
-  const tagColors = useMemo(() => {
-    const colorsById = new Map(FOLDER_COLORS.map((c) => [c.id, c.hex]));
-    const result = {};
-    tagColorDocsByName.forEach((doc, name) => {
-      const hex = colorsById.get(doc.tagColor);
-      if (hex) result[name] = hex;
-    });
-    return result;
-  }, [tagColorDocsByName]);
+  }, [sortedNotes, activeFilter, searchTerm, hiddenFolderNames]);
 
   useEffect(() => {
     const handleKeyboardShortcuts = (event) => {
@@ -399,6 +464,10 @@ function NotesManager({ palette, setPalette }) {
 
   const selectedNote =
     visibleNotes.find((note) => note.id === selectedNoteId) || null;
+  const isSelectedNoteReadOnly =
+    !!selectedNote &&
+    (selectedNote.isArchived ||
+      (selectedNote.tags || []).some((tag) => hiddenFolderNames.has(tag)));
   const activeNotes = notes.filter((note) => !note.isArchived);
   const pinnedCount = activeNotes.filter((note) => note.isPinned).length;
   const favoriteCount = activeNotes.filter((note) => note.isFavorite).length;
@@ -406,12 +475,16 @@ function NotesManager({ palette, setPalette }) {
     isChecklistContent(note.content)
   ).length;
   const archivedCount = notes.filter((note) => note.isArchived).length;
+  const uncategorizedCount = activeNotes.filter(
+    (note) => (note.tags || []).length === 0
+  ).length;
   const libraryCounts = {
     all: activeNotes.length,
     pinned: pinnedCount,
     favorites: favoriteCount,
     tasks: checklistCount,
     "notes-only": activeNotes.length - checklistCount,
+    uncategorized: uncategorizedCount,
     archived: archivedCount,
   };
   const hasScopedView = activeFilter !== "all" || searchTerm.trim() !== "";
@@ -421,6 +494,12 @@ function NotesManager({ palette, setPalette }) {
     if (isMobileLayout) {
       setMobileScreen("detail");
     }
+  };
+
+  const focusNote = notes.find((note) => note.id === focusNoteId) || null;
+
+  const handleToggleFocusNote = (noteId) => {
+    setFocusNoteId((prev) => (prev === noteId ? null : noteId));
   };
 
   // Deleting is optimistic and reversible: the note disappears from the UI
@@ -479,6 +558,23 @@ function NotesManager({ palette, setPalette }) {
     }
   };
 
+  const handleDuplicateNote = async (note) => {
+    if (!note || !user) return;
+
+    const createdNote = await CreateNote({
+      user,
+      title: note.title,
+      content: note.content,
+      noteType: note.noteType,
+      tags: note.tags || [],
+      setNotes,
+    });
+
+    if (createdNote) {
+      handleSelectNote(createdNote.id);
+    }
+  };
+
   // Used by both the Library rows and the Folders group: on mobile, picking
   // a filter from the Folders tab should jump straight to the (now
   // filtered) note list, not leave the user staring at the same tab.
@@ -487,6 +583,45 @@ function NotesManager({ palette, setPalette }) {
     if (isMobileLayout) {
       setMobileBrowseTab("notes");
     }
+  };
+
+  const reorderFolders = (draggedName, targetName) => {
+    if (draggedName === targetName) return;
+
+    const current = folders.map((folder) => folder.name);
+    const from = current.indexOf(draggedName);
+    const to = current.indexOf(targetName);
+    if (from === -1 || to === -1) return;
+
+    const next = [...current];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+
+    setFolderOrder(next);
+    localStorage.setItem("folderOrder", JSON.stringify(next));
+  };
+
+  // One drop target serves two drag sources: a note card (add it to this
+  // folder) or another folder row (reorder it before this one) — the two
+  // use different dataTransfer types so this can tell them apart.
+  const handleFolderDrop = (event, folderName) => {
+    event.preventDefault();
+    setDragOverFolder(null);
+
+    const draggedFolder = event.dataTransfer.getData("application/x-organica-folder-name");
+    if (draggedFolder) {
+      reorderFolders(draggedFolder, folderName);
+      return;
+    }
+
+    const noteId = event.dataTransfer.getData("application/x-organica-note-id");
+    const note = notes.find((n) => n.id === noteId);
+    if (!note) return;
+
+    const currentTags = note.tags || [];
+    if (currentTags.includes(folderName)) return;
+
+    ReplaceTagsForNote(note.id, [...currentTags, folderName], setNotes);
   };
 
   const resetListView = () => {
@@ -529,7 +664,11 @@ function NotesManager({ palette, setPalette }) {
 
     const existingColorDoc = tagColorDocsByName.get(oldName);
     if (existingColorDoc) {
-      UpdateTag({ id: existingColorDoc.id, tagName: nextName }).then(() => {
+      UpdateTag({ id: existingColorDoc.id, tagName: nextName }).then((updated) => {
+        if (!updated) {
+          alert("Couldn't rename this folder's saved settings. Please try again.");
+          return;
+        }
         setTagDocs((prev) =>
           prev.map((doc) =>
             doc.id === existingColorDoc.id ? { ...doc, tagName: nextName } : doc
@@ -545,23 +684,34 @@ function NotesManager({ palette, setPalette }) {
 
   // Assign (or clear, colorId === null) a folder's color. Create-or-update
   // against the tagsCrud.jsx doc for this name, since a folder may not have
-  // one yet the first time a color is picked. Clearing deletes the doc
-  // outright rather than writing a falsy tagColor — UpdateTag's own guard
-  // rejects an update where neither tagName nor tagColor is truthy.
+  // one yet the first time a color is picked. The doc is only deleted
+  // outright when clearing leaves it with nothing else worth keeping
+  // (no color, not hidden) — otherwise a hidden folder would lose its
+  // hidden flag the moment its color was cleared.
   const handleFolderColorChange = (folderName, colorId) => {
     const existing = tagColorDocsByName.get(folderName);
 
-    if (!colorId) {
-      if (existing) {
-        DeleteTag(existing.id).then(() => {
+    if (existing) {
+      if (!colorId && !existing.tagHidden) {
+        DeleteTag(existing.id).then((result) => {
+          if (!result) {
+            alert("Couldn't update this folder's color. Please try again.");
+            return;
+          }
           setTagDocs((prev) => prev.filter((doc) => doc.id !== existing.id));
         });
+        return;
       }
-      return;
-    }
 
-    if (existing) {
-      UpdateTag({ id: existing.id, tagColor: colorId }).then(() => {
+      // UpdateTag resolves to undefined on a failed write (it catches
+      // internally rather than rejecting) — only apply the change locally
+      // once we know it actually landed, or a failed write would still
+      // look applied here and then silently revert on the next reload.
+      UpdateTag({ id: existing.id, tagColor: colorId }).then((updated) => {
+        if (!updated) {
+          alert("Couldn't update this folder's color. Please try again.");
+          return;
+        }
         setTagDocs((prev) =>
           prev.map((doc) =>
             doc.id === existing.id ? { ...doc, tagColor: colorId } : doc
@@ -571,37 +721,140 @@ function NotesManager({ palette, setPalette }) {
       return;
     }
 
+    if (!colorId) return;
+
     CreateTag({ userId: user.uid, tagName: folderName, tagColor: colorId }).then(
       (created) => {
-        if (created) setTagDocs((prev) => [...prev, created]);
+        if (!created) {
+          alert("Couldn't update this folder's color. Please try again.");
+          return;
+        }
+        setTagDocs((prev) => [...prev, created]);
       }
     );
   };
 
+  // Same create-or-update-or-clean-up dance as handleFolderColorChange,
+  // for the "hide from the main views" flag instead of color.
+  const handleFolderHiddenChange = (folderName, hidden) => {
+    const existing = tagColorDocsByName.get(folderName);
+
+    if (existing) {
+      if (!hidden && !existing.tagColor) {
+        DeleteTag(existing.id).then((result) => {
+          if (!result) {
+            alert("Couldn't update this folder. Please try again.");
+            return;
+          }
+          setTagDocs((prev) => prev.filter((doc) => doc.id !== existing.id));
+        });
+        return;
+      }
+
+      UpdateTag({ id: existing.id, tagHidden: hidden }).then((updated) => {
+        if (!updated) {
+          alert("Couldn't update this folder. Please try again.");
+          return;
+        }
+        setTagDocs((prev) =>
+          prev.map((doc) =>
+            doc.id === existing.id ? { ...doc, tagHidden: hidden } : doc
+          )
+        );
+      });
+      return;
+    }
+
+    if (!hidden) return;
+
+    CreateTag({ userId: user.uid, tagName: folderName, tagHidden: hidden }).then(
+      (created) => {
+        if (!created) {
+          alert("Couldn't update this folder. Please try again.");
+          return;
+        }
+        setTagDocs((prev) => [...prev, created]);
+      }
+    );
+  };
+
+  // Folders are derived from notes-in-use, so this only ever really
+  // "does" anything for a hidden folder that's been fully emptied out
+  // (a regular folder already vanished from the list at that point) —
+  // otherwise it blocks with a message rather than silently no-op-ing.
+  const handleDeleteFolder = (folderName) => {
+    const folder = folders.find((f) => f.name === folderName);
+    if (folder && folder.count > 0) {
+      alert(`Remove all notes from "${folderName}" before deleting it.`);
+      return;
+    }
+
+    const existing = tagColorDocsByName.get(folderName);
+    if (existing) {
+      DeleteTag(existing.id).then((result) => {
+        if (!result) {
+          alert("Couldn't delete this folder. Please try again.");
+          return;
+        }
+        setTagDocs((prev) => prev.filter((doc) => doc.id !== existing.id));
+      });
+    }
+
+    if (activeFilter === folderName) {
+      setActiveFilter("all");
+    }
+  };
+
   const renderColorSwatchRow = (folderName) => {
     const currentColorId = tagColorDocsByName.get(folderName)?.tagColor || null;
+    const isHidden = hiddenFolderNames.has(folderName);
+    const isEmpty = folders.find((folder) => folder.name === folderName)?.count === 0;
 
     return (
-      <div className="folder-color-swatch-row">
-        <button
-          type="button"
-          className={`folder-color-swatch-none${!currentColorId ? " is-active" : ""}`}
-          aria-label="No folder color"
-          onMouseDown={(event) => event.preventDefault()}
-          onClick={() => handleFolderColorChange(folderName, null)}
-        />
-        {FOLDER_COLORS.map((color) => (
+      <>
+        <div className="folder-color-swatch-row">
           <button
             type="button"
-            key={color.id}
-            className={`folder-color-swatch${currentColorId === color.id ? " is-active" : ""}`}
-            style={{ "--swatch-color": color.hex }}
-            aria-label={`Set folder color to ${color.id}`}
+            className={`folder-color-swatch-none${!currentColorId ? " is-active" : ""}`}
+            aria-label="No folder color"
             onMouseDown={(event) => event.preventDefault()}
-            onClick={() => handleFolderColorChange(folderName, color.id)}
+            onClick={() => handleFolderColorChange(folderName, null)}
           />
-        ))}
-      </div>
+          {FOLDER_COLORS.map((color) => (
+            <button
+              type="button"
+              key={color.id}
+              className={`folder-color-swatch${currentColorId === color.id ? " is-active" : ""}`}
+              style={{ "--swatch-color": color.hex }}
+              aria-label={`Set folder color to ${color.id}`}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => handleFolderColorChange(folderName, color.id)}
+            />
+          ))}
+        </div>
+        <div className="folder-extra-actions-row">
+          <button
+            type="button"
+            className={`folder-extra-action${isHidden ? " is-active" : ""}`}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => handleFolderHiddenChange(folderName, !isHidden)}
+          >
+            {isHidden ? <EyeOffLineIcon /> : <EyeLineIcon />}
+            <span>{isHidden ? "Hidden from All Notes" : "Hide from All Notes"}</span>
+          </button>
+          {isEmpty && (
+            <button
+              type="button"
+              className="folder-extra-action folder-extra-action-delete"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => handleDeleteFolder(folderName)}
+            >
+              <DeleteBinLineIcon />
+              <span>Delete folder</span>
+            </button>
+          )}
+        </div>
+      </>
     );
   };
 
@@ -617,6 +870,19 @@ function NotesManager({ palette, setPalette }) {
         onChange={(event) => setSearchTerm(event.target.value)}
         data-testid="notes-search-input"
       />
+      {searchTerm && (
+        <button
+          type="button"
+          className="notes-search-clear"
+          aria-label="Clear search"
+          onClick={() => {
+            setSearchTerm("");
+            searchInputRef.current?.focus();
+          }}
+        >
+          <CloseIcon />
+        </button>
+      )}
     </div>
   );
 
@@ -636,27 +902,58 @@ function NotesManager({ palette, setPalette }) {
 
         <div className="notes-sidebar-section">
           <p className="notes-sidebar-group-label">Library</p>
-          {libraryOrder.map((filterId) => {
-            const Icon = BOTTOM_BAR_ICONS[filterId];
-            if (!Icon) return null;
+          {enabledLibraryOrder
+            .filter((filterId) => PRIMARY_LIBRARY_FILTERS.includes(filterId))
+            .map((filterId) => {
+              const Icon = BOTTOM_BAR_ICONS[filterId];
+              if (!Icon) return null;
 
-            return (
-              <button
-                type="button"
-                key={filterId}
-                className={`notes-sidebar-link${activeFilter === filterId ? " is-active" : ""}`}
-                onClick={() => handleFilterSelect(filterId)}
-              >
-                <Icon />
-                <span className="notes-sidebar-link-label">
-                  {LIBRARY_FILTERS.find((filter) => filter.id === filterId)?.label}
-                </span>
-                <span className="notes-sidebar-link-count">
-                  {libraryCounts[filterId]}
-                </span>
-              </button>
-            );
-          })}
+              return (
+                <button
+                  type="button"
+                  key={filterId}
+                  className={`notes-sidebar-link${activeFilter === filterId ? " is-active" : ""}`}
+                  onClick={() => handleFilterSelect(filterId)}
+                >
+                  <Icon />
+                  <span className="notes-sidebar-link-label">
+                    {getLibraryLabel(filterId, libraryLabels)}
+                  </span>
+                  <span className="notes-sidebar-link-count">
+                    {libraryCounts[filterId]}
+                  </span>
+                </button>
+              );
+            })}
+
+          {enabledLibraryOrder.some((filterId) => QUICK_LIBRARY_FILTERS.includes(filterId)) && (
+            <div className="notes-sidebar-quick-row">
+              {enabledLibraryOrder
+                .filter((filterId) => QUICK_LIBRARY_FILTERS.includes(filterId))
+                .map((filterId) => {
+                  const Icon = BOTTOM_BAR_ICONS[filterId];
+                  if (!Icon) return null;
+
+                  return (
+                    <button
+                      type="button"
+                      key={filterId}
+                      className={`notes-sidebar-quick-button${activeFilter === filterId ? " is-active" : ""}`}
+                      onClick={() => handleFilterSelect(filterId)}
+                      aria-label={getLibraryLabel(filterId, libraryLabels)}
+                      title={getLibraryLabel(filterId, libraryLabels)}
+                    >
+                      <Icon />
+                      {libraryCounts[filterId] > 0 && (
+                        <span className="notes-sidebar-quick-count">
+                          {libraryCounts[filterId]}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+            </div>
+          )}
         </div>
 
         <div className="notes-sidebar-folders-section">
@@ -696,11 +993,31 @@ function NotesManager({ palette, setPalette }) {
                   <div className="notes-folder-tile-wrap" key={folder.name}>
                     <button
                       type="button"
-                      className={`notes-folder-tile${tagColors[folder.name] ? " has-folder-color" : ""}`}
+                      className={`notes-folder-tile${tagColors[folder.name] ? " has-folder-color" : ""}${dragOverFolder === folder.name ? " is-drag-over" : ""}`}
                       style={tagColors[folder.name] ? { "--folder-accent": tagColors[folder.name] } : undefined}
                       onClick={() => handleFilterSelect(folder.name)}
+                      draggable
+                      onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = "move";
+                        event.dataTransfer.setData(
+                          "application/x-organica-folder-name",
+                          folder.name
+                        );
+                      }}
+                      onDragOver={(event) => {
+                        event.preventDefault();
+                        setDragOverFolder(folder.name);
+                      }}
+                      onDragLeave={() =>
+                        setDragOverFolder((prev) => (prev === folder.name ? null : prev))
+                      }
+                      onDrop={(event) => handleFolderDrop(event, folder.name)}
                     >
-                      <FolderOutlinedIcon aria-hidden="true" />
+                      {folder.isHidden ? (
+                        <EyeOffLineIcon aria-hidden="true" />
+                      ) : (
+                        <FolderOutlinedIcon aria-hidden="true" />
+                      )}
                       <span className="notes-folder-tile-label">{folder.name}</span>
                       <span className="notes-folder-tile-count">
                         {folder.count} note{folder.count === 1 ? "" : "s"}
@@ -749,11 +1066,27 @@ function NotesManager({ palette, setPalette }) {
                   <div className="notes-sidebar-link-wrap" key={folder.name}>
                     <button
                       type="button"
-                      className={`notes-sidebar-link${activeFilter === folder.name ? " is-active" : ""}${tagColors[folder.name] ? " has-folder-color" : ""}`}
+                      className={`notes-sidebar-link${activeFilter === folder.name ? " is-active" : ""}${tagColors[folder.name] ? " has-folder-color" : ""}${dragOverFolder === folder.name ? " is-drag-over" : ""}`}
                       style={tagColors[folder.name] ? { "--folder-accent": tagColors[folder.name] } : undefined}
                       onClick={() => handleFilterSelect(folder.name)}
+                      draggable
+                      onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = "move";
+                        event.dataTransfer.setData(
+                          "application/x-organica-folder-name",
+                          folder.name
+                        );
+                      }}
+                      onDragOver={(event) => {
+                        event.preventDefault();
+                        setDragOverFolder(folder.name);
+                      }}
+                      onDragLeave={() =>
+                        setDragOverFolder((prev) => (prev === folder.name ? null : prev))
+                      }
+                      onDrop={(event) => handleFolderDrop(event, folder.name)}
                     >
-                      <FolderOutlinedIcon />
+                      {folder.isHidden ? <EyeOffLineIcon /> : <FolderOutlinedIcon />}
                       <span className="notes-sidebar-link-label">{folder.name}</span>
                       <span className="notes-sidebar-link-count">{folder.count}</span>
                     </button>
@@ -783,7 +1116,7 @@ function NotesManager({ palette, setPalette }) {
     <section className="notes-list-panel">
       <div className="sectioned-div notes-panel-header">
         <div className="section-title">
-          <h2>{filterLabel(activeFilter)}</h2>
+          <h2>{getLibraryLabel(activeFilter, libraryLabels)}</h2>
           <p className="section-badge">{visibleNotes.length}</p>
         </div>
         <Sorter
@@ -892,11 +1225,16 @@ function NotesManager({ palette, setPalette }) {
             isPinned={selectedNote.isPinned}
             isFavorite={selectedNote.isFavorite}
             isArchived={selectedNote.isArchived}
+            isReadOnly={isSelectedNoteReadOnly}
             tags={selectedNote.tags || []}
             tagColors={tagColors}
+            existingFolders={folders.map((folder) => folder.name)}
             setNotes={setNotes}
             onDelete={() => handleDeleteNote(selectedNote)}
             onArchive={() => handleArchiveNote(selectedNote)}
+            onDuplicate={() => handleDuplicateNote(selectedNote)}
+            isFocusNote={selectedNote.id === focusNoteId}
+            onToggleFocus={() => handleToggleFocusNote(selectedNote.id)}
           />
         </div>
       ) : (
@@ -930,15 +1268,15 @@ function NotesManager({ palette, setPalette }) {
         onClick={() => handleFilterSelect(filterId)}
       >
         <Icon />
-        <span>{LIBRARY_FILTERS.find((filter) => filter.id === filterId)?.label}</span>
+        <span>{getLibraryLabel(filterId, libraryLabels)}</span>
       </button>
     );
   };
 
   const renderMobileBottomTabs = () => (
     <nav className="notes-mobile-bottom-tabs">
-      {renderBottomBarFilterTab(libraryOrder[0])}
-      {renderBottomBarFilterTab(libraryOrder[1])}
+      {renderBottomBarFilterTab(enabledLibraryOrder[0])}
+      {renderBottomBarFilterTab(enabledLibraryOrder[1])}
       <button
         type="button"
         className="notes-mobile-bottom-tab-add"
@@ -947,7 +1285,7 @@ function NotesManager({ palette, setPalette }) {
       >
         <AddIcon />
       </button>
-      {renderBottomBarFilterTab(libraryOrder[2])}
+      {renderBottomBarFilterTab(enabledLibraryOrder[2])}
       <button
         type="button"
         className={`notes-mobile-bottom-tab${mobileBrowseTab === "folders" ? " is-active" : ""}`}
@@ -971,6 +1309,12 @@ function NotesManager({ palette, setPalette }) {
           }
         }}
         user={user}
+        setNotes={setNotes}
+      />
+      <FocusNotePanel
+        note={focusNote}
+        onOpen={() => focusNote && handleSelectNote(focusNote.id)}
+        onUnpin={() => setFocusNoteId(null)}
         setNotes={setNotes}
       />
       {isMobileLayout ? (

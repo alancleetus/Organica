@@ -1,6 +1,5 @@
 .settings-page {
-  max-width: 720px;
-  margin: 0 auto;
+  width: 100%;
   height: 100%;
   overflow-y: auto;
   display: flex;
@@ -11,8 +10,31 @@
 
 .settings-header {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+}
+
+.settings-back-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  color: var(--light-gray);
+  text-decoration: none;
+}
+
+.settings-back-link:hover {
+  background: var(--tint-medium);
+  color: var(--text-color);
+}
+
+.settings-back-link svg {
+  width: 19px;
+  height: 19px;
 }
 
 .settings-header h1 {
@@ -266,6 +288,54 @@
   height: 11px;
 }
 
+.settings-size-picker {
+  display: flex;
+  gap: 10px;
+}
+
+.settings-size-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  padding: 16px 10px 12px;
+  border: 1px solid var(--workspace-panel-border);
+  border-radius: var(--radius);
+  background: var(--workspace-surface-strong);
+  color: var(--light-gray);
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.settings-size-button:hover {
+  border-color: var(--primary-color);
+}
+
+.settings-size-button.is-active {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+.settings-size-sample {
+  color: var(--text-color);
+  line-height: 1;
+}
+
+.settings-size-sample--small {
+  font-size: 1.1rem;
+}
+
+.settings-size-sample--medium {
+  font-size: 1.5rem;
+}
+
+.settings-size-sample--large {
+  font-size: 1.9rem;
+}
+
 .settings-reorder-list {
   display: flex;
   flex-direction: column;
@@ -283,6 +353,58 @@
   color: var(--text-color);
 }
 
+.settings-reorder-row.is-disabled {
+  opacity: 0.55;
+}
+
+.settings-reorder-toggle {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.settings-reorder-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 34px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.settings-reorder-toggle-track {
+  width: 34px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--tint-strong);
+  transition: background-color 0.15s ease;
+}
+
+.settings-reorder-toggle-track::before {
+  content: "";
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin: 3px;
+  border-radius: 50%;
+  background: var(--surface);
+  transition: transform 0.15s ease;
+}
+
+.settings-reorder-toggle input:checked + .settings-reorder-toggle-track {
+  background: var(--primary-color);
+}
+
+.settings-reorder-toggle input:checked + .settings-reorder-toggle-track::before {
+  transform: translateX(14px);
+}
+
+.settings-reorder-toggle input:focus-visible + .settings-reorder-toggle-track {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
 .settings-reorder-row svg {
   width: 16px;
   height: 16px;
@@ -290,10 +412,27 @@
   flex-shrink: 0;
 }
 
-.settings-reorder-label {
+.settings-reorder-label-input {
   flex: 1;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-color);
   font-family: "Gilroy-Medium", Arial, sans-serif;
   font-size: 0.9rem;
+  padding: 4px 6px;
+  margin: -4px -6px;
+}
+
+.settings-reorder-label-input:hover {
+  border-color: var(--workspace-panel-border);
+}
+
+.settings-reorder-label-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: var(--surface);
 }
 
 .settings-reorder-badge {
@@ -343,10 +482,43 @@
   color: inherit;
 }
 
+/* .settings-page has its own 4px padding, and "top: 0" sticks relative
+   to that padding edge, not the true scrollport edge — so a plain
+   sticky box would settle 4px below the actual top with a gap the
+   scrolling header peeks through. Pulling it out with a negative margin
+   equal to that padding (top and sides, so it also spans full width)
+   and re-padding the inside by the same amount puts its edge exactly at
+   the real scrollport boundary, closing the gap outright instead of
+   patching over it. */
 .settings-preview-section {
   position: sticky;
-  top: 0;
+  top: -4px;
   z-index: 5;
+  margin: -4px -4px 0;
+  width: calc(100% + 8px);
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 18px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+}
+
+/* The sticky box only covers its own border, not the flex `gap` below
+   it — so as the next section scrolls up, it's briefly visible sliding
+   through that gap before passing fully underneath, which reads as
+   "content behind the border." This extends the sticky box with an
+   opaque, borderless strip that closes that gap. */
+.settings-preview-section::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -14px;
+  height: 14px;
+  background: var(--background-color);
 }
 
 .settings-preview {
@@ -381,6 +553,12 @@
 
   .settings-section {
     padding: 12px;
+  }
+
+  .settings-preview-section {
+    margin: -2px -2px 0;
+    width: calc(100% + 4px);
+    padding: 14px;
   }
 
   .settings-profile-row {

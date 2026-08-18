@@ -52,6 +52,21 @@ let App = () => {
   }, [fontScheme]);
   /****** Font scheme end *******/
 
+  /****** Font size start *******/
+  const [fontSize, setFontSize] = useState(
+    () => localStorage.getItem("fontSize") || "medium"
+  );
+
+  useEffect(() => {
+    if (fontSize === "medium") {
+      document.documentElement.removeAttribute("data-font-size");
+    } else {
+      document.documentElement.setAttribute("data-font-size", fontSize);
+    }
+    localStorage.setItem("fontSize", fontSize);
+  }, [fontSize]);
+  /****** Font size end *******/
+
   return (
     <Router>
       <AuthProvider>
@@ -76,7 +91,9 @@ let App = () => {
           <Route element={<PrivateRoute />}>
             <Route
               path="/main"
-              element={<NotesManager palette={palette} setPalette={setPalette} />}
+              element={
+                <NotesManager palette={palette} setPalette={setPalette} />
+              }
             />
             <Route
               path="/settings"
@@ -86,6 +103,8 @@ let App = () => {
                   setPalette={setPalette}
                   fontScheme={fontScheme}
                   setFontScheme={setFontScheme}
+                  fontSize={fontSize}
+                  setFontSize={setFontSize}
                 />
               }
             />

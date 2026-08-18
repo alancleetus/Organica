@@ -140,6 +140,33 @@ export function checklistItemsToContent(items = []) {
     .join("\n");
 }
 
+// Checklist-note content is always one `[ ]`/`[x]` line per item (no
+// blank lines — checklistItemsToContent strips those), so a line index
+// lines up 1:1 with item order. Used by the focus-note panel to flip an
+// item's checked state without pulling in the full ChecklistEditor.
+export function toggleChecklistLine(content = "", lineIndex) {
+  const lines = content.split("\n");
+  if (!lines[lineIndex]) return content;
+
+  lines[lineIndex] = lines[lineIndex].replace(
+    /^\[( |x)\]/i,
+    (match, state) => `[${state.toLowerCase() === "x" ? " " : "x"}]`
+  );
+  return lines.join("\n");
+}
+
 export function getSearchableText(content = "") {
   return normalizeNoteContent(content).toLowerCase();
+}
+
+// Applied on save, not on every keystroke, so it never fights with
+// typing mid-line. Checklist content is already trimmed per item by
+// checklistItemsToContent, so this only matters for plain text notes.
+export function trimNoteContent(content = "") {
+  return content
+    .split("\n")
+    .map((line) => line.replace(/[ \t]+$/, ""))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }

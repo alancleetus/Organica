@@ -6,6 +6,7 @@ function PlainTextNoteEditor({
   editorTestId,
   autoFocus = false,
   className = "",
+  readOnly = false,
 }) {
   return (
     <div className={`plain-note-editor ${className}`.trim()}>
@@ -17,6 +18,7 @@ function PlainTextNoteEditor({
         onBlur={onBlur}
         placeholder={placeholder}
         autoFocus={autoFocus}
+        readOnly={readOnly}
       />
     </div>
   );
