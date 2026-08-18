@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@mui/material";
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
-import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import { CreateNote } from "../utils/notesCrud";
 import PlainTextNoteEditor from "./PlainTextNoteEditor";
 import ChecklistEditor from "./ChecklistEditor";
@@ -101,40 +99,34 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
         onKeyDown={handleModalKeyDown}
       >
         <div className="create-note-modal-shell">
-          <div className="create-note-header">
-            <div>
-              <div className="create-note-type-picker" role="group" aria-label="Note type">
-                <button
-                  type="button"
-                  className={`create-note-type-button${noteType === "text" ? " is-active" : ""}`}
-                  data-testid="note-type-text"
-                  onClick={() => handleTypeChange("text")}
-                >
-                  <DescriptionOutlinedIcon />
-                  <span>Note</span>
-                </button>
-                <button
-                  type="button"
-                  className={`create-note-type-button${noteType === "checklist" ? " is-active" : ""}`}
-                  data-testid="note-type-checklist"
-                  onClick={() => handleTypeChange("checklist")}
-                >
-                  <FactCheckOutlinedIcon />
-                  <span>Checklist</span>
-                </button>
-              </div>
-              <input
-                ref={titleInputRef}
-                className="create-note-title"
-                type="text"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="Title"
-                data-testid="note-title"
-              />
-            </div>
-            <p className="create-note-shortcut">Cmd/Ctrl+Enter to save</p>
+          <div className="create-note-type-picker" role="group" aria-label="Note type">
+            <button
+              type="button"
+              className={`create-note-type-button${noteType === "text" ? " is-active" : ""}`}
+              data-testid="note-type-text"
+              onClick={() => handleTypeChange("text")}
+            >
+              Note
+            </button>
+            <button
+              type="button"
+              className={`create-note-type-button${noteType === "checklist" ? " is-active" : ""}`}
+              data-testid="note-type-checklist"
+              onClick={() => handleTypeChange("checklist")}
+            >
+              Checklist
+            </button>
           </div>
+
+          <input
+            ref={titleInputRef}
+            className="create-note-title"
+            type="text"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Title"
+            data-testid="note-title"
+          />
 
           <div className="create-note-editor">
             {noteType === "checklist" ? (
@@ -156,29 +148,24 @@ function AddNoteModal({ open, onClose, onCreated, user, setNotes }) {
           </div>
 
           <div className="create-note-actions">
-            <p className="create-note-helper">
-              Saved to your main notes board
-            </p>
-            <div className="create-note-action-buttons">
-              <button
-                type="button"
-                className="create-note-close-button"
-                onClick={handleClose}
-                data-testid="cancel-add-note"
-                disabled={isSaving}
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                className="create-note-save-button"
-                onClick={handleSave}
-                data-testid="note-save"
-                disabled={isSaving}
-              >
-                {isSaving ? "Saving..." : "Save"}
-              </button>
-            </div>
+            <button
+              type="button"
+              className="create-note-close-button"
+              onClick={handleClose}
+              data-testid="cancel-add-note"
+              disabled={isSaving}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="create-note-save-button"
+              onClick={handleSave}
+              data-testid="note-save"
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving..." : "Save"}
+            </button>
           </div>
         </div>
       </DialogContent>

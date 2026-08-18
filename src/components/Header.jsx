@@ -6,10 +6,13 @@ import { handleLogout } from "./auth/Logout";
 import Settings3LineIcon from "remixicon-react/Settings3LineIcon";
 import WifiOffLineIcon from "remixicon-react/WifiOffLineIcon";
 import Download2LineIcon from "remixicon-react/Download2LineIcon";
+import MoonLineIcon from "remixicon-react/MoonLineIcon";
+import SunLineIcon from "remixicon-react/SunLineIcon";
 
 import LogoutBoxRLineIcon from "remixicon-react/LogoutBoxRLineIcon";
+import { PALETTES, getPaletteToggleTarget } from "./Settings";
 
-function Header({ notes = [] }) {
+function Header({ notes = [], palette, setPalette }) {
   const [isOnline, setOnline] = useState(navigator.onLine);
 
   useEffect(() => {
@@ -45,6 +48,8 @@ function Header({ notes = [] }) {
     }
   };
 
+  const isDark = PALETTES.find((option) => option.id === palette)?.mode === "Dark";
+
   return (
     <div className="sidebar-actions-shell">
       {!isOnline && (
@@ -54,6 +59,15 @@ function Header({ notes = [] }) {
         </div>
       )}
       <div className="sidebar-actions">
+        {setPalette && (
+          <button
+            className="dark-mode-button"
+            onClick={() => setPalette(getPaletteToggleTarget(palette))}
+            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {isDark ? <SunLineIcon /> : <MoonLineIcon />}
+          </button>
+        )}
         <button
           className="dark-mode-button"
           onClick={exportNotes}

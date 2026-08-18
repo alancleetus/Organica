@@ -2,6 +2,8 @@ import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
 import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import HeartFillIcon from "remixicon-react/HeartFillIcon";
+import CheckboxBlankCircleLineIcon from "remixicon-react/CheckboxBlankCircleLineIcon";
+import CheckboxCircleFillIcon from "remixicon-react/CheckboxCircleFillIcon";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import { PinNote, UpdateNote } from "../utils/notesCrud";
 import { getPreviewItems } from "../utils/noteContent";
@@ -9,7 +11,7 @@ import { getPreviewItems } from "../utils/noteContent";
 const VISIBLE_TAG_COUNT = 2;
 
 function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {} }) {
-  const previewItems = getPreviewItems(note.content).slice(0, 4);
+  const previewItems = getPreviewItems(note.content).slice(0, 2);
   const tags = note.tags || [];
   const visibleTags = tags.slice(0, VISIBLE_TAG_COUNT);
   const hiddenTagCount = tags.length - visibleTags.length;
@@ -87,7 +89,7 @@ function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {} }) 
             >
               {item.kind === "task" && (
                 <span className="note-list-item-preview-marker" aria-hidden="true">
-                  {item.checked ? "[x]" : "[ ]"}
+                  {item.checked ? <CheckboxCircleFillIcon /> : <CheckboxBlankCircleLineIcon />}
                 </span>
               )}
               {item.kind === "bullet" && (

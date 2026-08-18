@@ -24,6 +24,47 @@
 }
 
 /* ---------------------------------------------------------------------
+   Font schemes. Gilroy (the default, no [data-font] needed) is loaded as
+   five separately-named weights above, so most of the app reaches for a
+   specific "Gilroy-Bold" / "Gilroy-Medium" / etc. family by name rather
+   than a single family + font-weight. An alternate scheme can't swap in
+   its own five weight-specific files, so instead it overrides
+   font-family everywhere at once with one system stack — real typeface
+   variety without shipping more font files or an external font request.
+   -------------------------------------------------------------------- */
+[data-font="system"] {
+  --font-scheme-override: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+}
+
+[data-font="serif"] {
+  --font-scheme-override: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman",
+    serif;
+}
+
+[data-font="mono"] {
+  --font-scheme-override: "SF Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo,
+    monospace;
+}
+
+[data-font="rounded"] {
+  --font-scheme-override: ui-rounded, "SF Pro Rounded", "Segoe UI", Roboto, sans-serif;
+}
+
+[data-font="condensed"] {
+  --font-scheme-override: "Arial Narrow", "Roboto Condensed", "Helvetica Neue", Arial,
+    sans-serif;
+}
+
+[data-font="system"] *,
+[data-font="serif"] *,
+[data-font="mono"] *,
+[data-font="rounded"] *,
+[data-font="condensed"] * {
+  font-family: var(--font-scheme-override) !important;
+}
+
+/* ---------------------------------------------------------------------
    Palettes. Each `[data-palette="…"]` block below is a complete, named
    theme (own light-or-dark identity, not a toggle layered on top) — set
    by Settings.jsx / App.jsx onto <html>. The bare :root block is the
@@ -250,11 +291,128 @@
   --workspace-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+/* Gruvbox — github.com/morhetz/gruvbox. Warm retro palette — the
+   background itself carries color (cream / charcoal-brown), not just the
+   accent, which is the point: most palettes above vary one accent hue
+   over a neutral grey scale, this one is colorful throughout. */
+[data-palette="gruvbox-light"] {
+  --background-color: #fbf1c7;
+  --surface: #f9f5d7;
+  --surface-strong: #f2e5bc;
+  --text-color: #3c3836;
+  --primary-color: #af3a03;
+  --primary-muted-color: color-mix(in srgb, #af3a03 16%, #f9f5d7);
+  --light-gray: #7c6f64;
+  --border: color-mix(in srgb, #3c3836 12%, transparent);
+  --editor-input-bg-color: #f2e5bc;
+  --tint-weak: color-mix(in srgb, #3c3836 5%, transparent);
+  --tint-medium: color-mix(in srgb, #3c3836 9%, transparent);
+  --tint-strong: color-mix(in srgb, #3c3836 16%, transparent);
+  --accent-contrast: #fbf1c7;
+  --shadow-color: color-mix(in srgb, #3c3836 18%, transparent);
+  --shadow-card: 0 1px 2px color-mix(in srgb, #3c3836 6%, transparent), 0 1px 1px color-mix(in srgb, #3c3836 4%, transparent);
+  --shadow-hover: 0 2px 6px color-mix(in srgb, #3c3836 8%, transparent), 0 1px 2px color-mix(in srgb, #3c3836 5%, transparent);
+  --shadow-pop: 0 8px 20px color-mix(in srgb, #3c3836 14%, transparent);
+  --workspace-shadow: 0 1px 3px color-mix(in srgb, #3c3836 7%, transparent);
+}
+
+[data-palette="gruvbox-dark"] {
+  --background-color: #282828;
+  --surface: #32302f;
+  --surface-strong: #3c3836;
+  --text-color: #ebdbb2;
+  --primary-color: #fe8019;
+  --primary-muted-color: color-mix(in srgb, #fe8019 20%, #32302f);
+  --light-gray: #a89984;
+  --border: color-mix(in srgb, #ebdbb2 10%, transparent);
+  --editor-input-bg-color: #3c3836;
+  --tint-weak: color-mix(in srgb, #ebdbb2 5%, transparent);
+  --tint-medium: color-mix(in srgb, #ebdbb2 9%, transparent);
+  --tint-strong: color-mix(in srgb, #ebdbb2 16%, transparent);
+  --accent-contrast: #282828;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px 1px rgba(0, 0, 0, 0.15);
+  --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-pop: 0 10px 24px rgba(0, 0, 0, 0.35);
+  --workspace-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Catppuccin — github.com/catppuccin/catppuccin (Latte / Mocha). Pastel
+   lavender-tinted surfaces rather than a neutral grey base. */
+[data-palette="catppuccin-latte"] {
+  --background-color: #e6e9ef;
+  --surface: #eff1f5;
+  --surface-strong: #eff1f5;
+  --text-color: #4c4f69;
+  --primary-color: #8839ef;
+  --primary-muted-color: color-mix(in srgb, #8839ef 14%, #eff1f5);
+  --light-gray: #8c8fa1;
+  --border: color-mix(in srgb, #4c4f69 10%, transparent);
+  --editor-input-bg-color: #e6e9ef;
+  --tint-weak: color-mix(in srgb, #4c4f69 4%, transparent);
+  --tint-medium: color-mix(in srgb, #4c4f69 8%, transparent);
+  --tint-strong: color-mix(in srgb, #4c4f69 14%, transparent);
+  --accent-contrast: #eff1f5;
+  --shadow-color: color-mix(in srgb, #4c4f69 16%, transparent);
+  --shadow-card: 0 1px 2px color-mix(in srgb, #4c4f69 6%, transparent), 0 1px 1px color-mix(in srgb, #4c4f69 4%, transparent);
+  --shadow-hover: 0 2px 6px color-mix(in srgb, #4c4f69 8%, transparent), 0 1px 2px color-mix(in srgb, #4c4f69 5%, transparent);
+  --shadow-pop: 0 8px 20px color-mix(in srgb, #4c4f69 14%, transparent);
+  --workspace-shadow: 0 1px 3px color-mix(in srgb, #4c4f69 6%, transparent);
+}
+
+[data-palette="catppuccin-mocha"] {
+  --background-color: #181825;
+  --surface: #1e1e2e;
+  --surface-strong: #292c3c;
+  --text-color: #cdd6f4;
+  --primary-color: #cba6f7;
+  --primary-muted-color: color-mix(in srgb, #cba6f7 18%, #1e1e2e);
+  --light-gray: #a6adc8;
+  --border: color-mix(in srgb, #cdd6f4 10%, transparent);
+  --editor-input-bg-color: #11111b;
+  --tint-weak: color-mix(in srgb, #cdd6f4 5%, transparent);
+  --tint-medium: color-mix(in srgb, #cdd6f4 9%, transparent);
+  --tint-strong: color-mix(in srgb, #cdd6f4 16%, transparent);
+  --accent-contrast: #1e1e2e;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px 1px rgba(0, 0, 0, 0.15);
+  --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-pop: 0 10px 24px rgba(0, 0, 0, 0.35);
+  --workspace-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Re-declared on [data-palette] itself, not just :root — a custom
+   property's var() reference resolves using the declaring element's own
+   cascade and that resolved value is what inherits, so an alias defined
+   only on :root stays frozen to :root's palette forever, even inside a
+   nested element carrying its own [data-palette] override (e.g. a
+   Settings preview swatch). Repeating the aliases here lets any such
+   element recompute them from its own base tokens. The bare :root copy
+   above still matters on its own: it's the only thing active during the
+   very first paint, before App.jsx's effect has set data-palette on
+   <html> at all. */
+[data-palette] {
+  --note-bg-color: var(--surface);
+  --note-shadow-color: var(--shadow-color);
+  --create-note-bg-color: var(--surface);
+  --create-note-shadow-color: var(--shadow-color);
+  --create-note-surface: var(--surface);
+  --create-note-border: var(--border);
+  --workspace-panel-bg: var(--surface);
+  --workspace-panel-border: var(--border);
+  --workspace-card-bg: var(--surface);
+  --workspace-surface-strong: var(--surface-strong);
+  --header-text-color: var(--primary-color);
+  --footer-text-color: var(--light-gray);
+  --badge-color: var(--primary-color);
+  --badge-bg-color: var(--primary-muted-color);
+}
+
 * {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
-  transition: background-color 0.25s, color 0.25s, box-shadow 0.25s;
+  transition: background-color 0.25s, color 0.25s, box-shadow 0.25s, border-color 0.25s;
 }
 
 html {
@@ -284,6 +442,13 @@ body {
 
 .page-body {
   height: 100vh;
+  /* On phones 100vh is measured against the viewport with browser chrome
+     (address bar / bottom toolbar) fully collapsed, not the actually
+     visible area — so content sized to it can run taller than the real
+     screen and push the bottom nav below the fold until the whole page
+     is scrolled. 100dvh tracks the real, current viewport instead;
+     unsupported browsers just ignore this line and keep the vh one. */
+  height: 100dvh;
   padding: 0;
   overflow: hidden;
 }
@@ -297,28 +462,104 @@ body {
   overflow: hidden;
 }
 
-.notes-mobile-tabs {
+.notes-mobile-bottom-tabs {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+  flex-shrink: 0;
+  height: 58px;
 }
 
-.notes-mobile-tab {
-  height: 44px;
-  border: 1px solid var(--workspace-panel-border);
-  border-radius: var(--radius);
+/* The bar's background/border live on a separate layer so the radial-
+   gradient notch mask only carves into the bar itself, never the add
+   button that sits on top of it (a mask clips its own element's full
+   paint, descendants included, so the button can't share this layer). */
+.notes-mobile-bottom-tabs::before {
+  content: "";
+  position: absolute;
+  inset: 0;
   background: var(--workspace-panel-bg);
+  border-top: 1px solid var(--workspace-panel-border);
+  mask-image: radial-gradient(circle 30px at 50% 0, transparent 29px, black 30px);
+  -webkit-mask-image: radial-gradient(circle 30px at 50% 0, transparent 29px, black 30px);
+}
+
+.notes-mobile-bottom-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 58px;
+  border: none;
+  background: transparent;
   color: var(--light-gray);
   font-family: "Gilroy-Medium", Arial, sans-serif;
-  font-size: 0.95rem;
+  font-size: 0.68rem;
   cursor: pointer;
-  box-shadow: var(--shadow-card);
 }
 
-.notes-mobile-tab.is-active {
-  background: var(--primary-muted-color);
+.notes-mobile-bottom-tab svg {
+  width: 20px;
+  height: 20px;
+}
+
+.notes-mobile-bottom-tab.is-active {
   color: var(--primary-color);
-  border-color: var(--primary-muted-color);
+}
+
+.notes-mobile-bottom-tab-add {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  margin: 0 auto;
+  transform: translateY(-24px);
+  border-radius: 50%;
+  border: none;
+  background: var(--primary-color);
+  color: var(--accent-contrast);
+  box-shadow: var(--shadow-hover);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.notes-mobile-bottom-tab-add:active {
+  transform: translateY(-24px) scale(0.9);
+}
+
+.notes-mobile-bottom-tab-add svg {
+  width: 22px;
+  height: 22px;
+}
+
+.notes-mobile-shell #create-note-fab {
+  display: none;
+}
+
+.undo-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+}
+
+.undo-toast-button {
+  border: none;
+  background: transparent;
+  color: #3b82f6;
+  font-family: "Gilroy-Bold", Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.82rem;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 /* One unified shell for the three desktop regions — a single border,
@@ -752,29 +993,6 @@ body {
   align-items: center;
 }
 
-.notes-filter-chip {
-  height: 40px;
-  padding: 0 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--workspace-panel-border);
-  background: var(--workspace-surface-strong);
-  color: var(--text-color);
-  cursor: pointer;
-  font-family: "Gilroy-Medium", Arial, sans-serif;
-  text-align: right;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-shrink: 0;
-  box-shadow: var(--shadow-card);
-}
-
-.notes-filter-chip.is-active {
-  background: var(--primary-muted-color);
-  color: var(--primary-color);
-  border-color: var(--primary-muted-color);
-}
-
 .notes-list-empty {
   display: flex;
   flex-direction: column;
@@ -807,7 +1025,8 @@ body {
   cursor: pointer;
   box-shadow: var(--shadow-card);
   position: relative;
-  transition: box-shadow 0.18s ease;
+  transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease,
+    background-color 0.18s ease;
 }
 
 .note-list-item.is-selected {
@@ -817,6 +1036,7 @@ body {
 
 .note-list-item:hover {
   box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
 }
 
 .note-list-item-top {
@@ -864,8 +1084,8 @@ body {
   width: 28px;
   height: 28px;
   border-radius: var(--radius);
-  border: 1px solid transparent;
-  background: var(--workspace-surface-strong);
+  border: none;
+  background: transparent;
   color: var(--light-gray);
   display: inline-flex;
   align-items: center;
@@ -873,9 +1093,18 @@ body {
   cursor: pointer;
 }
 
+.note-list-item-action svg {
+  width: 16px;
+  height: 16px;
+}
+
+.note-list-item-action:hover {
+  background: var(--tint-medium);
+}
+
 .note-list-item-action.is-active {
   color: var(--primary-color);
-  background: var(--tint-medium);
+  background: transparent;
 }
 
 .note-list-item-title {
@@ -915,9 +1144,16 @@ body {
   color: var(--light-gray);
   font-size: 0.82rem;
   line-height: 1.55;
+  display: inline-flex;
+  align-items: center;
 }
 
-.note-list-item-preview-marker.is-checked {
+.note-list-item-preview-marker svg {
+  width: 14px;
+  height: 14px;
+}
+
+.note-list-item-preview-line--task .note-list-item-preview-marker {
   color: var(--primary-color);
 }
 
@@ -1147,9 +1383,7 @@ body {
   text-decoration: none;
 }
 
-.notes-search-input:focus,
 .notes-search-field:focus-within,
-.notes-filter-chip:focus,
 .notes-sidebar-link:focus-visible,
 .note-list-item:focus-visible,
 .note-list-item-action:focus-visible,
@@ -1427,36 +1661,36 @@ form.create-note button:hover {
 
 @media (max-width: 640px) {
   .page-body {
-    padding: 10px;
+    padding: 0;
   }
 
-  .notes-mobile-tab {
-    height: 40px;
+  .notes-mobile-shell {
+    gap: 6px;
   }
 
-  /* Mobile shows one region at a time as its own full-bleed screen — the
-     unified-shell treatment above only makes sense when the three regions
-     sit side by side, so each gets its own card back here. */
+  .notes-mobile-bottom-tab {
+    height: 52px;
+  }
+
+  /* Mobile shows one region at a time as its own full-bleed screen,
+     edge to edge — no page padding, no card border around it. */
   .notes-mobile-shell > .notes-sidebar,
   .notes-mobile-shell > .notes-list-panel,
   .notes-mobile-shell > .notes-detail-panel {
     flex: 1;
     min-height: 0;
     height: 100%;
-    border: 1px solid var(--workspace-panel-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--workspace-shadow);
   }
 
   .notes-sidebar {
-    padding: 12px;
+    padding: 10px;
     gap: 10px;
     justify-content: flex-start;
   }
 
   .notes-list-panel,
   .notes-detail-panel {
-    padding: 12px;
+    padding: 10px;
   }
 
   .notes-panel-header {
@@ -1476,10 +1710,6 @@ form.create-note button:hover {
     min-width: 0;
   }
 
-  .notes-panel-kicker {
-    margin-bottom: 2px;
-  }
-
   .section-title h2 {
     font-size: 1.05rem;
     line-height: 1.05;
@@ -1491,39 +1721,40 @@ form.create-note button:hover {
   }
 
   .notes-list-scroll {
-    gap: 10px;
+    gap: 8px;
     max-height: none;
     padding-right: 0;
   }
 
   .note-list-item {
-    padding: 12px;
+    padding: 9px 10px;
   }
 
   .note-list-item-top {
     gap: 10px;
-    padding-right: 40px;
+    margin-bottom: 4px;
+    padding-right: 36px;
   }
 
   .note-list-item-actions {
-    top: 10px;
-    right: 10px;
+    top: 8px;
+    right: 8px;
   }
 
   .note-list-item-action {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
   }
 
   .note-list-item-title {
-    font-size: 1rem;
-    margin-bottom: 6px;
+    font-size: 0.92rem;
+    margin-bottom: 3px;
   }
 
   .note-list-item-preview {
-    font-size: 0.92rem;
-    line-height: 1.45;
-    gap: 3px;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    gap: 2px;
   }
 
   .notes-detail-meta {
@@ -1562,47 +1793,21 @@ form.create-note button:hover {
   .notes-detail-meta-pill span {
     font-size: 0.72rem;
   }
-
-  /* Collapse the inline "Add note" row into a floating circular FAB on
-     touch widths — the one intentionally circular exception, matching
-     the standard mobile floating-action-button convention. */
-  #create-note-fab {
-    position: fixed;
-    right: 22px;
-    bottom: 22px;
-    z-index: 20;
-    width: 56px;
-    min-height: 56px;
-    height: 56px;
-    padding: 0;
-    border-radius: 50%;
-    border: none;
-    background: var(--primary-color);
-    color: var(--accent-contrast);
-    box-shadow: var(--shadow-pop);
-  }
-
-  #create-note-fab:hover {
-    box-shadow: var(--shadow-pop);
-  }
-
-  #create-note-fab span:not(.create-note-fab-icon) {
-    display: none;
-  }
 }
 
 @media (max-width: 480px) {
   .page-body {
-    padding: 8px;
+    padding: 0;
   }
 
-  .notes-mobile-tabs {
-    gap: 6px;
+  .notes-mobile-bottom-tab {
+    height: 48px;
+    font-size: 0.62rem;
   }
 
-  .notes-mobile-tab {
-    height: 40px;
-    font-size: 0.9rem;
+  .notes-mobile-bottom-tab svg {
+    width: 18px;
+    height: 18px;
   }
 
   .notes-sidebar-link {
@@ -1622,14 +1827,7 @@ form.create-note button:hover {
     align-items: center;
   }
 
-  .notes-list-tools {
-    gap: 6px;
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .notes-search-field,
-  .notes-filter-chip {
+  .notes-search-field {
     height: 38px;
   }
 
@@ -1637,7 +1835,6 @@ form.create-note button:hover {
     font-size: 0.98rem;
   }
 
-  .notes-panel-kicker,
   .section-badge {
     font-size: 0.76rem;
   }

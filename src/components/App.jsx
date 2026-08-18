@@ -37,6 +37,21 @@ let App = () => {
   }, [palette]);
   /****** Color palette end *******/
 
+  /****** Font scheme start *******/
+  const [fontScheme, setFontScheme] = useState(
+    () => localStorage.getItem("fontScheme") || "gilroy"
+  );
+
+  useEffect(() => {
+    if (fontScheme === "gilroy") {
+      document.documentElement.removeAttribute("data-font");
+    } else {
+      document.documentElement.setAttribute("data-font", fontScheme);
+    }
+    localStorage.setItem("fontScheme", fontScheme);
+  }, [fontScheme]);
+  /****** Font scheme end *******/
+
   return (
     <Router>
       <AuthProvider>
@@ -59,10 +74,20 @@ let App = () => {
           </Route>
 
           <Route element={<PrivateRoute />}>
-            <Route path="/main" element={<NotesManager />} />
+            <Route
+              path="/main"
+              element={<NotesManager palette={palette} setPalette={setPalette} />}
+            />
             <Route
               path="/settings"
-              element={<Settings palette={palette} setPalette={setPalette} />}
+              element={
+                <Settings
+                  palette={palette}
+                  setPalette={setPalette}
+                  fontScheme={fontScheme}
+                  setFontScheme={setFontScheme}
+                />
+              }
             />
             <Route path="/edit/:id" element={<Navigate to="/main" replace />} />
             <Route path="/note" element={<Navigate to="/main" replace />} />

@@ -30,8 +30,26 @@
   background: var(--create-note-surface);
   box-shadow: var(--shadow-pop);
   overflow: hidden;
-  width: min(100%, 680px);
+  width: min(100%, 640px);
   max-height: min(78vh, 560px);
+  animation: create-note-pop-in 0.18s ease;
+}
+
+@keyframes create-note-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .create-note-modal {
+    animation: none;
+  }
 }
 
 .create-note-modal-content {
@@ -42,59 +60,34 @@
 .create-note-modal-shell {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px 18px 14px;
+  gap: 10px;
+  padding: 18px 20px 16px;
   max-height: min(78vh, 560px);
   overflow: hidden;
 }
 
-.create-note-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .create-note-type-picker {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px;
-  border-radius: var(--radius);
-  background: var(--tint-weak);
-  margin-bottom: 10px;
+  gap: 16px;
 }
 
 .create-note-type-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   border: none;
   background: transparent;
   color: var(--light-gray);
-  border-radius: calc(var(--radius) - 2px);
-  padding: 6px 12px;
+  padding: 0 0 6px;
+  border-bottom: 2px solid transparent;
   font-family: "Gilroy-Bold", Arial, sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
-.create-note-type-button svg {
-  width: 16px;
-  height: 16px;
-}
-
 .create-note-type-button.is-active {
-  background: var(--surface);
   color: var(--primary-color);
-  box-shadow: var(--shadow-card);
-}
-
-.create-note-shortcut {
-  color: var(--light-gray);
-  font-size: 0.8rem;
-  white-space: nowrap;
-  padding-top: 2px;
+  border-bottom-color: var(--primary-color);
 }
 
 .create-note-title {
@@ -103,20 +96,17 @@
   outline: none;
   background: transparent;
   color: var(--text-color);
-  font-size: 1.35rem;
+  font-size: 1.3rem;
   font-family: "Gilroy-Bold", Arial, sans-serif;
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .create-note-editor {
   min-height: 160px;
-  height: min(30vh, 260px);
-  max-height: min(30vh, 260px);
-  border-radius: var(--radius);
-  background: var(--editor-input-bg-color);
-  border: 1px solid var(--create-note-border);
-  padding: 10px 12px 8px;
+  height: min(32vh, 280px);
+  max-height: min(32vh, 280px);
+  padding-top: 4px;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -136,39 +126,31 @@
 
 .create-note-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  gap: 10px;
-  padding-top: 4px;
-}
-
-.create-note-action-buttons {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-}
-
-.create-note-helper {
-  color: var(--light-gray);
-  font-size: 0.84rem;
-  font-family: "Gilroy-Medium", Arial, sans-serif;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--create-note-border);
 }
 
 .create-note-close-button,
 .create-note-save-button {
   border: 1px solid transparent;
   border-radius: var(--radius);
-  min-height: 40px;
-  padding: 8px 15px;
+  min-height: 38px;
+  padding: 8px 16px;
   font-family: "Gilroy-Bold", Arial, sans-serif;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
 .create-note-close-button {
-  background: var(--tint-medium);
+  background: transparent;
+  color: var(--light-gray);
+}
+
+.create-note-close-button:hover {
   color: var(--text-color);
-  border-color: transparent;
 }
 
 .create-note-save-button {
@@ -192,30 +174,9 @@
     padding: 14px;
   }
 
-  .create-note-header {
-    flex-direction: column;
-    gap: 6px;
-  }
-
   .create-note-editor {
     min-height: 140px;
-    height: min(28vh, 200px);
-    max-height: min(28vh, 200px);
-    padding: 10px;
-  }
-
-  .create-note-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .create-note-action-buttons {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .create-note-helper,
-  .create-note-shortcut {
-    font-size: 0.78rem;
+    height: min(30vh, 220px);
+    max-height: min(30vh, 220px);
   }
 }

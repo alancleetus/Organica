@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import ArrowLeftLineIcon from "remixicon-react/ArrowLeftLineIcon";
 import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import SearchIcon from "@mui/icons-material/Search";
+import AddIcon from "@mui/icons-material/Add";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import NotesOutlinedIcon from "@mui/icons-material/NotesOutlined";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
+import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import PencilLineIcon from "remixicon-react/PencilLineIcon";
 import { auth } from "./Firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -19,12 +20,32 @@ import AddNoteFab from "./AddNoteFab";
 import NoteListItem from "./NoteListItem";
 import { fetchNotes } from "../utils/fetchNotes.js";
 import { formatTimestampToDate } from "../utils/formatTimestampToDate.js";
-import { ReplaceTagsForNote } from "../utils/notesCrud";
+import { ReplaceTagsForNote, DeleteNote, ArchiveNote } from "../utils/notesCrud";
+import { toast } from "react-toastify";
+import { LIBRARY_FILTERS, loadLibraryOrder } from "../utils/bottomBarConfig";
+import { loadAvatarSeed } from "../utils/identicon";
+import Identicon from "./Identicon";
 import { CreateTag, UpdateTag, DeleteTag, FetchTagsByUser } from "../utils/tagsCrud";
 import Sorter from "./Sorter";
 import { getSearchableText, isChecklistContent } from "../utils/noteContent";
 
-const RESERVED_FILTERS = ["all", "pinned", "favorites", "tasks", "notes-only"];
+const BOTTOM_BAR_ICONS = {
+  all: DescriptionOutlinedIcon,
+  pinned: PushpinLineIcon,
+  favorites: HeartLineIcon,
+  tasks: FactCheckOutlinedIcon,
+  "notes-only": NotesOutlinedIcon,
+  archived: ArchiveOutlinedIcon,
+};
+
+const RESERVED_FILTERS = [
+  "all",
+  "pinned",
+  "favorites",
+  "tasks",
+  "notes-only",
+  "archived",
+];
 
 // Curated, distinct hues a folder can be color-coded with — rendered via
 // color-mix() in styles.css so each one adapts to whichever theme palette
@@ -53,12 +74,14 @@ function filterLabel(filter) {
       return "Tasks";
     case "notes-only":
       return "Notes Only";
+    case "archived":
+      return "Archived";
     default:
       return filter;
   }
 }
 
-function NotesManager() {
+function NotesManager({ palette, setPalette }) {
   const [notes, setNotes] = useState([]);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
@@ -84,9 +107,18 @@ function NotesManager() {
   const [renamingFolder, setRenamingFolder] = useState(null);
   const [folderRenameDraft, setFolderRenameDraft] = useState("");
   const [tagDocs, setTagDocs] = useState([]);
+  const [libraryOrder] = useState(() => loadLibraryOrder());
+  const [avatarSeed] = useState(() => loadAvatarSeed(user?.uid));
+  const overlayPushedRef = useRef(false);
+  const pendingDeletesRef = useRef(new Map());
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    // Matches the CSS mobile breakpoint (640px) used throughout
+    // styles.css for the single-panel mobile shell — a mismatch here
+    // left a width band where isMobileLayout rendered the mobile shell
+    // markup but the CSS treating its children as full-height flex
+    // panels (and thus keeping the bottom nav pinned) hadn't kicked in.
+    const mediaQuery = window.matchMedia("(max-width: 640px)");
     const updateLayout = () => setIsMobileLayout(mediaQuery.matches);
 
     updateLayout();
@@ -99,7 +131,45 @@ function NotesManager() {
     if (!isMobileLayout) {
       setMobileScreen("browse");
       setMobileBrowseTab("notes");
+      overlayPushedRef.current = false;
     }
+  }, [isMobileLayout]);
+
+  // On mobile, note detail and the add-note modal are "overlay" screens
+  // layered on top of the browse list, not real routes. Without this,
+  // the phone's swipe-back gesture (or the OS back button) has no SPA
+  // history entry to consume, so it falls through to the browser's own
+  // history — leaving the app entirely instead of closing the overlay.
+  // Syncing a single synthetic history entry to whichever overlay is
+  // open lets that gesture close the overlay instead.
+  useEffect(() => {
+    if (!isMobileLayout) return;
+
+    const isOverlayOpen = isAddNoteOpen || mobileScreen === "detail";
+
+    if (isOverlayOpen && !overlayPushedRef.current) {
+      overlayPushedRef.current = true;
+      window.history.pushState({ notesOverlay: true }, "");
+    } else if (!isOverlayOpen && overlayPushedRef.current) {
+      overlayPushedRef.current = false;
+      if (window.history.state?.notesOverlay) {
+        window.history.back();
+      }
+    }
+  }, [isAddNoteOpen, mobileScreen, isMobileLayout]);
+
+  useEffect(() => {
+    if (!isMobileLayout) return;
+
+    const handlePopState = () => {
+      overlayPushedRef.current = false;
+      setIsAddNoteOpen(false);
+      setMobileScreen("browse");
+      setMobileBrowseTab("notes");
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, [isMobileLayout]);
 
   useEffect(() => {
@@ -213,6 +283,11 @@ function NotesManager() {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return sortedNotes.filter((note) => {
+      if (activeFilter === "archived") {
+        if (!note.isArchived) return false;
+      } else {
+        if (note.isArchived) return false;
+
         const matchesFilter =
           activeFilter === "all" ||
           (activeFilter === "pinned" && note.isPinned) ||
@@ -222,7 +297,9 @@ function NotesManager() {
           (!RESERVED_FILTERS.includes(activeFilter) &&
             (note.tags || []).includes(activeFilter));
 
-      if (!matchesFilter) return false;
+        if (!matchesFilter) return false;
+      }
+
       if (!normalizedSearch) return true;
 
       const title = note.title?.toLowerCase() || "";
@@ -322,15 +399,83 @@ function NotesManager() {
 
   const selectedNote =
     visibleNotes.find((note) => note.id === selectedNoteId) || null;
-  const pinnedCount = notes.filter((note) => note.isPinned).length;
-  const favoriteCount = notes.filter((note) => note.isFavorite).length;
-  const checklistCount = notes.filter((note) => isChecklistContent(note.content)).length;
+  const activeNotes = notes.filter((note) => !note.isArchived);
+  const pinnedCount = activeNotes.filter((note) => note.isPinned).length;
+  const favoriteCount = activeNotes.filter((note) => note.isFavorite).length;
+  const checklistCount = activeNotes.filter((note) =>
+    isChecklistContent(note.content)
+  ).length;
+  const archivedCount = notes.filter((note) => note.isArchived).length;
+  const libraryCounts = {
+    all: activeNotes.length,
+    pinned: pinnedCount,
+    favorites: favoriteCount,
+    tasks: checklistCount,
+    "notes-only": activeNotes.length - checklistCount,
+    archived: archivedCount,
+  };
   const hasScopedView = activeFilter !== "all" || searchTerm.trim() !== "";
 
   const handleSelectNote = (noteId) => {
     setSelectedNoteId(noteId);
     if (isMobileLayout) {
       setMobileScreen("detail");
+    }
+  };
+
+  // Deleting is optimistic and reversible: the note disappears from the UI
+  // right away, but the actual Firestore delete is held for a few seconds
+  // so the "Undo" toast can put it back without ever having removed it.
+  const handleDeleteNote = (note) => {
+    if (!note) return;
+
+    setNotes((prev) => prev.filter((n) => n.id !== note.id));
+    if (selectedNoteId === note.id) {
+      setSelectedNoteId(null);
+      if (isMobileLayout && mobileScreen === "detail") {
+        window.history.back();
+      }
+    }
+
+    const timerId = setTimeout(() => {
+      pendingDeletesRef.current.delete(note.id);
+      DeleteNote(note.id, setNotes);
+    }, 5000);
+    pendingDeletesRef.current.set(note.id, timerId);
+
+    toast(
+      ({ closeToast }) => (
+        <div className="undo-toast">
+          <span>Note deleted</span>
+          <button
+            type="button"
+            className="undo-toast-button"
+            onClick={() => {
+              clearTimeout(pendingDeletesRef.current.get(note.id));
+              pendingDeletesRef.current.delete(note.id);
+              setNotes((prev) => [note, ...prev]);
+              closeToast();
+            }}
+          >
+            Undo
+          </button>
+        </div>
+      ),
+      { autoClose: 5000, closeButton: false }
+    );
+  };
+
+  const handleArchiveNote = (note) => {
+    if (!note) return;
+
+    const nextArchived = !note.isArchived;
+    ArchiveNote(note.id, nextArchived, setNotes);
+
+    if (selectedNoteId === note.id && nextArchived) {
+      setSelectedNoteId(null);
+      if (isMobileLayout && mobileScreen === "detail") {
+        window.history.back();
+      }
     }
   };
 
@@ -479,70 +624,46 @@ function NotesManager() {
     <aside className="notes-sidebar">
       <div className="notes-sidebar-top">
         <div className="notes-sidebar-profile">
-          <span className="notes-avatar" aria-hidden="true">
-            <PersonOutlineIcon />
+          <span className="notes-avatar">
+            <Identicon seed={avatarSeed} size={20} />
           </span>
           <span className="notes-sidebar-profile-name">
-            {user?.email || "My workspace"}
+            {user?.displayName || user?.email || "My workspace"}
           </span>
         </div>
 
-        {renderSearchInput()}
+        {!foldersAsGrid && renderSearchInput()}
 
         <div className="notes-sidebar-section">
           <p className="notes-sidebar-group-label">Library</p>
-          <button
-            type="button"
-            className={`notes-sidebar-link${activeFilter === "all" ? " is-active" : ""}`}
-            onClick={() => handleFilterSelect("all")}
-          >
-            <DescriptionOutlinedIcon />
-            <span className="notes-sidebar-link-label">All Notes</span>
-            <span className="notes-sidebar-link-count">{sortedNotes.length}</span>
-          </button>
-          <button
-            type="button"
-            className={`notes-sidebar-link${activeFilter === "pinned" ? " is-active" : ""}`}
-            onClick={() => handleFilterSelect("pinned")}
-          >
-            <PushpinLineIcon />
-            <span className="notes-sidebar-link-label">Pinned</span>
-            <span className="notes-sidebar-link-count">{pinnedCount}</span>
-          </button>
-          <button
-            type="button"
-            className={`notes-sidebar-link${activeFilter === "favorites" ? " is-active" : ""}`}
-            onClick={() => handleFilterSelect("favorites")}
-          >
-            <HeartLineIcon />
-            <span className="notes-sidebar-link-label">Favorites</span>
-            <span className="notes-sidebar-link-count">{favoriteCount}</span>
-          </button>
-          <button
-            type="button"
-            className={`notes-sidebar-link${activeFilter === "tasks" ? " is-active" : ""}`}
-            onClick={() => handleFilterSelect("tasks")}
-          >
-            <FactCheckOutlinedIcon />
-            <span className="notes-sidebar-link-label">Tasks</span>
-            <span className="notes-sidebar-link-count">{checklistCount}</span>
-          </button>
-          <button
-            type="button"
-            className={`notes-sidebar-link${activeFilter === "notes-only" ? " is-active" : ""}`}
-            onClick={() => handleFilterSelect("notes-only")}
-          >
-            <NotesOutlinedIcon />
-            <span className="notes-sidebar-link-label">Notes Only</span>
-            <span className="notes-sidebar-link-count">{notes.length - checklistCount}</span>
-          </button>
+          {libraryOrder.map((filterId) => {
+            const Icon = BOTTOM_BAR_ICONS[filterId];
+            if (!Icon) return null;
+
+            return (
+              <button
+                type="button"
+                key={filterId}
+                className={`notes-sidebar-link${activeFilter === filterId ? " is-active" : ""}`}
+                onClick={() => handleFilterSelect(filterId)}
+              >
+                <Icon />
+                <span className="notes-sidebar-link-label">
+                  {LIBRARY_FILTERS.find((filter) => filter.id === filterId)?.label}
+                </span>
+                <span className="notes-sidebar-link-count">
+                  {libraryCounts[filterId]}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="notes-sidebar-folders-section">
           <p className="notes-sidebar-group-label">Folders</p>
           {folders.length === 0 ? (
             <p className="notes-sidebar-folders-empty">
-              Add a tag to a note to create your first folder.
+              Add a folder to a note to create your first one.
             </p>
           ) : foldersAsGrid ? (
             <div className="notes-folder-grid">
@@ -653,7 +774,7 @@ function NotesManager() {
       </div>
 
       <div className="notes-sidebar-bottom">
-        <Header notes={notes} />
+        <Header notes={notes} palette={palette} setPalette={setPalette} />
       </div>
     </aside>
   );
@@ -662,10 +783,7 @@ function NotesManager() {
     <section className="notes-list-panel">
       <div className="sectioned-div notes-panel-header">
         <div className="section-title">
-          <div>
-            <p className="notes-panel-kicker">Library</p>
-            <h2>{filterLabel(activeFilter)}</h2>
-          </div>
+          <h2>{filterLabel(activeFilter)}</h2>
           <p className="section-badge">{visibleNotes.length}</p>
         </div>
         <Sorter
@@ -685,18 +803,9 @@ function NotesManager() {
 
       <AddNoteFab onClick={() => setIsAddNoteOpen(true)} />
 
-      <div className="notes-list-tools">
-        {isMobileLayout && renderSearchInput()}
-        <button
-          type="button"
-          className={`notes-filter-chip${activeFilter === "tasks" ? " is-active" : ""}`}
-          onClick={() =>
-            handleFilterSelect(activeFilter === "tasks" ? "all" : "tasks")
-          }
-        >
-          Tasks
-        </button>
-      </div>
+      {isMobileLayout && (
+        <div className="notes-list-tools">{renderSearchInput()}</div>
+      )}
 
       <div className="notes-list-scroll">
         {visibleNotes.length ? (
@@ -754,10 +863,7 @@ function NotesManager() {
                 <button
                   type="button"
                   className="notes-mobile-back"
-                  onClick={() => {
-                    setMobileBrowseTab("notes");
-                    setMobileScreen("browse");
-                  }}
+                  onClick={() => window.history.back()}
                 >
                   <ArrowLeftLineIcon />
                   <span>All Notes</span>
@@ -785,9 +891,12 @@ function NotesManager() {
             noteType={selectedNote.noteType}
             isPinned={selectedNote.isPinned}
             isFavorite={selectedNote.isFavorite}
+            isArchived={selectedNote.isArchived}
             tags={selectedNote.tags || []}
             tagColors={tagColors}
             setNotes={setNotes}
+            onDelete={() => handleDeleteNote(selectedNote)}
+            onArchive={() => handleArchiveNote(selectedNote)}
           />
         </div>
       ) : (
@@ -805,6 +914,49 @@ function NotesManager() {
         </button>
       )}
     </section>
+  );
+
+  const renderBottomBarFilterTab = (filterId) => {
+    const Icon = BOTTOM_BAR_ICONS[filterId];
+    if (!Icon) return null;
+
+    return (
+      <button
+        type="button"
+        key={filterId}
+        className={`notes-mobile-bottom-tab${
+          mobileBrowseTab === "notes" && activeFilter === filterId ? " is-active" : ""
+        }`}
+        onClick={() => handleFilterSelect(filterId)}
+      >
+        <Icon />
+        <span>{LIBRARY_FILTERS.find((filter) => filter.id === filterId)?.label}</span>
+      </button>
+    );
+  };
+
+  const renderMobileBottomTabs = () => (
+    <nav className="notes-mobile-bottom-tabs">
+      {renderBottomBarFilterTab(libraryOrder[0])}
+      {renderBottomBarFilterTab(libraryOrder[1])}
+      <button
+        type="button"
+        className="notes-mobile-bottom-tab-add"
+        aria-label="Add note"
+        onClick={() => setIsAddNoteOpen(true)}
+      >
+        <AddIcon />
+      </button>
+      {renderBottomBarFilterTab(libraryOrder[2])}
+      <button
+        type="button"
+        className={`notes-mobile-bottom-tab${mobileBrowseTab === "folders" ? " is-active" : ""}`}
+        onClick={() => setMobileBrowseTab("folders")}
+      >
+        <FolderOutlinedIcon />
+        <span>Folders</span>
+      </button>
+    </nav>
   );
 
   return (
@@ -825,24 +977,8 @@ function NotesManager() {
         <div className="notes-mobile-shell">
           {mobileScreen === "browse" ? (
             <>
-              <div className="notes-mobile-tabs">
-                <button
-                  type="button"
-                  className={`notes-mobile-tab${mobileBrowseTab === "notes" ? " is-active" : ""}`}
-                  onClick={() => setMobileBrowseTab("notes")}
-                >
-                  All Notes
-                </button>
-                <button
-                  type="button"
-                  className={`notes-mobile-tab${mobileBrowseTab === "folders" ? " is-active" : ""}`}
-                  onClick={() => setMobileBrowseTab("folders")}
-                >
-                  Folders
-                </button>
-              </div>
-
               {mobileBrowseTab === "notes" ? renderListPanel() : renderSidebar(true)}
+              {renderMobileBottomTabs()}
             </>
           ) : (
             renderDetailPanel(true)

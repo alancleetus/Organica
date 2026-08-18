@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
+import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
+import UnarchiveOutlinedIcon from "@mui/icons-material/UnarchiveOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import { Menu, MenuItem } from "@mui/material";
@@ -9,7 +11,7 @@ import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
 import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import HeartFillIcon from "remixicon-react/HeartFillIcon";
-import { DeleteNote, PinNote, UpdateNote, ReplaceTagsForNote } from "../utils/notesCrud";
+import { PinNote, UpdateNote, ReplaceTagsForNote } from "../utils/notesCrud";
 import PlainTextNoteEditor from "./PlainTextNoteEditor";
 import ChecklistEditor from "./ChecklistEditor";
 import { normalizeNoteContent, resolveNoteType } from "../utils/noteContent";
@@ -358,10 +360,24 @@ function Note(props) {
           onClose={handleMenuClose}
         >
           <MenuItem
+            data-testid="note-card-menu-archive-button"
+            onClick={() => {
+              handleMenuClose();
+              props.onArchive?.();
+            }}
+          >
+            {props.isArchived ? (
+              <UnarchiveOutlinedIcon style={{ marginRight: "10px" }} />
+            ) : (
+              <ArchiveOutlinedIcon style={{ marginRight: "10px" }} />
+            )}
+            {props.isArchived ? "Unarchive note" : "Archive note"}
+          </MenuItem>
+          <MenuItem
             data-testid="note-card-menu-delete-button"
             onClick={() => {
               handleMenuClose();
-              DeleteNote(props.id, props.setNotes);
+              props.onDelete?.();
             }}
           >
             <DeleteIcon style={{ marginRight: "10px" }} />
