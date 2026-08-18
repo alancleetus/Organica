@@ -767,88 +767,82 @@ function NotesManager({ palette, setPalette }) {
     }
   };
 
-  // Assign (or clear, colorId === null) a folder's color. Create-or-update
-  // against the tagsCrud.jsx doc for this name, since a folder may not have
-  // one yet the first time a color is picked.
-  const handleFolderColorChange = (folderName, colorId) => {
+  // Create-or-update the tagsCrud.jsx doc for a folder name with the given
+  // fields (tagColor and/or tagHidden). The /tags security rule checks the
+  // *existing* doc's userId, which can't be evaluated for a doc that no
+  // longer exists — Firestore then reports that as "permission-denied"
+  // rather than "not found," indistinguishable from a real permission
+  // error. So a cached doc id going stale (the doc was deleted, or this
+  // tab's tagDocs just drifted from another tab/device) looks identical to
+  // a genuine failure. Rather than surface that ambiguity immediately, a
+  // failed update re-confirms against a fresh list fetch (a `list` query,
+  // unaffected by one missing doc) and either retries against the doc's
+  // current id or creates a fresh one before actually giving up.
+  const upsertFolderTag = async (folderName, fields) => {
     const existing = tagColorDocsByName.get(folderName);
 
     if (existing) {
-      if (!colorId) {
-        DeleteTag(existing.id).then((result) => {
-          if (!result) {
-            alert("Couldn't update this folder's color. Please try again.");
-            return;
-          }
-          setTagDocs((prev) => prev.filter((doc) => doc.id !== existing.id));
-        });
-        return;
+      const updated = await UpdateTag({ id: existing.id, ...fields });
+      if (updated) {
+        setTagDocs((prev) =>
+          prev.map((doc) => (doc.id === existing.id ? { ...doc, ...fields } : doc))
+        );
+        return true;
       }
 
-      // UpdateTag resolves to undefined on a failed write (it catches
-      // internally rather than rejecting) — only apply the change locally
-      // once we know it actually landed, or a failed write would still
-      // look applied here and then silently revert on the next reload.
-      UpdateTag({ id: existing.id, tagColor: colorId }).then((updated) => {
-        if (!updated) {
-          alert("Couldn't update this folder's color. Please try again.");
-          return;
-        }
+      const freshTags = (await FetchTagsByUser(user.uid)) || [];
+      setTagDocs(freshTags);
+      const stillExists = freshTags.find((doc) => doc.tagName === folderName);
+
+      if (stillExists) {
+        const retried = await UpdateTag({ id: stillExists.id, ...fields });
+        if (!retried) return false;
         setTagDocs((prev) =>
-          prev.map((doc) =>
-            doc.id === existing.id ? { ...doc, tagColor: colorId } : doc
-          )
+          prev.map((doc) => (doc.id === stillExists.id ? { ...doc, ...fields } : doc))
         );
-      });
-      return;
+        return true;
+      }
+
+      const created = await CreateTag({ userId: user.uid, tagName: folderName, ...fields });
+      if (!created) return false;
+      setTagDocs((prev) => [...prev, created]);
+      return true;
     }
 
-    if (!colorId) return;
-
-    CreateTag({ userId: user.uid, tagName: folderName, tagColor: colorId }).then(
-      (created) => {
-        if (!created) {
-          alert("Couldn't update this folder's color. Please try again.");
-          return;
-        }
-        setTagDocs((prev) => [...prev, created]);
-      }
-    );
+    const created = await CreateTag({ userId: user.uid, tagName: folderName, ...fields });
+    if (!created) return false;
+    setTagDocs((prev) => [...prev, created]);
+    return true;
   };
 
-  // Assign (or clear) a folder's hidden flag. Create-or-update against the
-  // same tagsCrud.jsx doc used for color, since a folder may not have one
-  // yet the first time it's hidden — this is what makes hidden folders
-  // sync across every device on the account instead of staying local.
-  const handleFolderHiddenChange = (folderName, hidden) => {
+  // Assign (or clear, colorId === null) a folder's color.
+  const handleFolderColorChange = async (folderName, colorId) => {
     const existing = tagColorDocsByName.get(folderName);
 
-    if (existing) {
-      UpdateTag({ id: existing.id, tagHidden: hidden }).then((updated) => {
-        if (!updated) {
-          alert("Couldn't update this folder. Please try again.");
-          return;
-        }
-        setTagDocs((prev) =>
-          prev.map((doc) =>
-            doc.id === existing.id ? { ...doc, tagHidden: hidden } : doc
-          )
-        );
-      });
+    if (existing && !colorId) {
+      const result = await DeleteTag(existing.id);
+      if (!result) {
+        alert("Couldn't update this folder's color. Please try again.");
+        return;
+      }
+      setTagDocs((prev) => prev.filter((doc) => doc.id !== existing.id));
       return;
     }
 
-    if (!hidden) return;
+    if (!existing && !colorId) return;
 
-    CreateTag({ userId: user.uid, tagName: folderName, tagHidden: true }).then(
-      (created) => {
-        if (!created) {
-          alert("Couldn't update this folder. Please try again.");
-          return;
-        }
-        setTagDocs((prev) => [...prev, created]);
-      }
-    );
+    const ok = await upsertFolderTag(folderName, { tagColor: colorId });
+    if (!ok) alert("Couldn't update this folder's color. Please try again.");
+  };
+
+  // Assign (or clear) a folder's hidden flag — synced through the account
+  // via the same tag doc used for color, not per-device localStorage.
+  const handleFolderHiddenChange = async (folderName, hidden) => {
+    const existing = tagColorDocsByName.get(folderName);
+    if (!existing && !hidden) return;
+
+    const ok = await upsertFolderTag(folderName, { tagHidden: hidden });
+    if (!ok) alert("Couldn't update this folder. Please try again.");
   };
 
   // Folders are derived from notes-in-use, so this only ever really
