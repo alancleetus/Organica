@@ -41,20 +41,6 @@ function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {} }) 
         event.dataTransfer.setData("text/plain", note.id);
       }}
     >
-      <div className="note-list-item-top">
-        <div className="note-list-item-meta">
-          <p className="note-list-item-date">
-            {new Date(note.modifiedDate || note.creationDate).toLocaleDateString(
-              "en-US",
-              {
-                month: "short",
-                day: "numeric",
-              }
-            )}
-          </p>
-        </div>
-      </div>
-
       <div className="note-list-item-actions">
         <button
           type="button"

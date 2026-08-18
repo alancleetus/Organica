@@ -18,6 +18,7 @@ import { PinNote, UpdateNote, ReplaceTagsForNote } from "../utils/notesCrud";
 import PlainTextNoteEditor from "./PlainTextNoteEditor";
 import ChecklistEditor from "./ChecklistEditor";
 import { normalizeNoteContent, resolveNoteType, trimNoteContent } from "../utils/noteContent";
+import { formatDate } from "../utils/dateFormat";
 
 const AUTOSAVE_DELAY_MS = 1200;
 
@@ -388,7 +389,10 @@ function Note(props) {
             {props.isReadOnly ? "Read-only" : saveLabel}
           </p>
           <p className="note-date" data-testid="note-card-date">
-            {props.date}
+            Created {formatDate(props.createdDate, props.dateFormat)}
+            {props.updatedDate && props.updatedDate !== props.createdDate && (
+              <> &middot; Updated {formatDate(props.updatedDate, props.dateFormat)}</>
+            )}
           </p>
         </div>
 

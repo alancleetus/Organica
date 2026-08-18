@@ -64,7 +64,8 @@
 .note-title {
   font-size: 1.15em;
   flex-grow: 1;
-  font-family: "Gilroy-Regular", Arial, sans-serif;
+  font-family: var(--body-font, "Gilroy-Regular"), Arial, sans-serif;
+  font-weight: var(--body-font-weight, 400);
 }
 
 .note-title-input {
@@ -119,6 +120,8 @@
   flex: 1;
   min-height: 0;
   flex-grow: 2;
+  font-family: var(--body-font, "Gilroy-Regular"), Arial, sans-serif;
+  font-weight: var(--body-font-weight, 400);
   font-size: 0.95em;
   margin-bottom: 16px;
   color: var(--text-color);
@@ -229,7 +232,8 @@
   resize: none;
   background: transparent;
   color: var(--text-color);
-  font-family: "Gilroy-Regular", Arial, sans-serif;
+  font-family: var(--body-font, "Gilroy-Regular"), Arial, sans-serif;
+  font-weight: var(--body-font-weight, 400);
   font-size: 0.98rem;
   line-height: 1.55;
   overflow-y: auto;
@@ -338,7 +342,8 @@
   outline: none;
   background: transparent;
   color: var(--text-color);
-  font-family: "Gilroy-Regular", Arial, sans-serif;
+  font-family: var(--body-font, "Gilroy-Regular"), Arial, sans-serif;
+  font-weight: var(--body-font-weight, 400);
   font-size: 0.98rem;
   line-height: 1.45;
   padding: 2px 0;

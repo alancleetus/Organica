@@ -15,6 +15,9 @@ import Settings from "./Settings";
 
 import AuthProvider from "./auth/AuthProvider";
 import { PrivateRoute, PublicOnlyRoute } from "./auth/RouteGuards";
+import { loadFontSize, saveFontSize } from "../utils/fontSizePrefs";
+
+const MOBILE_VIEWPORT_QUERY = "(max-width: 900px)";
 
 function resolveInitialPalette() {
   const saved = localStorage.getItem("palette");
@@ -34,6 +37,17 @@ let App = () => {
   useEffect(() => {
     document.documentElement.setAttribute("data-palette", palette);
     localStorage.setItem("palette", palette);
+
+    // Keeps the phone's status bar / system nav bar in sync with the
+    // active palette instead of the hardcoded black from index.html —
+    // browsers color that chrome from this meta tag, not from any CSS.
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeColorMeta) {
+      const background = getComputedStyle(document.documentElement)
+        .getPropertyValue("--background-color")
+        .trim();
+      if (background) themeColorMeta.setAttribute("content", background);
+    }
   }, [palette]);
   /****** Color palette end *******/
 
@@ -52,19 +66,59 @@ let App = () => {
   }, [fontScheme]);
   /****** Font scheme end *******/
 
-  /****** Font size start *******/
-  const [fontSize, setFontSize] = useState(
-    () => localStorage.getItem("fontSize") || "medium"
+  /****** Text weight start *******/
+  const [textWeight, setTextWeight] = useState(
+    () => localStorage.getItem("textWeight") || "regular"
   );
 
   useEffect(() => {
-    if (fontSize === "medium") {
+    if (textWeight === "regular") {
+      document.documentElement.removeAttribute("data-text-weight");
+    } else {
+      document.documentElement.setAttribute("data-text-weight", textWeight);
+    }
+    localStorage.setItem("textWeight", textWeight);
+  }, [textWeight]);
+  /****** Text weight end *******/
+
+  /****** Font size start *******/
+  // Desktop and mobile keep independent values (see fontSizePrefs.js) and
+  // both are editable from Settings at once, regardless of which screen
+  // size you're currently viewing it on — only the one matching the
+  // current viewport is actually applied to the page.
+  const [isMobileViewport, setIsMobileViewport] = useState(
+    () => window.matchMedia(MOBILE_VIEWPORT_QUERY).matches
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(MOBILE_VIEWPORT_QUERY);
+    const handleChange = (event) => setIsMobileViewport(event.matches);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  const [fontSizeDesktop, setFontSizeDesktopState] = useState(() => loadFontSize(false));
+  const [fontSizeMobile, setFontSizeMobileState] = useState(() => loadFontSize(true));
+
+  const setFontSizeDesktop = (value) => {
+    setFontSizeDesktopState(value);
+    saveFontSize(value, false);
+  };
+
+  const setFontSizeMobile = (value) => {
+    setFontSizeMobileState(value);
+    saveFontSize(value, true);
+  };
+
+  const activeFontSize = isMobileViewport ? fontSizeMobile : fontSizeDesktop;
+
+  useEffect(() => {
+    if (activeFontSize === "medium") {
       document.documentElement.removeAttribute("data-font-size");
     } else {
-      document.documentElement.setAttribute("data-font-size", fontSize);
+      document.documentElement.setAttribute("data-font-size", activeFontSize);
     }
-    localStorage.setItem("fontSize", fontSize);
-  }, [fontSize]);
+  }, [activeFontSize]);
   /****** Font size end *******/
 
   return (
@@ -103,8 +157,13 @@ let App = () => {
                   setPalette={setPalette}
                   fontScheme={fontScheme}
                   setFontScheme={setFontScheme}
-                  fontSize={fontSize}
-                  setFontSize={setFontSize}
+                  textWeight={textWeight}
+                  setTextWeight={setTextWeight}
+                  fontSizeDesktop={fontSizeDesktop}
+                  setFontSizeDesktop={setFontSizeDesktop}
+                  fontSizeMobile={fontSizeMobile}
+                  setFontSizeMobile={setFontSizeMobile}
+                  isMobileViewport={isMobileViewport}
                 />
               }
             />

@@ -6,6 +6,7 @@ import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import NotesOutlinedIcon from "@mui/icons-material/NotesOutlined";
@@ -25,19 +26,22 @@ import FocusNotePanel from "./FocusNotePanel";
 import AddNoteFab from "./AddNoteFab";
 import NoteListItem from "./NoteListItem";
 import { fetchNotes } from "../utils/fetchNotes.js";
-import { formatTimestampToDate } from "../utils/formatTimestampToDate.js";
+import { formatDate, loadDateFormat } from "../utils/dateFormat.js";
 import { ReplaceTagsForNote, DeleteNote, ArchiveNote, CreateNote } from "../utils/notesCrud";
 import { toast } from "react-toastify";
 import {
   LIBRARY_FILTERS,
   PRIMARY_LIBRARY_FILTERS,
   QUICK_LIBRARY_FILTERS,
+  UNCATEGORIZED_FILTER_ID,
+  UNCATEGORIZED_LABEL,
   loadLibraryOrder,
   loadLibraryLabels,
   loadDisabledLibraryFilters,
   getLibraryLabel,
 } from "../utils/bottomBarConfig";
 import { loadAvatarSeed } from "../utils/identicon";
+import { loadHiddenFolders, saveHiddenFolders } from "../utils/folderPrefs";
 import Identicon from "./Identicon";
 import { CreateTag, UpdateTag, DeleteTag, FetchTagsByUser } from "../utils/tagsCrud";
 import Sorter from "./Sorter";
@@ -100,6 +104,7 @@ function NotesManager({ palette, setPalette }) {
   const [selectedNoteId, setSelectedNoteId] = useState(null);
   const [isMobileLayout, setIsMobileLayout] = useState(false);
   const [mobileBrowseTab, setMobileBrowseTab] = useState("notes");
+  const [isMobilePickerOpen, setIsMobilePickerOpen] = useState(false);
   const [mobileScreen, setMobileScreen] = useState("browse");
   const [renamingFolder, setRenamingFolder] = useState(null);
   const [dragOverFolder, setDragOverFolder] = useState(null);
@@ -115,6 +120,7 @@ function NotesManager({ palette, setPalette }) {
   const [tagDocs, setTagDocs] = useState([]);
   const [libraryOrder] = useState(() => loadLibraryOrder());
   const [libraryLabels] = useState(() => loadLibraryLabels());
+  const [dateFormat] = useState(() => loadDateFormat());
   const [disabledLibraryFilters] = useState(
     () => new Set(loadDisabledLibraryFilters())
   );
@@ -137,12 +143,15 @@ function NotesManager({ palette, setPalette }) {
   const pendingDeletesRef = useRef(new Map());
 
   useEffect(() => {
-    // Matches the CSS mobile breakpoint (640px) used throughout
-    // styles.css for the single-panel mobile shell — a mismatch here
-    // left a width band where isMobileLayout rendered the mobile shell
-    // markup but the CSS treating its children as full-height flex
-    // panels (and thus keeping the bottom nav pinned) hadn't kicked in.
-    const mediaQuery = window.matchMedia("(max-width: 640px)");
+    // Matches the CSS mobile-shell breakpoint (900px) in styles.css.
+    // Below this, the well-tested single-panel-plus-bottom-nav shell
+    // takes over; above it, the 3-column desktop grid has room to work.
+    // There used to be a gap between 640px (this threshold) and 900px
+    // (where the desktop grid tried to cram sidebar+list+detail into a
+    // single scrolling column) that was effectively an unfinished
+    // "tablet mode" — this raises the threshold instead of trying to
+    // maintain a third, in-between layout.
+    const mediaQuery = window.matchMedia("(max-width: 900px)");
     const updateLayout = () => setIsMobileLayout(mediaQuery.matches);
 
     updateLayout();
@@ -303,9 +312,9 @@ function NotesManager({ palette, setPalette }) {
     [notes, sortingMethod, isAscending]
   );
 
-  // tagName -> { id, tagColor, tagHidden } for folders that carry metadata
-  // via the tagsCrud.jsx sidecar collection (notes only store tag *names*,
-  // so this is a separate lookup, not part of the note itself).
+  // tagName -> { id, tagColor } for folders that have been color-coded
+  // via the tagsCrud.jsx sidecar collection (notes only store tag
+  // *names*, so this is a separate lookup, not part of the note itself).
   const tagColorDocsByName = useMemo(() => {
     const map = new Map();
     tagDocs.forEach((doc) => {
@@ -314,17 +323,16 @@ function NotesManager({ palette, setPalette }) {
     return map;
   }, [tagDocs]);
 
-  // Hidden folders (e.g. a personal tracker) are metadata-backed, not
-  // purely derived from notes-in-use, so they keep showing up in the
-  // sidebar (and stay navigable/deletable) even once emptied out — a
-  // regular folder just disappears once its last note is untagged.
-  const hiddenFolderNames = useMemo(() => {
-    const names = new Set();
-    tagColorDocsByName.forEach((doc, name) => {
-      if (doc.tagHidden) names.add(name);
-    });
-    return names;
-  }, [tagColorDocsByName]);
+  // Hidden folders (e.g. a personal tracker) live in localStorage, not
+  // the tags collection — that collection's Firestore rules predate this
+  // field and reject writes containing it, so this stays per-device
+  // rather than round-tripping through a write that always fails. They
+  // still show up in the sidebar (and stay navigable/deletable) even
+  // once emptied out — a regular folder just disappears once its last
+  // note is untagged.
+  const [hiddenFolderNames, setHiddenFolderNames] = useState(
+    () => new Set(loadHiddenFolders())
+  );
 
   // Tags already live on every note (notesCrud.jsx); "folders" are just the
   // set of tags currently in use, derived once and shared by both the
@@ -662,11 +670,21 @@ function NotesManager({ palette, setPalette }) {
         ReplaceTagsForNote(note.id, nextTags, setNotes);
       });
 
+    if (hiddenFolderNames.has(oldName)) {
+      setHiddenFolderNames((prev) => {
+        const next = new Set(prev);
+        next.delete(oldName);
+        next.add(nextName);
+        saveHiddenFolders(Array.from(next));
+        return next;
+      });
+    }
+
     const existingColorDoc = tagColorDocsByName.get(oldName);
     if (existingColorDoc) {
       UpdateTag({ id: existingColorDoc.id, tagName: nextName }).then((updated) => {
         if (!updated) {
-          alert("Couldn't rename this folder's saved settings. Please try again.");
+          alert("Couldn't rename this folder's saved color. Please try again.");
           return;
         }
         setTagDocs((prev) =>
@@ -684,15 +702,12 @@ function NotesManager({ palette, setPalette }) {
 
   // Assign (or clear, colorId === null) a folder's color. Create-or-update
   // against the tagsCrud.jsx doc for this name, since a folder may not have
-  // one yet the first time a color is picked. The doc is only deleted
-  // outright when clearing leaves it with nothing else worth keeping
-  // (no color, not hidden) — otherwise a hidden folder would lose its
-  // hidden flag the moment its color was cleared.
+  // one yet the first time a color is picked.
   const handleFolderColorChange = (folderName, colorId) => {
     const existing = tagColorDocsByName.get(folderName);
 
     if (existing) {
-      if (!colorId && !existing.tagHidden) {
+      if (!colorId) {
         DeleteTag(existing.id).then((result) => {
           if (!result) {
             alert("Couldn't update this folder's color. Please try again.");
@@ -734,48 +749,20 @@ function NotesManager({ palette, setPalette }) {
     );
   };
 
-  // Same create-or-update-or-clean-up dance as handleFolderColorChange,
-  // for the "hide from the main views" flag instead of color.
+  // Hidden folders live entirely in localStorage (see folderPrefs.js),
+  // so this is just a synchronous set update — no Firestore round trip
+  // to fail on.
   const handleFolderHiddenChange = (folderName, hidden) => {
-    const existing = tagColorDocsByName.get(folderName);
-
-    if (existing) {
-      if (!hidden && !existing.tagColor) {
-        DeleteTag(existing.id).then((result) => {
-          if (!result) {
-            alert("Couldn't update this folder. Please try again.");
-            return;
-          }
-          setTagDocs((prev) => prev.filter((doc) => doc.id !== existing.id));
-        });
-        return;
+    setHiddenFolderNames((prev) => {
+      const next = new Set(prev);
+      if (hidden) {
+        next.add(folderName);
+      } else {
+        next.delete(folderName);
       }
-
-      UpdateTag({ id: existing.id, tagHidden: hidden }).then((updated) => {
-        if (!updated) {
-          alert("Couldn't update this folder. Please try again.");
-          return;
-        }
-        setTagDocs((prev) =>
-          prev.map((doc) =>
-            doc.id === existing.id ? { ...doc, tagHidden: hidden } : doc
-          )
-        );
-      });
-      return;
-    }
-
-    if (!hidden) return;
-
-    CreateTag({ userId: user.uid, tagName: folderName, tagHidden: hidden }).then(
-      (created) => {
-        if (!created) {
-          alert("Couldn't update this folder. Please try again.");
-          return;
-        }
-        setTagDocs((prev) => [...prev, created]);
-      }
-    );
+      saveHiddenFolders(Array.from(next));
+      return next;
+    });
   };
 
   // Folders are derived from notes-in-use, so this only ever really
@@ -787,6 +774,15 @@ function NotesManager({ palette, setPalette }) {
     if (folder && folder.count > 0) {
       alert(`Remove all notes from "${folderName}" before deleting it.`);
       return;
+    }
+
+    if (hiddenFolderNames.has(folderName)) {
+      setHiddenFolderNames((prev) => {
+        const next = new Set(prev);
+        next.delete(folderName);
+        saveHiddenFolders(Array.from(next));
+        return next;
+      });
     }
 
     const existing = tagColorDocsByName.get(folderName);
@@ -804,6 +800,26 @@ function NotesManager({ palette, setPalette }) {
       setActiveFilter("all");
     }
   };
+
+  // A smart view over notes with no folder, pinned at the top of the
+  // Folders list — it isn't a real folder (nothing to rename, recolor,
+  // drag, or delete), so it gets its own minimal row rather than
+  // reusing the full folder row/tile markup.
+  const renderUncategorizedRow = (grid) => (
+    <button
+      type="button"
+      className={`${grid ? "notes-folder-tile" : "notes-sidebar-link"}${activeFilter === UNCATEGORIZED_FILTER_ID ? " is-active" : ""}`}
+      onClick={() => handleFilterSelect(UNCATEGORIZED_FILTER_ID)}
+    >
+      <FolderOffOutlinedIcon aria-hidden="true" />
+      <span className={grid ? "notes-folder-tile-label" : "notes-sidebar-link-label"}>
+        {UNCATEGORIZED_LABEL}
+      </span>
+      <span className={grid ? "notes-folder-tile-count" : "notes-sidebar-link-count"}>
+        {grid ? `${uncategorizedCount} note${uncategorizedCount === 1 ? "" : "s"}` : uncategorizedCount}
+      </span>
+    </button>
+  );
 
   const renderColorSwatchRow = (folderName) => {
     const currentColorId = tagColorDocsByName.get(folderName)?.tagColor || null;
@@ -958,17 +974,15 @@ function NotesManager({ palette, setPalette }) {
 
         <div className="notes-sidebar-folders-section">
           <p className="notes-sidebar-group-label">Folders</p>
-          {folders.length === 0 ? (
-            <p className="notes-sidebar-folders-empty">
-              Add a folder to a note to create your first one.
-            </p>
-          ) : foldersAsGrid ? (
+          {foldersAsGrid ? (
             <div className="notes-folder-grid">
+              {renderUncategorizedRow(true)}
               {folders.map((folder) =>
                 renamingFolder === folder.name ? (
                   <form
                     key={folder.name}
-                    className="notes-folder-tile notes-folder-tile-rename"
+                    className={`notes-folder-tile notes-folder-tile-rename${tagColors[folder.name] ? " has-folder-color" : ""}`}
+                    style={tagColors[folder.name] ? { "--folder-accent": tagColors[folder.name] } : undefined}
                     onSubmit={(event) => {
                       event.preventDefault();
                       commitFolderRename(folder.name);
@@ -1037,11 +1051,13 @@ function NotesManager({ palette, setPalette }) {
             </div>
           ) : (
             <div className="notes-sidebar-folders">
+              {renderUncategorizedRow(false)}
               {folders.map((folder) =>
                 renamingFolder === folder.name ? (
                   <form
                     key={folder.name}
-                    className="notes-sidebar-link notes-sidebar-link-rename"
+                    className={`notes-sidebar-link notes-sidebar-link-rename${tagColors[folder.name] ? " has-folder-color" : ""}`}
+                    style={tagColors[folder.name] ? { "--folder-accent": tagColors[folder.name] } : undefined}
                     onSubmit={(event) => {
                       event.preventDefault();
                       commitFolderRename(folder.name);
@@ -1116,7 +1132,71 @@ function NotesManager({ palette, setPalette }) {
     <section className="notes-list-panel">
       <div className="sectioned-div notes-panel-header">
         <div className="section-title">
-          <h2>{getLibraryLabel(activeFilter, libraryLabels)}</h2>
+          {isMobileLayout ? (
+            <div className="notes-panel-picker">
+              <button
+                type="button"
+                className="notes-panel-picker-trigger"
+                onClick={() => setIsMobilePickerOpen((prev) => !prev)}
+                aria-expanded={isMobilePickerOpen}
+              >
+                <h2>{getLibraryLabel(activeFilter, libraryLabels)}</h2>
+                <ArrowDropDownIcon />
+              </button>
+
+              {isMobilePickerOpen && (
+                <>
+                  <button
+                    type="button"
+                    className="notes-panel-picker-backdrop"
+                    aria-label="Close"
+                    onClick={() => setIsMobilePickerOpen(false)}
+                  />
+                  <div className="notes-panel-picker-menu">
+                    <p className="notes-sidebar-group-label">Library</p>
+                    {enabledLibraryOrder.map((filterId) => (
+                      <button
+                        type="button"
+                        key={filterId}
+                        className={`notes-panel-picker-item${activeFilter === filterId ? " is-active" : ""}`}
+                        onClick={() => {
+                          handleFilterSelect(filterId);
+                          setIsMobilePickerOpen(false);
+                        }}
+                      >
+                        <span>{getLibraryLabel(filterId, libraryLabels)}</span>
+                        <span className="notes-panel-picker-count">
+                          {libraryCounts[filterId]}
+                        </span>
+                      </button>
+                    ))}
+
+                    {folders.length > 0 && (
+                      <>
+                        <p className="notes-sidebar-group-label">Folders</p>
+                        {folders.map((folder) => (
+                          <button
+                            type="button"
+                            key={folder.name}
+                            className={`notes-panel-picker-item${activeFilter === folder.name ? " is-active" : ""}`}
+                            onClick={() => {
+                              handleFilterSelect(folder.name);
+                              setIsMobilePickerOpen(false);
+                            }}
+                          >
+                            <span>{folder.name}</span>
+                            <span className="notes-panel-picker-count">{folder.count}</span>
+                          </button>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <h2>{getLibraryLabel(activeFilter, libraryLabels)}</h2>
+          )}
           <p className="section-badge">{visibleNotes.length}</p>
         </div>
         <Sorter
@@ -1205,8 +1285,9 @@ function NotesManager({ palette, setPalette }) {
               <div className="notes-detail-meta-pill">
                 <span>Last updated</span>
                 <p className="notes-detail-date">
-                  {formatTimestampToDate(
-                    selectedNote.modifiedDate || selectedNote.creationDate
+                  {formatDate(
+                    selectedNote.modifiedDate || selectedNote.creationDate,
+                    dateFormat
                   )}
                 </p>
               </div>
@@ -1217,9 +1298,9 @@ function NotesManager({ palette, setPalette }) {
             key={selectedNote.id}
             id={selectedNote.id}
             title={selectedNote.title}
-            date={formatTimestampToDate(
-              selectedNote.modifiedDate || selectedNote.creationDate
-            )}
+            createdDate={selectedNote.creationDate}
+            updatedDate={selectedNote.modifiedDate}
+            dateFormat={dateFormat}
             content={selectedNote.content}
             noteType={selectedNote.noteType}
             isPinned={selectedNote.isPinned}

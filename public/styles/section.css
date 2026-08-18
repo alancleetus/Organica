@@ -16,6 +16,13 @@ div.sectioned-div > div.section-title {
   min-width: 0;
 }
 
+div.sectioned-div > div.section-title h2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
 div.sectioned-div > div.section-title > p.section-badge {
   color: var(--badge-color);
   background-color: var(--badge-bg-color);

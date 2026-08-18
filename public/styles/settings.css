@@ -42,6 +42,19 @@
   font-size: 1.6rem;
 }
 
+.settings-group-heading {
+  font-family: "Gilroy-Bold", Arial, sans-serif;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--light-gray);
+  padding: 4px 2px 0;
+}
+
+.settings-group-heading:first-of-type {
+  padding-top: 0;
+}
+
 .settings-section {
   background: var(--workspace-panel-bg);
   border: 1px solid var(--workspace-panel-border);
@@ -189,6 +202,46 @@
   color: var(--primary-color);
 }
 
+.settings-account-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.settings-account-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--workspace-panel-border);
+  background: var(--surface);
+  color: var(--text-color);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.settings-account-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.settings-account-button:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.settings-account-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-account-button-danger:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
 .settings-name-form {
   display: flex;
   align-items: center;
@@ -286,6 +339,83 @@
 .settings-font-check svg {
   width: 11px;
   height: 11px;
+}
+
+.settings-date-format-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.settings-date-format-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--workspace-panel-border);
+  border-radius: var(--radius);
+  background: var(--workspace-surface-strong);
+  color: var(--text-color);
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.settings-date-format-card:hover {
+  border-color: var(--primary-color);
+}
+
+.settings-date-format-card.is-active {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 1px var(--primary-color);
+  color: var(--primary-color);
+}
+
+.settings-date-format-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: var(--accent-contrast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-date-format-check svg {
+  width: 10px;
+  height: 10px;
+}
+
+.settings-size-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-size-group + .settings-size-group {
+  margin-top: 14px;
+}
+
+.settings-size-group-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--light-gray);
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+  font-size: 0.82rem;
+}
+
+.settings-size-group-current {
+  padding: 2px 8px;
+  border-radius: var(--radius);
+  background: var(--primary-muted-color);
+  color: var(--primary-color);
+  font-size: 0.72rem;
+  font-weight: bold;
 }
 
 .settings-size-picker {
@@ -482,45 +612,6 @@
   color: inherit;
 }
 
-/* .settings-page has its own 4px padding, and "top: 0" sticks relative
-   to that padding edge, not the true scrollport edge — so a plain
-   sticky box would settle 4px below the actual top with a gap the
-   scrolling header peeks through. Pulling it out with a negative margin
-   equal to that padding (top and sides, so it also spans full width)
-   and re-padding the inside by the same amount puts its edge exactly at
-   the real scrollport boundary, closing the gap outright instead of
-   patching over it. */
-.settings-preview-section {
-  position: sticky;
-  top: -4px;
-  z-index: 5;
-  margin: -4px -4px 0;
-  width: calc(100% + 8px);
-  padding-left: 20px;
-  padding-right: 20px;
-  padding-top: 18px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-left: none;
-  border-right: none;
-  border-top: none;
-}
-
-/* The sticky box only covers its own border, not the flex `gap` below
-   it — so as the next section scrolls up, it's briefly visible sliding
-   through that gap before passing fully underneath, which reads as
-   "content behind the border." This extends the sticky box with an
-   opaque, borderless strip that closes that gap. */
-.settings-preview-section::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -14px;
-  height: 14px;
-  background: var(--background-color);
-}
-
 .settings-preview {
   display: flex;
   flex-wrap: wrap;
@@ -553,12 +644,6 @@
 
   .settings-section {
     padding: 12px;
-  }
-
-  .settings-preview-section {
-    margin: -2px -2px 0;
-    width: calc(100% + 4px);
-    padding: 14px;
   }
 
   .settings-profile-row {

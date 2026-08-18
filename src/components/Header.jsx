@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { handleLogout } from "./auth/Logout";
@@ -8,8 +8,8 @@ import WifiOffLineIcon from "remixicon-react/WifiOffLineIcon";
 import Download2LineIcon from "remixicon-react/Download2LineIcon";
 import MoonLineIcon from "remixicon-react/MoonLineIcon";
 import SunLineIcon from "remixicon-react/SunLineIcon";
-
 import LogoutBoxRLineIcon from "remixicon-react/LogoutBoxRLineIcon";
+
 import { PALETTES, getPaletteToggleTarget } from "./Settings";
 
 function Header({ notes = [], palette, setPalette }) {
@@ -35,14 +35,11 @@ function Header({ notes = [], palette, setPalette }) {
         type: "application/json",
       });
 
-      // Create a download link and trigger it
       const link = document.createElement("a");
       link.href = URL.createObjectURL(notesBlob);
       link.download = "notes_backup.json";
       link.click();
       URL.revokeObjectURL(link.href);
-
-      console.log("Notes exported successfully!");
     } catch (error) {
       console.error("Error exporting notes:", error);
     }

@@ -15,10 +15,15 @@ import NotesOutlinedIcon from "@mui/icons-material/NotesOutlined";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import FolderOffOutlinedIcon from "@mui/icons-material/FolderOffOutlined";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
+import Download2LineIcon from "remixicon-react/Download2LineIcon";
+import LogoutBoxRLineIcon from "remixicon-react/LogoutBoxRLineIcon";
 import { auth } from "./Firebase";
 import { useAuth } from "./auth/AuthProvider";
+import { handleLogout } from "./auth/Logout";
 import Identicon from "./Identicon";
+import { fetchNotes } from "../utils/fetchNotes.js";
 import { generateAvatarSeed, loadAvatarSeed, saveAvatarSeed } from "../utils/identicon";
+import { DATE_FORMATS, loadDateFormat, saveDateFormat } from "../utils/dateFormat";
 import {
   LIBRARY_FILTERS,
   loadLibraryOrder,
@@ -166,13 +171,25 @@ const FONT_SIZES = [
   { id: "large", label: "Large" },
 ];
 
+const TEXT_WEIGHTS = [
+  { id: "light", label: "Thin", family: "Gilroy-Light" },
+  { id: "regular", label: "Normal", family: "Gilroy-Regular" },
+  { id: "medium", label: "Medium", family: "Gilroy-Medium" },
+  { id: "bold", label: "Bold", family: "Gilroy-Bold" },
+];
+
 function Settings({
   palette,
   setPalette,
   fontScheme,
   setFontScheme,
-  fontSize,
-  setFontSize,
+  textWeight,
+  setTextWeight,
+  fontSizeDesktop,
+  setFontSizeDesktop,
+  fontSizeMobile,
+  setFontSizeMobile,
+  isMobileViewport,
 }) {
   const { user } = useAuth();
   const [displayName, setDisplayName] = useState("");
@@ -184,6 +201,13 @@ function Settings({
   const [disabledFilters, setDisabledFilters] = useState(
     () => new Set(loadDisabledLibraryFilters())
   );
+  const [isExporting, setIsExporting] = useState(false);
+  const [dateFormat, setDateFormat] = useState(() => loadDateFormat());
+
+  const handleDateFormatChange = (formatId) => {
+    setDateFormat(formatId);
+    saveDateFormat(formatId);
+  };
 
   useEffect(() => {
     if (user) setDisplayName(user.displayName || "");
@@ -243,6 +267,39 @@ function Settings({
     });
   };
 
+  // Settings is a separate route from NotesManager, which is where the
+  // notes array normally lives, so this fetches its own copy on demand
+  // rather than needing that state lifted up just for an export button
+  // used every so often.
+  const handleExport = async () => {
+    if (!user) return;
+
+    setIsExporting(true);
+
+    try {
+      const notes = await fetchNotes(user);
+      const notesBlob = new Blob([JSON.stringify(notes, null, 2)], {
+        type: "application/json",
+      });
+
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(notesBlob);
+      link.download = "notes_backup.json";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error("Error exporting notes:", error);
+      alert("Couldn't export your notes. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleSignOut = () => {
+    handleLogout();
+    window.location.href = "/login";
+  };
+
   return (
     <div className="page-body">
       <div className="settings-page">
@@ -256,57 +313,7 @@ function Settings({
           </div>
         </div>
 
-        <section className="settings-section settings-preview-section">
-          <h2>Preview</h2>
-          <p className="settings-section-hint">
-            A live look at your current theme and typeface — changes below apply here
-            immediately.
-          </p>
-
-          <div className="settings-preview">
-            <div className="settings-preview-sidebar">
-              <div className="notes-sidebar-profile">
-                <span className="notes-avatar">
-                  <Identicon seed={avatarSeed} size={18} />
-                </span>
-                <span className="notes-sidebar-profile-name">
-                  {displayName || user?.email || "You"}
-                </span>
-              </div>
-              <button type="button" className="notes-sidebar-link is-active">
-                <DescriptionOutlinedIcon />
-                <span className="notes-sidebar-link-label">All Notes</span>
-                <span className="notes-sidebar-link-count">4</span>
-              </button>
-              <button type="button" className="notes-sidebar-link">
-                <PushpinLineIcon />
-                <span className="notes-sidebar-link-label">Pinned</span>
-                <span className="notes-sidebar-link-count">1</span>
-              </button>
-            </div>
-
-            <article className="note-list-item is-selected settings-preview-card">
-              <div className="note-list-item-top">
-                <p className="note-list-item-date">Today</p>
-              </div>
-              <h3 className="note-list-item-title">Trip packing list</h3>
-              <div className="note-list-item-preview">
-                <div className="note-list-item-preview-line note-list-item-preview-line--task">
-                  <span className="note-list-item-preview-marker">
-                    <CheckboxBlankCircleLineIcon />
-                  </span>
-                  <span>Passport &amp; tickets</span>
-                </div>
-              </div>
-              <div className="tag-chip-row">
-                <span className="tag-chip">
-                  <FolderOutlinedIcon aria-hidden="true" />
-                  <span className="tag-chip-label">Travel</span>
-                </span>
-              </div>
-            </article>
-          </div>
-        </section>
+        <h2 className="settings-group-heading">General</h2>
 
         <section className="settings-section">
           <h2>Profile</h2>
@@ -344,6 +351,140 @@ function Settings({
             </form>
           </div>
         </section>
+
+        <section className="settings-section">
+          <h2>Library order</h2>
+          <p className="settings-section-hint">
+            Reorder and rename your library views. The first three also become the
+            mobile bottom bar, alongside Folders.
+          </p>
+
+          <div className="settings-reorder-list">
+            {(() => {
+              let enabledSeen = 0;
+              return libraryOrder.map((filterId, index) => {
+                const Icon = LIBRARY_ICONS[filterId];
+                const defaultLabel = LIBRARY_FILTERS.find(
+                  (filter) => filter.id === filterId
+                )?.label;
+                // Falls back to the default only when never touched
+                // (undefined) — once the field holds "" mid-edit, this
+                // keeps showing that empty string instead of snapping back
+                // to the default and fighting whatever's being typed.
+                const inputValue = libraryLabels[filterId] ?? defaultLabel ?? filterId;
+                const isEnabled = !disabledFilters.has(filterId);
+                const isBottomBarSlot = isEnabled && enabledSeen < 3;
+                if (isEnabled) enabledSeen += 1;
+
+                return (
+                  <div
+                    className={`settings-reorder-row${isEnabled ? "" : " is-disabled"}`}
+                    key={filterId}
+                  >
+                    <label className="settings-reorder-toggle">
+                      <input
+                        type="checkbox"
+                        checked={isEnabled}
+                        onChange={() => handleToggleLibraryFilter(filterId)}
+                        aria-label={`Show ${defaultLabel || filterId} in the library list`}
+                      />
+                      <span className="settings-reorder-toggle-track" aria-hidden="true" />
+                    </label>
+                    {Icon && <Icon />}
+                    <input
+                      type="text"
+                      className="settings-reorder-label-input"
+                      value={inputValue}
+                      onChange={(event) =>
+                        handleLibraryLabelChange(filterId, event.target.value)
+                      }
+                      aria-label={`Rename ${defaultLabel || filterId}`}
+                    />
+                    {isBottomBarSlot && (
+                      <span className="settings-reorder-badge">Bottom bar</span>
+                    )}
+                    <div className="settings-reorder-controls">
+                      <button
+                        type="button"
+                        disabled={index === 0}
+                        onClick={() => moveLibraryItem(index, -1)}
+                        aria-label={`Move ${defaultLabel || filterId} up`}
+                      >
+                        <ArrowUpSLineIcon />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={index === libraryOrder.length - 1}
+                        onClick={() => moveLibraryItem(index, 1)}
+                        aria-label={`Move ${defaultLabel || filterId} down`}
+                      >
+                        <ArrowDownSLineIcon />
+                      </button>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </section>
+
+        <section className="settings-section">
+          <h2>Data &amp; account</h2>
+          <p className="settings-section-hint">
+            Back up your notes, or sign out of this device.
+          </p>
+
+          <div className="settings-account-row">
+            <button
+              type="button"
+              className="settings-account-button"
+              onClick={handleExport}
+              disabled={isExporting}
+            >
+              <Download2LineIcon />
+              <span>{isExporting ? "Exporting..." : "Export notes"}</span>
+            </button>
+            <button
+              type="button"
+              className="settings-account-button settings-account-button-danger"
+              onClick={handleSignOut}
+            >
+              <LogoutBoxRLineIcon />
+              <span>Log out</span>
+            </button>
+          </div>
+        </section>
+
+        <section className="settings-section">
+          <h2>Date format</h2>
+          <p className="settings-section-hint">
+            Used wherever a note shows a created or updated date.
+          </p>
+
+          <div className="settings-date-format-grid">
+            {DATE_FORMATS.map((option) => {
+              const isActive = dateFormat === option.id;
+              return (
+                <button
+                  type="button"
+                  key={option.id}
+                  className={`settings-date-format-card${isActive ? " is-active" : ""}`}
+                  onClick={() => handleDateFormatChange(option.id)}
+                  aria-pressed={isActive}
+                >
+                  <span>{option.label}</span>
+                  {isActive && (
+                    <span className="settings-date-format-check" aria-hidden="true">
+                      <CheckLineIcon />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <h2 className="settings-group-heading">Theme</h2>
 
         <section className="settings-section">
           <h2>Color scheme</h2>
@@ -423,26 +564,35 @@ function Settings({
         </section>
 
         <section className="settings-section">
-          <h2>Text size</h2>
-          <p className="settings-section-hint">Scales all the text in the app.</p>
+          <h2>Text weight</h2>
+          <p className="settings-section-hint">
+            How bold note text and other body copy reads — the default can look
+            thin on some color schemes.
+          </p>
 
-          <div className="settings-size-picker" role="group" aria-label="Text size">
-            {FONT_SIZES.map((option) => {
-              const isActive = fontSize === option.id;
+          <div className="settings-font-grid">
+            {TEXT_WEIGHTS.map((option) => {
+              const isActive = textWeight === option.id;
               return (
                 <button
                   type="button"
                   key={option.id}
-                  className={`settings-size-button${isActive ? " is-active" : ""}`}
-                  onClick={() => setFontSize(option.id)}
+                  className={`settings-font-card${isActive ? " is-active" : ""}`}
+                  onClick={() => setTextWeight(option.id)}
                   aria-pressed={isActive}
                 >
                   <span
-                    className={`settings-size-sample settings-size-sample--${option.id}`}
+                    className="settings-font-sample"
+                    style={{ fontFamily: option.family }}
                   >
                     Aa
                   </span>
-                  <span>{option.label}</span>
+                  <span className="settings-font-name">{option.label}</span>
+                  {isActive && (
+                    <span className="settings-font-check" aria-hidden="true">
+                      <CheckLineIcon />
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -450,80 +600,122 @@ function Settings({
         </section>
 
         <section className="settings-section">
-          <h2>Library order</h2>
+          <h2>Text size</h2>
           <p className="settings-section-hint">
-            Reorder and rename your library views. The first three also become the
-            mobile bottom bar, alongside Folders.
+            Scales all the text in the app. Phone and desktop each keep their
+            own size, and both are shown here so you can set either one
+            regardless of which you're using right now.
           </p>
 
-          <div className="settings-reorder-list">
-            {(() => {
-              let enabledSeen = 0;
-              return libraryOrder.map((filterId, index) => {
-                const Icon = LIBRARY_ICONS[filterId];
-                const defaultLabel = LIBRARY_FILTERS.find(
-                  (filter) => filter.id === filterId
-                )?.label;
-                // Falls back to the default only when never touched
-                // (undefined) — once the field holds "" mid-edit, this
-                // keeps showing that empty string instead of snapping back
-                // to the default and fighting whatever's being typed.
-                const inputValue = libraryLabels[filterId] ?? defaultLabel ?? filterId;
-                const isEnabled = !disabledFilters.has(filterId);
-                const isBottomBarSlot = isEnabled && enabledSeen < 3;
-                if (isEnabled) enabledSeen += 1;
-
+          <div className="settings-size-group">
+            <p className="settings-size-group-label">
+              Desktop
+              {!isMobileViewport && <span className="settings-size-group-current">This device</span>}
+            </p>
+            <div className="settings-size-picker" role="group" aria-label="Desktop text size">
+              {FONT_SIZES.map((option) => {
+                const isActive = fontSizeDesktop === option.id;
                 return (
-                  <div
-                    className={`settings-reorder-row${isEnabled ? "" : " is-disabled"}`}
-                    key={filterId}
+                  <button
+                    type="button"
+                    key={option.id}
+                    className={`settings-size-button${isActive ? " is-active" : ""}`}
+                    onClick={() => setFontSizeDesktop(option.id)}
+                    aria-pressed={isActive}
                   >
-                    <label className="settings-reorder-toggle">
-                      <input
-                        type="checkbox"
-                        checked={isEnabled}
-                        onChange={() => handleToggleLibraryFilter(filterId)}
-                        aria-label={`Show ${defaultLabel || filterId} in the library list`}
-                      />
-                      <span className="settings-reorder-toggle-track" aria-hidden="true" />
-                    </label>
-                    {Icon && <Icon />}
-                    <input
-                      type="text"
-                      className="settings-reorder-label-input"
-                      value={inputValue}
-                      onChange={(event) =>
-                        handleLibraryLabelChange(filterId, event.target.value)
-                      }
-                      aria-label={`Rename ${defaultLabel || filterId}`}
-                    />
-                    {isBottomBarSlot && (
-                      <span className="settings-reorder-badge">Bottom bar</span>
-                    )}
-                    <div className="settings-reorder-controls">
-                      <button
-                        type="button"
-                        disabled={index === 0}
-                        onClick={() => moveLibraryItem(index, -1)}
-                        aria-label={`Move ${defaultLabel || filterId} up`}
-                      >
-                        <ArrowUpSLineIcon />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={index === libraryOrder.length - 1}
-                        onClick={() => moveLibraryItem(index, 1)}
-                        aria-label={`Move ${defaultLabel || filterId} down`}
-                      >
-                        <ArrowDownSLineIcon />
-                      </button>
-                    </div>
-                  </div>
+                    <span
+                      className={`settings-size-sample settings-size-sample--${option.id}`}
+                    >
+                      Aa
+                    </span>
+                    <span>{option.label}</span>
+                  </button>
                 );
-              });
-            })()}
+              })}
+            </div>
+          </div>
+
+          <div className="settings-size-group">
+            <p className="settings-size-group-label">
+              Phone
+              {isMobileViewport && <span className="settings-size-group-current">This device</span>}
+            </p>
+            <div className="settings-size-picker" role="group" aria-label="Phone text size">
+              {FONT_SIZES.map((option) => {
+                const isActive = fontSizeMobile === option.id;
+                return (
+                  <button
+                    type="button"
+                    key={option.id}
+                    className={`settings-size-button${isActive ? " is-active" : ""}`}
+                    onClick={() => setFontSizeMobile(option.id)}
+                    aria-pressed={isActive}
+                  >
+                    <span
+                      className={`settings-size-sample settings-size-sample--${option.id}`}
+                    >
+                      Aa
+                    </span>
+                    <span>{option.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </section>
+
+        <section className="settings-section settings-preview-section">
+          <h2>Preview</h2>
+          <p className="settings-section-hint">
+            A live look at your current theme and typeface — changes above apply here
+            immediately.
+          </p>
+
+          <div className="settings-preview">
+            <div className="settings-preview-sidebar">
+              <div className="notes-sidebar-profile">
+                <span className="notes-avatar">
+                  <Identicon seed={avatarSeed} size={18} />
+                </span>
+                <span className="notes-sidebar-profile-name">
+                  {displayName || user?.email || "You"}
+                </span>
+              </div>
+              <button type="button" className="notes-sidebar-link is-active">
+                <DescriptionOutlinedIcon />
+                <span className="notes-sidebar-link-label">All Notes</span>
+                <span className="notes-sidebar-link-count">4</span>
+              </button>
+              <button type="button" className="notes-sidebar-link">
+                <PushpinLineIcon />
+                <span className="notes-sidebar-link-label">Pinned</span>
+                <span className="notes-sidebar-link-count">1</span>
+              </button>
+            </div>
+
+            <article className="note-list-item is-selected settings-preview-card">
+              <div className="note-list-item-top">
+                <p className="note-list-item-date">Today</p>
+              </div>
+              <h3 className="note-list-item-title">Trip packing list</h3>
+              <div className="note-list-item-preview">
+                <div className="note-list-item-preview-line note-list-item-preview-line--task">
+                  <span className="note-list-item-preview-marker">
+                    <CheckboxBlankCircleLineIcon />
+                  </span>
+                  <span>Passport &amp; tickets</span>
+                </div>
+              </div>
+              <div className="tag-chip-row">
+                <span className="tag-chip">
+                  <FolderOutlinedIcon aria-hidden="true" />
+                  <span className="tag-chip-label">Travel</span>
+                </span>
+              </div>
+            </article>
+          </div>
+        </section>
+
       </div>
     </div>
   );

@@ -3,21 +3,27 @@
 // and the bottom nav's 3 filter slots are simply the first 3 — so
 // reordering the list in Settings reorders both places at once, and
 // there's only ever one order to reason about.
+// "Uncategorized" is deliberately not in this list — it's rendered as a
+// pinned pseudo-folder at the top of the Folders section instead (a
+// smart view over notes with no folder, so it belongs with folders, not
+// with the Library filters).
 export const LIBRARY_FILTERS = [
   { id: "all", label: "All" },
   { id: "pinned", label: "Pinned" },
   { id: "tasks", label: "Lists" },
   { id: "favorites", label: "Favorites" },
   { id: "notes-only", label: "Notes" },
-  { id: "uncategorized", label: "Uncategorized" },
   { id: "archived", label: "Archived" },
 ];
 
 // The sidebar's Library group splits these into full rows (the "real"
 // views worth their own line) vs. a single compact icon-only row
 // (glanceable extras that don't each need a whole row of space).
-export const PRIMARY_LIBRARY_FILTERS = ["all", "notes-only", "tasks", "uncategorized"];
+export const PRIMARY_LIBRARY_FILTERS = ["all", "notes-only", "tasks"];
 export const QUICK_LIBRARY_FILTERS = ["pinned", "favorites", "archived"];
+
+export const UNCATEGORIZED_FILTER_ID = "uncategorized";
+export const UNCATEGORIZED_LABEL = "Uncategorized";
 
 export const DEFAULT_LIBRARY_ORDER = LIBRARY_FILTERS.map((filter) => filter.id);
 export const BOTTOM_BAR_SLOTS = 3;
@@ -45,6 +51,7 @@ export function saveLibraryLabels(labels) {
 
 export function getLibraryLabel(filterId, customLabels = {}) {
   if (customLabels[filterId]?.trim()) return customLabels[filterId];
+  if (filterId === UNCATEGORIZED_FILTER_ID) return UNCATEGORIZED_LABEL;
   return LIBRARY_FILTERS.find((filter) => filter.id === filterId)?.label || filterId;
 }
 
