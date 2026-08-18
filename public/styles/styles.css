@@ -514,12 +514,25 @@ body {
 }
 
 .notes-mobile-bottom-tabs {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: center;
   height: 58px;
+}
+
+/* The bar's background/border live on a separate layer so the radial-
+   gradient notch mask only carves into the bar itself, never the add
+   button that overlaps it (a mask clips its own element's full paint,
+   descendants included, so the button can't share this layer). */
+.notes-mobile-bottom-tabs::before {
+  content: "";
+  position: absolute;
+  inset: 0;
   background: var(--workspace-panel-bg);
   border-top: 1px solid var(--workspace-panel-border);
+  mask-image: radial-gradient(circle 30px at 50% 0, transparent 29px, black 30px);
+  -webkit-mask-image: radial-gradient(circle 30px at 50% 0, transparent 29px, black 30px);
 }
 
 .notes-mobile-bottom-tab {
@@ -548,17 +561,16 @@ body {
   color: var(--primary-color);
 }
 
-/* Floats above the tab bar instead of notching into it — with only 4
-   fixed destinations there's no natural center slot left for an add
-   button, so it becomes its own affordance instead of squeezing into
-   the grid. Scrollable content behind it (.notes-sidebar-bottom,
-   .notes-list-scroll) carries matching bottom padding so it never
-   covers the last item. */
+/* Straddles the bar's top edge — half poking above it, half overlapping
+   into it — notched into the masked background above instead of floating
+   in the gap over content. Scrollable content behind it
+   (.notes-sidebar-bottom, .notes-list-scroll) still carries a little
+   bottom clearance so the poking-up half never covers the last item. */
 .notes-mobile-add-fab {
   position: absolute;
   left: 50%;
-  bottom: calc(100% + 10px);
-  transform: translateX(-50%);
+  top: 0;
+  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -574,7 +586,7 @@ body {
 }
 
 .notes-mobile-add-fab:active {
-  transform: translateX(-50%) scale(0.92);
+  transform: translate(-50%, -50%) scale(0.92);
 }
 
 .notes-mobile-add-fab svg {
@@ -1978,10 +1990,11 @@ form.create-note button:hover {
 
   .notes-sidebar-bottom {
     padding-top: 10px;
-    /* Clears the floating add button, which sits fixed above the bottom
-       tab bar and would otherwise cover this row — it isn't part of the
-       scrollable folder grid above it, so scroll padding can't help. */
-    padding-bottom: 74px;
+    /* Clears the top half of the add button, which pokes up above the
+       bottom tab bar and would otherwise cover this row — it isn't part
+       of the scrollable folder grid above it, so scroll padding alone
+       can't help. */
+    padding-bottom: 34px;
   }
 
   .notes-list-panel,
@@ -2086,9 +2099,10 @@ form.create-note button:hover {
     gap: 8px;
     max-height: none;
     padding-right: 0;
-    /* Clears the floating add button so the last row of cards can scroll
-       fully into view instead of sitting underneath it. */
-    padding-bottom: 74px;
+    /* Clears the top half of the add button that pokes above the bar, so
+       the last row of cards can scroll fully into view instead of
+       sitting underneath it. */
+    padding-bottom: 34px;
   }
 
   .note-list-item {
