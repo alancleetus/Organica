@@ -508,27 +508,18 @@ body {
   overflow: hidden;
 }
 
-.notes-mobile-bottom-tabs {
+.notes-mobile-nav {
   position: relative;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  align-items: center;
   flex-shrink: 0;
-  height: 58px;
 }
 
-/* The bar's background/border live on a separate layer so the radial-
-   gradient notch mask only carves into the bar itself, never the add
-   button that sits on top of it (a mask clips its own element's full
-   paint, descendants included, so the button can't share this layer). */
-.notes-mobile-bottom-tabs::before {
-  content: "";
-  position: absolute;
-  inset: 0;
+.notes-mobile-bottom-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  height: 58px;
   background: var(--workspace-panel-bg);
   border-top: 1px solid var(--workspace-panel-border);
-  mask-image: radial-gradient(circle 30px at 50% 0, transparent 29px, black 30px);
-  -webkit-mask-image: radial-gradient(circle 30px at 50% 0, transparent 29px, black 30px);
 }
 
 .notes-mobile-bottom-tab {
@@ -544,6 +535,7 @@ body {
   color: var(--light-gray);
   font-family: "Gilroy-Medium", Arial, sans-serif;
   font-size: 0.68rem;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -556,17 +548,24 @@ body {
   color: var(--primary-color);
 }
 
-.notes-mobile-bottom-tab-add {
-  position: relative;
+/* Floats above the tab bar instead of notching into it — with only 4
+   fixed destinations there's no natural center slot left for an add
+   button, so it becomes its own affordance instead of squeezing into
+   the grid. Scrollable content behind it (.notes-sidebar-bottom,
+   .notes-list-scroll) carries matching bottom padding so it never
+   covers the last item. */
+.notes-mobile-add-fab {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  margin: 0 auto;
-  transform: translateY(-24px);
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
   border: none;
+  border-radius: 50%;
   background: var(--primary-color);
   color: var(--accent-contrast);
   box-shadow: var(--shadow-hover);
@@ -574,13 +573,13 @@ body {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.notes-mobile-bottom-tab-add:active {
-  transform: translateY(-24px) scale(0.9);
+.notes-mobile-add-fab:active {
+  transform: translateX(-50%) scale(0.92);
 }
 
-.notes-mobile-bottom-tab-add svg {
-  width: 22px;
-  height: 22px;
+.notes-mobile-add-fab svg {
+  width: 24px;
+  height: 24px;
 }
 
 .notes-mobile-shell #create-note-fab {
@@ -1036,8 +1035,7 @@ body {
   box-shadow: inset 0 0 0 1.5px var(--primary-color);
 }
 
-.notes-sidebar-link-wrap,
-.notes-folder-tile-wrap {
+.notes-sidebar-link-wrap {
   position: relative;
 }
 
@@ -1262,16 +1260,6 @@ body {
 .notes-folder-tile-count {
   color: var(--light-gray);
   font-size: 0.72rem;
-}
-
-.notes-folder-tile-wrap .notes-folder-rename-trigger {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 24px;
-  height: 24px;
-  background: var(--workspace-surface-strong);
-  box-shadow: var(--shadow-card);
 }
 
 .notes-folder-tile-rename {
@@ -1548,6 +1536,12 @@ body {
   color: var(--primary-color);
 }
 
+.note-list-item-preview-more {
+  color: var(--light-gray);
+  font-size: 0.8rem;
+  font-family: "Gilroy-Medium", Arial, sans-serif;
+}
+
 .tag-chip-row {
   display: flex;
   align-items: center;
@@ -1745,18 +1739,6 @@ body {
   max-width: 42ch;
   line-height: 1.6;
 }
-.organica-title {
-  color: var(--primary-color);
-  font-family: "Gilroy-Regular", Arial, sans-serif;
-  font-weight: 200;
-  flex-grow: 1;
-}
-.register-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .dark-mode-button {
   background: var(--workspace-surface-strong);
   border: 1px solid var(--workspace-panel-border);
@@ -1794,16 +1776,6 @@ body {
   opacity: 0.45;
   cursor: not-allowed;
 }
-.custom-hyperlink {
-  width: 100%;
-  text-align: right;
-  padding: 5px;
-}
-
-.custom-hyperlink a {
-  color: var(--primary-color);
-}
-
 .sort-controls {
   margin: 10px 0px;
 }
@@ -1878,17 +1850,6 @@ form.create-note button:hover {
   flex-wrap: wrap;
   gap: 10px;
 }
-.custom-textfield .MuiInputLabel-root,
-.custom-textfield .MuiInputLabel-root.Mui-focused {
-  color: var(--light-gray);
-}
-
-.custom-textfield
-  .MuiOutlinedInput-root.Mui-focused
-  .MuiOutlinedInput-notchedOutline {
-  border-color: var(--primary-color);
-}
-
 
 .checkbox-list-item .hover-icons {
   opacity: 0;
@@ -2017,6 +1978,10 @@ form.create-note button:hover {
 
   .notes-sidebar-bottom {
     padding-top: 10px;
+    /* Clears the floating add button, which sits fixed above the bottom
+       tab bar and would otherwise cover this row — it isn't part of the
+       scrollable folder grid above it, so scroll padding can't help. */
+    padding-bottom: 74px;
   }
 
   .notes-list-panel,
@@ -2115,9 +2080,15 @@ form.create-note button:hover {
   }
 
   .notes-list-scroll {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
     gap: 8px;
     max-height: none;
     padding-right: 0;
+    /* Clears the floating add button so the last row of cards can scroll
+       fully into view instead of sitting underneath it. */
+    padding-bottom: 74px;
   }
 
   .note-list-item {

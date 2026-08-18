@@ -11,9 +11,12 @@ import { getPreviewItems } from "../utils/noteContent";
 const VISIBLE_TAG_COUNT = 2;
 
 function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {} }) {
-  const previewItems = getPreviewItems(note.content)
-    .filter((item) => !(item.kind === "task" && item.checked))
-    .slice(0, 2);
+  const allPreviewItems = getPreviewItems(note.content).filter(
+    (item) => !(item.kind === "task" && item.checked)
+  );
+  const previewItems = allPreviewItems.slice(0, 2);
+  const hiddenPreviewCount = allPreviewItems.length - previewItems.length;
+  const isChecklist = allPreviewItems.some((item) => item.kind === "task");
   const tags = note.tags || [];
   const visibleTags = tags.slice(0, VISIBLE_TAG_COUNT);
   const hiddenTagCount = tags.length - visibleTags.length;
@@ -94,6 +97,12 @@ function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {} }) 
               <span>{item.text}</span>
             </div>
           ))}
+          {hiddenPreviewCount > 0 &&
+            (isChecklist ? (
+              <div className="note-list-item-preview-more">+{hiddenPreviewCount} more</div>
+            ) : (
+              <div className="note-list-item-preview-more">&hellip;</div>
+            ))}
         </div>
       ) : (
         <p className="note-list-item-preview">No additional content yet.</p>

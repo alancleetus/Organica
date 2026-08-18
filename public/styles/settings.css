@@ -565,18 +565,6 @@
   background: var(--surface);
 }
 
-.settings-reorder-badge {
-  font-family: "Gilroy-Bold", Arial, sans-serif;
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--primary-color);
-  background: var(--primary-muted-color);
-  border-radius: var(--radius);
-  padding: 3px 7px;
-  flex-shrink: 0;
-}
-
 .settings-reorder-controls {
   display: flex;
   gap: 2px;

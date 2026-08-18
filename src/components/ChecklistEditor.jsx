@@ -25,6 +25,7 @@ function ChecklistRow({
   onBlur,
   onKeyDown,
   onRemove,
+  onPaste,
   readOnly,
   onDragStart,
   onDragOver,
@@ -73,6 +74,7 @@ function ChecklistRow({
         onChange={(event) => onTextChange(item.id, event.target.value)}
         onBlur={onBlur}
         onKeyDown={(event) => onKeyDown(event, item.id)}
+        onPaste={readOnly ? undefined : (event) => onPaste(event, item.id)}
         readOnly={readOnly}
       />
       {!readOnly && (
@@ -175,6 +177,49 @@ function ChecklistEditor({
     setDraft("");
   };
 
+  // A single-line <input> silently collapses a multi-line paste (e.g. a
+  // list copied from somewhere else) into one run-on item — pulling the
+  // clipboard text out ourselves and splitting it on newlines turns that
+  // paste into one item per line instead, matching how a checklist
+  // actually reads a pasted list. Single-line pastes fall through to the
+  // input's own default handling.
+  const handlePaste = (event, id) => {
+    const text = event.clipboardData?.getData("text");
+    if (!text) return;
+
+    const lines = text
+      .split(/\r\n|\r|\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (lines.length < 2) return;
+
+    event.preventDefault();
+    const [firstLine, ...restLines] = lines;
+    const restItems = restLines.map((line) => ({ id: nextId(), text: line, checked: false }));
+
+    if (id === null) {
+      commit([...items, { id: nextId(), text: firstLine, checked: false }, ...restItems], {
+        immediate: true,
+      });
+      setDraft("");
+      return;
+    }
+
+    const index = items.findIndex((item) => item.id === id);
+    if (index === -1) return;
+
+    const nextItems = [
+      ...items.slice(0, index),
+      { ...items[index], text: firstLine },
+      ...restItems,
+      ...items.slice(index + 1),
+    ];
+    pendingFocusIdRef.current = restItems.length
+      ? restItems[restItems.length - 1].id
+      : id;
+    commit(nextItems, { immediate: true });
+  };
+
   const handleDragStart = (event, id) => {
     draggedIdRef.current = id;
     event.dataTransfer.effectAllowed = "move";
@@ -234,6 +279,7 @@ function ChecklistEditor({
             onBlur={onBlur}
             onKeyDown={handleItemKeyDown}
             onRemove={handleRemove}
+            onPaste={handlePaste}
             readOnly={readOnly}
             isDragOver={dragOverId === item.id}
             {...dragHandlers}
@@ -265,6 +311,7 @@ function ChecklistEditor({
                 addDraftItem();
                 onBlur?.();
               }}
+              onPaste={(event) => handlePaste(event, null)}
             />
           </form>
         )}
@@ -284,6 +331,7 @@ function ChecklistEditor({
                   onBlur={onBlur}
                   onKeyDown={handleItemKeyDown}
                   onRemove={handleRemove}
+                  onPaste={handlePaste}
                   readOnly={readOnly}
                   isDragOver={dragOverId === item.id}
                   {...dragHandlers}

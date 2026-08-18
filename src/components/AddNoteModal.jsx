@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@mui/material";
 import { CreateNote } from "../utils/notesCrud";
 import PlainTextNoteEditor from "./PlainTextNoteEditor";
 import ChecklistEditor from "./ChecklistEditor";
-import { trimNoteContent } from "../utils/noteContent";
+import { trimNoteContent, convertNoteContentForType } from "../utils/noteContent";
 
 function AddNoteModal({ open, initialType = "text", onClose, onCreated, user, setNotes }) {
   const [title, setTitle] = useState("");
@@ -89,7 +89,7 @@ function AddNoteModal({ open, initialType = "text", onClose, onCreated, user, se
   const handleTypeChange = (nextType) => {
     if (nextType === noteType) return;
     setNoteType(nextType);
-    setEditorContent("");
+    setEditorContent((prevContent) => convertNoteContentForType(prevContent, nextType));
   };
 
   return (

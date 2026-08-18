@@ -10,7 +10,6 @@ import "react-toastify/dist/ReactToastify.css";
 
 import NotesManager from "./NotesManager";
 import Login from "./auth/Login";
-import Register from "./auth/Register";
 import Settings from "./Settings";
 
 import AuthProvider from "./auth/AuthProvider";
@@ -139,7 +138,6 @@ let App = () => {
         <Routes>
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
           </Route>
 
           <Route element={<PrivateRoute />}>

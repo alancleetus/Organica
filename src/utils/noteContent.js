@@ -140,6 +140,25 @@ export function checklistItemsToContent(items = []) {
     .join("\n");
 }
 
+// Backs switching a note's type mid-draft (e.g. in the create-note
+// modal): each existing line becomes one checklist item rather than the
+// switch just discarding whatever was already typed. checklistContentToItems
+// already treats an unrecognized line as plain text, so going to
+// "checklist" is a direct round-trip; going back to "text" just drops the
+// [ ]/[x] markers each item picked up.
+export function convertNoteContentForType(content = "", targetType) {
+  if (!content.trim()) return "";
+
+  if (targetType === "checklist") {
+    return checklistItemsToContent(checklistContentToItems(content));
+  }
+
+  return checklistContentToItems(content)
+    .map((item) => item.text)
+    .filter(Boolean)
+    .join("\n");
+}
+
 // Checklist-note content is always one `[ ]`/`[x]` line per item (no
 // blank lines — checklistItemsToContent strips those), so a line index
 // lines up 1:1 with item order. Used by the focus-note panel to flip an

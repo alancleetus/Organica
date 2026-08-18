@@ -437,8 +437,6 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--workspace-panel-border);
 }
 
 .note-save-state {

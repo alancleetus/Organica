@@ -355,76 +355,68 @@ function Settings({
         <section className="settings-section">
           <h2>Library order</h2>
           <p className="settings-section-hint">
-            Reorder and rename your library views. The first three also become the
-            mobile bottom bar, alongside Folders.
+            Reorder, rename, and toggle the views shown under Library on the Home
+            tab.
           </p>
 
           <div className="settings-reorder-list">
-            {(() => {
-              let enabledSeen = 0;
-              return libraryOrder.map((filterId, index) => {
-                const Icon = LIBRARY_ICONS[filterId];
-                const defaultLabel = LIBRARY_FILTERS.find(
-                  (filter) => filter.id === filterId
-                )?.label;
-                // Falls back to the default only when never touched
-                // (undefined) — once the field holds "" mid-edit, this
-                // keeps showing that empty string instead of snapping back
-                // to the default and fighting whatever's being typed.
-                const inputValue = libraryLabels[filterId] ?? defaultLabel ?? filterId;
-                const isEnabled = !disabledFilters.has(filterId);
-                const isBottomBarSlot = isEnabled && enabledSeen < 3;
-                if (isEnabled) enabledSeen += 1;
+            {libraryOrder.map((filterId, index) => {
+              const Icon = LIBRARY_ICONS[filterId];
+              const defaultLabel = LIBRARY_FILTERS.find(
+                (filter) => filter.id === filterId
+              )?.label;
+              // Falls back to the default only when never touched
+              // (undefined) — once the field holds "" mid-edit, this
+              // keeps showing that empty string instead of snapping back
+              // to the default and fighting whatever's being typed.
+              const inputValue = libraryLabels[filterId] ?? defaultLabel ?? filterId;
+              const isEnabled = !disabledFilters.has(filterId);
 
-                return (
-                  <div
-                    className={`settings-reorder-row${isEnabled ? "" : " is-disabled"}`}
-                    key={filterId}
-                  >
-                    <label className="settings-reorder-toggle">
-                      <input
-                        type="checkbox"
-                        checked={isEnabled}
-                        onChange={() => handleToggleLibraryFilter(filterId)}
-                        aria-label={`Show ${defaultLabel || filterId} in the library list`}
-                      />
-                      <span className="settings-reorder-toggle-track" aria-hidden="true" />
-                    </label>
-                    {Icon && <Icon />}
+              return (
+                <div
+                  className={`settings-reorder-row${isEnabled ? "" : " is-disabled"}`}
+                  key={filterId}
+                >
+                  <label className="settings-reorder-toggle">
                     <input
-                      type="text"
-                      className="settings-reorder-label-input"
-                      value={inputValue}
-                      onChange={(event) =>
-                        handleLibraryLabelChange(filterId, event.target.value)
-                      }
-                      aria-label={`Rename ${defaultLabel || filterId}`}
+                      type="checkbox"
+                      checked={isEnabled}
+                      onChange={() => handleToggleLibraryFilter(filterId)}
+                      aria-label={`Show ${defaultLabel || filterId} in the library list`}
                     />
-                    {isBottomBarSlot && (
-                      <span className="settings-reorder-badge">Bottom bar</span>
-                    )}
-                    <div className="settings-reorder-controls">
-                      <button
-                        type="button"
-                        disabled={index === 0}
-                        onClick={() => moveLibraryItem(index, -1)}
-                        aria-label={`Move ${defaultLabel || filterId} up`}
-                      >
-                        <ArrowUpSLineIcon />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={index === libraryOrder.length - 1}
-                        onClick={() => moveLibraryItem(index, 1)}
-                        aria-label={`Move ${defaultLabel || filterId} down`}
-                      >
-                        <ArrowDownSLineIcon />
-                      </button>
-                    </div>
+                    <span className="settings-reorder-toggle-track" aria-hidden="true" />
+                  </label>
+                  {Icon && <Icon />}
+                  <input
+                    type="text"
+                    className="settings-reorder-label-input"
+                    value={inputValue}
+                    onChange={(event) =>
+                      handleLibraryLabelChange(filterId, event.target.value)
+                    }
+                    aria-label={`Rename ${defaultLabel || filterId}`}
+                  />
+                  <div className="settings-reorder-controls">
+                    <button
+                      type="button"
+                      disabled={index === 0}
+                      onClick={() => moveLibraryItem(index, -1)}
+                      aria-label={`Move ${defaultLabel || filterId} up`}
+                    >
+                      <ArrowUpSLineIcon />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={index === libraryOrder.length - 1}
+                      onClick={() => moveLibraryItem(index, 1)}
+                      aria-label={`Move ${defaultLabel || filterId} down`}
+                    >
+                      <ArrowDownSLineIcon />
+                    </button>
                   </div>
-                );
-              });
-            })()}
+                </div>
+              );
+            })}
           </div>
         </section>
 

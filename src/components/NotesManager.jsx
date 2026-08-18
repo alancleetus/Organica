@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import ArrowLeftLineIcon from "remixicon-react/ArrowLeftLineIcon";
 import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
@@ -13,6 +13,8 @@ import NotesOutlinedIcon from "@mui/icons-material/NotesOutlined";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import FolderOffOutlinedIcon from "@mui/icons-material/FolderOffOutlined";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import Settings3LineIcon from "remixicon-react/Settings3LineIcon";
 import PencilLineIcon from "remixicon-react/PencilLineIcon";
 import EyeLineIcon from "remixicon-react/EyeLineIcon";
 import EyeOffLineIcon from "remixicon-react/EyeOffLineIcon";
@@ -41,7 +43,6 @@ import {
   getLibraryLabel,
 } from "../utils/bottomBarConfig";
 import { loadAvatarSeed } from "../utils/identicon";
-import { loadHiddenFolders, saveHiddenFolders } from "../utils/folderPrefs";
 import Identicon from "./Identicon";
 import { CreateTag, UpdateTag, DeleteTag, FetchTagsByUser } from "../utils/tagsCrud";
 import Sorter from "./Sorter";
@@ -345,16 +346,18 @@ function NotesManager({ palette, setPalette }) {
     return map;
   }, [tagDocs]);
 
-  // Hidden folders (e.g. a personal tracker) live in localStorage, not
-  // the tags collection — that collection's Firestore rules predate this
-  // field and reject writes containing it, so this stays per-device
-  // rather than round-tripping through a write that always fails. They
-  // still show up in the sidebar (and stay navigable/deletable) even
-  // once emptied out — a regular folder just disappears once its last
-  // note is untagged.
-  const [hiddenFolderNames, setHiddenFolderNames] = useState(
-    () => new Set(loadHiddenFolders())
-  );
+  // Hidden folders (e.g. a personal tracker) are marked via the same
+  // tagsCrud.jsx doc used for color, so the flag syncs across devices
+  // instead of living per-browser. They still show up in the sidebar
+  // (and stay navigable/deletable) even once emptied out — a regular
+  // folder just disappears once its last note is untagged.
+  const hiddenFolderNames = useMemo(() => {
+    const set = new Set();
+    tagDocs.forEach((doc) => {
+      if (doc.tagHidden) set.add(doc.tagName);
+    });
+    return set;
+  }, [tagDocs]);
 
   // Tags already live on every note (notesCrud.jsx); "folders" are just the
   // set of tags currently in use, derived once and shared by both the
@@ -494,6 +497,17 @@ function NotesManager({ palette, setPalette }) {
 
   const selectedNote =
     visibleNotes.find((note) => note.id === selectedNoteId) || null;
+
+  useEffect(() => {
+    document.title = selectedNote?.title?.trim()
+      ? `${selectedNote.title.trim()} — Organica`
+      : "Organica";
+
+    return () => {
+      document.title = "Organica";
+    };
+  }, [selectedNote?.title]);
+
   const isSelectedNoteReadOnly =
     !!selectedNote &&
     (selectedNote.isArchived ||
@@ -665,6 +679,44 @@ function NotesManager({ palette, setPalette }) {
     setFolderRenameDraft(folderName);
   };
 
+  // Mobile folder tiles rename via long-press instead of a visible pencil
+  // button — the button's solid background never blended with a folder's
+  // own accent color. A 500ms hold opens rename; releasing sooner (or
+  // dragging past a small threshold, e.g. a scroll) falls through to a
+  // normal tap/select instead.
+  const folderLongPressRef = useRef({ timer: null, fired: false, startX: 0, startY: 0 });
+
+  const clearFolderLongPress = () => {
+    clearTimeout(folderLongPressRef.current.timer);
+    folderLongPressRef.current.timer = null;
+  };
+
+  const handleFolderPressStart = (folderName, event) => {
+    folderLongPressRef.current.fired = false;
+    folderLongPressRef.current.startX = event.clientX;
+    folderLongPressRef.current.startY = event.clientY;
+    clearFolderLongPress();
+    folderLongPressRef.current.timer = setTimeout(() => {
+      folderLongPressRef.current.fired = true;
+      startRenamingFolder(folderName);
+    }, 500);
+  };
+
+  const handleFolderPressMove = (event) => {
+    if (!folderLongPressRef.current.timer) return;
+    const dx = Math.abs(event.clientX - folderLongPressRef.current.startX);
+    const dy = Math.abs(event.clientY - folderLongPressRef.current.startY);
+    if (dx > 10 || dy > 10) clearFolderLongPress();
+  };
+
+  const handleFolderClick = (folderName) => {
+    if (folderLongPressRef.current.fired) {
+      folderLongPressRef.current.fired = false;
+      return;
+    }
+    handleFilterSelect(folderName);
+  };
+
   const cancelRenamingFolder = () => {
     setRenamingFolder(null);
     setFolderRenameDraft("");
@@ -692,26 +744,19 @@ function NotesManager({ palette, setPalette }) {
         ReplaceTagsForNote(note.id, nextTags, setNotes);
       });
 
-    if (hiddenFolderNames.has(oldName)) {
-      setHiddenFolderNames((prev) => {
-        const next = new Set(prev);
-        next.delete(oldName);
-        next.add(nextName);
-        saveHiddenFolders(Array.from(next));
-        return next;
-      });
-    }
-
-    const existingColorDoc = tagColorDocsByName.get(oldName);
-    if (existingColorDoc) {
-      UpdateTag({ id: existingColorDoc.id, tagName: nextName }).then((updated) => {
+    // Carries the folder's color and/or hidden flag over to the new name —
+    // both live on this one doc, so a single rename covers whichever of
+    // them (if any) is set, instead of tracking hidden state separately.
+    const existingTagDoc = tagColorDocsByName.get(oldName);
+    if (existingTagDoc) {
+      UpdateTag({ id: existingTagDoc.id, tagName: nextName }).then((updated) => {
         if (!updated) {
-          alert("Couldn't rename this folder's saved color. Please try again.");
+          alert("Couldn't rename this folder's saved settings. Please try again.");
           return;
         }
         setTagDocs((prev) =>
           prev.map((doc) =>
-            doc.id === existingColorDoc.id ? { ...doc, tagName: nextName } : doc
+            doc.id === existingTagDoc.id ? { ...doc, tagName: nextName } : doc
           )
         );
       });
@@ -771,20 +816,39 @@ function NotesManager({ palette, setPalette }) {
     );
   };
 
-  // Hidden folders live entirely in localStorage (see folderPrefs.js),
-  // so this is just a synchronous set update — no Firestore round trip
-  // to fail on.
+  // Assign (or clear) a folder's hidden flag. Create-or-update against the
+  // same tagsCrud.jsx doc used for color, since a folder may not have one
+  // yet the first time it's hidden — this is what makes hidden folders
+  // sync across every device on the account instead of staying local.
   const handleFolderHiddenChange = (folderName, hidden) => {
-    setHiddenFolderNames((prev) => {
-      const next = new Set(prev);
-      if (hidden) {
-        next.add(folderName);
-      } else {
-        next.delete(folderName);
+    const existing = tagColorDocsByName.get(folderName);
+
+    if (existing) {
+      UpdateTag({ id: existing.id, tagHidden: hidden }).then((updated) => {
+        if (!updated) {
+          alert("Couldn't update this folder. Please try again.");
+          return;
+        }
+        setTagDocs((prev) =>
+          prev.map((doc) =>
+            doc.id === existing.id ? { ...doc, tagHidden: hidden } : doc
+          )
+        );
+      });
+      return;
+    }
+
+    if (!hidden) return;
+
+    CreateTag({ userId: user.uid, tagName: folderName, tagHidden: true }).then(
+      (created) => {
+        if (!created) {
+          alert("Couldn't update this folder. Please try again.");
+          return;
+        }
+        setTagDocs((prev) => [...prev, created]);
       }
-      saveHiddenFolders(Array.from(next));
-      return next;
-    });
+    );
   };
 
   // Folders are derived from notes-in-use, so this only ever really
@@ -796,15 +860,6 @@ function NotesManager({ palette, setPalette }) {
     if (folder && folder.count > 0) {
       alert(`Remove all notes from "${folderName}" before deleting it.`);
       return;
-    }
-
-    if (hiddenFolderNames.has(folderName)) {
-      setHiddenFolderNames((prev) => {
-        const next = new Set(prev);
-        next.delete(folderName);
-        saveHiddenFolders(Array.from(next));
-        return next;
-      });
     }
 
     const existing = tagColorDocsByName.get(folderName);
@@ -1026,48 +1081,47 @@ function NotesManager({ palette, setPalette }) {
                     {renderColorSwatchRow(folder.name)}
                   </form>
                 ) : (
-                  <div className="notes-folder-tile-wrap" key={folder.name}>
-                    <button
-                      type="button"
-                      className={`notes-folder-tile${tagColors[folder.name] ? " has-folder-color" : ""}${dragOverFolder === folder.name ? " is-drag-over" : ""}`}
-                      style={tagColors[folder.name] ? { "--folder-accent": tagColors[folder.name] } : undefined}
-                      onClick={() => handleFilterSelect(folder.name)}
-                      draggable
-                      onDragStart={(event) => {
-                        event.dataTransfer.effectAllowed = "move";
-                        event.dataTransfer.setData(
-                          "application/x-organica-folder-name",
-                          folder.name
-                        );
-                      }}
-                      onDragOver={(event) => {
-                        event.preventDefault();
-                        setDragOverFolder(folder.name);
-                      }}
-                      onDragLeave={() =>
-                        setDragOverFolder((prev) => (prev === folder.name ? null : prev))
-                      }
-                      onDrop={(event) => handleFolderDrop(event, folder.name)}
-                    >
-                      {folder.isHidden ? (
-                        <EyeOffLineIcon aria-hidden="true" />
-                      ) : (
-                        <FolderOutlinedIcon aria-hidden="true" />
-                      )}
-                      <span className="notes-folder-tile-label">{folder.name}</span>
-                      <span className="notes-folder-tile-count">
-                        {folder.count} note{folder.count === 1 ? "" : "s"}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      className="notes-folder-rename-trigger"
-                      aria-label={`Rename ${folder.name} folder`}
-                      onClick={() => startRenamingFolder(folder.name)}
-                    >
-                      <PencilLineIcon />
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    key={folder.name}
+                    className={`notes-folder-tile${tagColors[folder.name] ? " has-folder-color" : ""}${dragOverFolder === folder.name ? " is-drag-over" : ""}`}
+                    style={tagColors[folder.name] ? { "--folder-accent": tagColors[folder.name] } : undefined}
+                    aria-label={`${folder.name} folder — press and hold to rename`}
+                    onClick={() => handleFolderClick(folder.name)}
+                    onPointerDown={(event) => handleFolderPressStart(folder.name, event)}
+                    onPointerMove={handleFolderPressMove}
+                    onPointerUp={clearFolderLongPress}
+                    onPointerLeave={clearFolderLongPress}
+                    onPointerCancel={clearFolderLongPress}
+                    onContextMenu={(event) => event.preventDefault()}
+                    draggable
+                    onDragStart={(event) => {
+                      clearFolderLongPress();
+                      event.dataTransfer.effectAllowed = "move";
+                      event.dataTransfer.setData(
+                        "application/x-organica-folder-name",
+                        folder.name
+                      );
+                    }}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      setDragOverFolder(folder.name);
+                    }}
+                    onDragLeave={() =>
+                      setDragOverFolder((prev) => (prev === folder.name ? null : prev))
+                    }
+                    onDrop={(event) => handleFolderDrop(event, folder.name)}
+                  >
+                    {folder.isHidden ? (
+                      <EyeOffLineIcon aria-hidden="true" />
+                    ) : (
+                      <FolderOutlinedIcon aria-hidden="true" />
+                    )}
+                    <span className="notes-folder-tile-label">{folder.name}</span>
+                    <span className="notes-folder-tile-count">
+                      {folder.count} note{folder.count === 1 ? "" : "s"}
+                    </span>
+                  </button>
                 )
               )}
             </div>
@@ -1290,7 +1344,8 @@ function NotesManager({ palette, setPalette }) {
             <div>
               <p className="notes-detail-label">Note Workspace</p>
               <p className="notes-detail-breadcrumb">
-                My Notes / {selectedNote.title?.trim() || "Untitled note"}
+                {getLibraryLabel(activeFilter, libraryLabels)} /{" "}
+                {selectedNote.title?.trim() || "Untitled note"}
               </p>
             </div>
             <div className="notes-detail-meta-actions">
@@ -1357,47 +1412,52 @@ function NotesManager({ palette, setPalette }) {
     </section>
   );
 
-  const renderBottomBarFilterTab = (filterId) => {
-    const Icon = BOTTOM_BAR_ICONS[filterId];
-    if (!Icon) return null;
-
-    return (
-      <button
-        type="button"
-        key={filterId}
-        className={`notes-mobile-bottom-tab${
-          mobileBrowseTab === "notes" && activeFilter === filterId ? " is-active" : ""
-        }`}
-        onClick={() => handleFilterSelect(filterId)}
-      >
-        <Icon />
-        <span>{getLibraryLabel(filterId, libraryLabels)}</span>
-      </button>
-    );
-  };
-
   const renderMobileBottomTabs = () => (
-    <nav className="notes-mobile-bottom-tabs">
-      {renderBottomBarFilterTab(enabledLibraryOrder[0])}
-      {renderBottomBarFilterTab(enabledLibraryOrder[1])}
+    <div className="notes-mobile-nav">
       <button
         type="button"
-        className="notes-mobile-bottom-tab-add"
+        className="notes-mobile-add-fab"
         aria-label="Add note"
         onClick={() => setIsAddNoteOpen(true)}
       >
         <AddIcon />
       </button>
-      {renderBottomBarFilterTab(enabledLibraryOrder[2])}
-      <button
-        type="button"
-        className={`notes-mobile-bottom-tab${mobileBrowseTab === "folders" ? " is-active" : ""}`}
-        onClick={() => setMobileBrowseTab("folders")}
-      >
-        <FolderOutlinedIcon />
-        <span>Folders</span>
-      </button>
-    </nav>
+
+      <nav className="notes-mobile-bottom-tabs">
+        <button
+          type="button"
+          className={`notes-mobile-bottom-tab${mobileBrowseTab === "folders" ? " is-active" : ""}`}
+          onClick={() => setMobileBrowseTab("folders")}
+        >
+          <HomeOutlinedIcon />
+          <span>Home</span>
+        </button>
+        <button
+          type="button"
+          className={`notes-mobile-bottom-tab${
+            mobileBrowseTab === "notes" && activeFilter === "notes-only" ? " is-active" : ""
+          }`}
+          onClick={() => handleFilterSelect("notes-only")}
+        >
+          <NotesOutlinedIcon />
+          <span>Notes</span>
+        </button>
+        <button
+          type="button"
+          className={`notes-mobile-bottom-tab${
+            mobileBrowseTab === "notes" && activeFilter === "tasks" ? " is-active" : ""
+          }`}
+          onClick={() => handleFilterSelect("tasks")}
+        >
+          <FactCheckOutlinedIcon />
+          <span>{getLibraryLabel("tasks", libraryLabels)}</span>
+        </button>
+        <Link to="/settings" className="notes-mobile-bottom-tab">
+          <Settings3LineIcon />
+          <span>Settings</span>
+        </Link>
+      </nav>
+    </div>
   );
 
   return (

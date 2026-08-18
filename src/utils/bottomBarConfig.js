@@ -26,7 +26,6 @@ export const UNCATEGORIZED_FILTER_ID = "uncategorized";
 export const UNCATEGORIZED_LABEL = "Uncategorized";
 
 export const DEFAULT_LIBRARY_ORDER = LIBRARY_FILTERS.map((filter) => filter.id);
-export const BOTTOM_BAR_SLOTS = 3;
 const STORAGE_KEY = "libraryOrder";
 const LABELS_STORAGE_KEY = "libraryLabels";
 
