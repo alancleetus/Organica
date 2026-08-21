@@ -10,7 +10,6 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { v4 as uuidv4 } from "uuid";
 
 const tagsCollection = collection(db, "tags"); // Tags collection reference
 
@@ -22,7 +21,6 @@ export const CreateTag = async ({ userId, tagName, tagColor = null, tagHidden = 
   }
 
   const tag = {
-    id: uuidv4(), // Generate a unique ID for the tag
     userId, // Link the tag to the user
     tagName,
     tagColor,
@@ -52,8 +50,8 @@ export const FetchTagsByUser = async (userId) => {
     const querySnapshot = await getDocs(q);
 
     const tags = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
       ...doc.data(),
+      id: doc.id,
     }));
     console.log("Fetched tags for user:", tags);
     return tags;
@@ -133,8 +131,8 @@ export const FetchTagById = async (id) => {
     const tagDoc = await getDoc(tagRef);
 
     if (tagDoc.exists()) {
-      console.log("Fetched tag:", { id: tagDoc.id, ...tagDoc.data() });
-      return { id: tagDoc.id, ...tagDoc.data() };
+      console.log("Fetched tag:", { ...tagDoc.data(), id: tagDoc.id });
+      return { ...tagDoc.data(), id: tagDoc.id };
     } else {
       console.error("Tag not found");
       return null;
