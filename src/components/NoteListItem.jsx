@@ -10,7 +10,7 @@ import { getPreviewItems } from "../utils/noteContent";
 
 const VISIBLE_TAG_COUNT = 2;
 
-function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {} }) {
+function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {}, isMobileLayout = false }) {
   const allPreviewItems = getPreviewItems(note.content).filter(
     (item) => !(item.kind === "task" && item.checked)
   );
@@ -37,12 +37,21 @@ function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {} }) 
       tabIndex={0}
       aria-pressed={isSelected}
       data-testid={isSelected ? "selected-note-list-item" : "note-list-item"}
-      draggable
-      onDragStart={(event) => {
-        event.dataTransfer.effectAllowed = "copy";
-        event.dataTransfer.setData("application/x-organica-note-id", note.id);
-        event.dataTransfer.setData("text/plain", note.id);
-      }}
+      // Drag-to-folder is a desktop-only affordance (mobile has no drop
+      // target reachable while browsing the note list). The HTML
+      // draggable attribute is mouse-only by spec, but some mobile
+      // WebKit builds still treat it as a hint that suppresses native
+      // touch-scroll gestures on the element — so it's left off entirely
+      // on mobile rather than risk that for a feature that can't be used
+      // there anyway.
+      {...(!isMobileLayout && {
+        draggable: true,
+        onDragStart: (event) => {
+          event.dataTransfer.effectAllowed = "copy";
+          event.dataTransfer.setData("application/x-organica-note-id", note.id);
+          event.dataTransfer.setData("text/plain", note.id);
+        },
+      })}
     >
       <div className="note-list-item-actions">
         <button

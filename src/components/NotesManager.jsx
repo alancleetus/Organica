@@ -1300,6 +1300,7 @@ function NotesManager({ palette, setPalette }) {
               onSelect={handleSelectNote}
               setNotes={setNotes}
               tagColors={tagColors}
+              isMobileLayout={isMobileLayout}
             />
           ))
         ) : (

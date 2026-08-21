@@ -121,7 +121,7 @@ function ChecklistEditor({
 
   useEffect(() => {
     if (!pendingFocusIdRef.current) return;
-    itemRefs.current.get(pendingFocusIdRef.current)?.focus();
+    itemRefs.current.get(pendingFocusIdRef.current)?.node.focus();
     pendingFocusIdRef.current = null;
   });
 
@@ -137,9 +137,28 @@ function ChecklistEditor({
     if (immediate) onImmediateSave?.(serialized);
   };
 
+  // React's onBeforeInput prop is a synthetic reconstruction, not a
+  // passthrough of the native `beforeinput` event: it only fires when it
+  // can derive inserted "chars", which is null for inputType
+  // "insertLineBreak" (a line break has no chars) — so it never delivers
+  // the Enter-via-mobile-IME case at all. A real `addEventListener`
+  // straight on the input is the only reliable way to see it. The
+  // callback ref already re-runs on every render (a fresh inline
+  // function each time counts as "a different ref" to React), so
+  // detaching the old listener and attaching a fresh one here — closed
+  // over this render's up-to-date handler — piggybacks on that instead
+  // of needing a separate effect.
   const registerRef = (id, node) => {
-    if (node) itemRefs.current.set(id, node);
-    else itemRefs.current.delete(id);
+    const existing = itemRefs.current.get(id);
+    if (existing) existing.node.removeEventListener("beforeinput", existing.handler);
+
+    if (node) {
+      const handler = (event) => handleItemBeforeInput(event, id);
+      node.addEventListener("beforeinput", handler);
+      itemRefs.current.set(id, { node, handler });
+    } else {
+      itemRefs.current.delete(id);
+    }
   };
 
   const handleToggle = (id) => {
@@ -160,14 +179,31 @@ function ChecklistEditor({
     );
   };
 
-  const handleItemKeyDown = (event, id) => {
-    if (event.key !== "Enter") return;
-    event.preventDefault();
-
+  const insertItemAfter = (id) => {
     const insertAt = items.findIndex((item) => item.id === id) + 1;
     const newItem = { id: nextId(), text: "", checked: false };
     pendingFocusIdRef.current = newItem.id;
     commit([...items.slice(0, insertAt), newItem, ...items.slice(insertAt)]);
+  };
+
+  const handleItemKeyDown = (event, id) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    insertItemAfter(id);
+  };
+
+  // Mobile IMEs (Gboard and others) often don't report Enter through
+  // keydown at all — it arrives mid-composition as keyCode 229 / key
+  // "Unidentified", so handleItemKeyDown above never fires and Enter
+  // would otherwise just insert a line break inside the single-line
+  // field. The native beforeinput event still reports it reliably as
+  // inputType "insertLineBreak" and, unlike input, is cancelable —
+  // catching it here (via registerRef's addEventListener, see below) is
+  // what makes Enter start a new item on mobile too.
+  const handleItemBeforeInput = (event, id) => {
+    if (event.inputType !== "insertLineBreak") return;
+    event.preventDefault();
+    insertItemAfter(id);
   };
 
   const addDraftItem = () => {
