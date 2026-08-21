@@ -133,6 +133,7 @@ function NotesManager({ palette, setPalette }) {
   const [focusNoteId, setFocusNoteId] = useState(
     () => localStorage.getItem("focusNoteId") || null
   );
+  const [isFocusNoteFullScreen, setIsFocusNoteFullScreen] = useState(false);
 
   useEffect(() => {
     if (focusNoteId) {
@@ -201,7 +202,8 @@ function NotesManager({ palette, setPalette }) {
   useEffect(() => {
     if (!isMobileLayout) return;
 
-    const isOverlayOpen = isAddNoteOpen || mobileScreen === "detail";
+    const isOverlayOpen =
+      isAddNoteOpen || mobileScreen === "detail" || isFocusNoteFullScreen;
 
     if (isOverlayOpen && !overlayPushedRef.current) {
       overlayPushedRef.current = true;
@@ -212,7 +214,7 @@ function NotesManager({ palette, setPalette }) {
         window.history.back();
       }
     }
-  }, [isAddNoteOpen, mobileScreen, isMobileLayout]);
+  }, [isAddNoteOpen, mobileScreen, isFocusNoteFullScreen, isMobileLayout]);
 
   useEffect(() => {
     if (!isMobileLayout) return;
@@ -222,11 +224,26 @@ function NotesManager({ palette, setPalette }) {
       setIsAddNoteOpen(false);
       setMobileScreen("browse");
       setMobileBrowseTab("notes");
+      setIsFocusNoteFullScreen(false);
     };
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, [isMobileLayout]);
+
+  // Desktop has no swipe-back gesture to close the fullscreen focus note
+  // with, so Escape is its equivalent there — mobile already gets a close
+  // path for free via the history popstate handler above.
+  useEffect(() => {
+    if (!isFocusNoteFullScreen) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setIsFocusNoteFullScreen(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFocusNoteFullScreen]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -541,6 +558,9 @@ function NotesManager({ palette, setPalette }) {
   };
 
   const focusNote = notes.find((note) => note.id === focusNoteId) || null;
+  const isFocusNoteReadOnly =
+    !!focusNote &&
+    (focusNote.isArchived || (focusNote.tags || []).some((tag) => hiddenFolderNames.has(tag)));
 
   const handleToggleFocusNote = (noteId) => {
     setFocusNoteId((prev) => (prev === noteId ? null : noteId));
@@ -1470,12 +1490,59 @@ function NotesManager({ palette, setPalette }) {
         user={user}
         setNotes={setNotes}
       />
-      <FocusNotePanel
-        note={focusNote}
-        onOpen={() => focusNote && handleSelectNote(focusNote.id)}
-        onUnpin={() => setFocusNoteId(null)}
-        setNotes={setNotes}
-      />
+      {!isFocusNoteFullScreen && (
+        <FocusNotePanel
+          note={focusNote}
+          onOpen={() => focusNote && setIsFocusNoteFullScreen(true)}
+          onUnpin={() => setFocusNoteId(null)}
+          setNotes={setNotes}
+        />
+      )}
+      {isFocusNoteFullScreen && focusNote && (
+        <div className="focus-note-fullscreen">
+          <div className="focus-note-fullscreen-header">
+            <button
+              type="button"
+              className="focus-note-fullscreen-close"
+              onClick={() => setIsFocusNoteFullScreen(false)}
+            >
+              <ArrowLeftLineIcon />
+              <span>Close</span>
+            </button>
+          </div>
+          <div className="notes-detail-panel focus-note-fullscreen-body">
+            <Note
+              key={focusNote.id}
+              id={focusNote.id}
+              title={focusNote.title}
+              createdDate={focusNote.creationDate}
+              updatedDate={focusNote.modifiedDate}
+              dateFormat={dateFormat}
+              content={focusNote.content}
+              noteType={focusNote.noteType}
+              isPinned={focusNote.isPinned}
+              isFavorite={focusNote.isFavorite}
+              isArchived={focusNote.isArchived}
+              isReadOnly={isFocusNoteReadOnly}
+              tags={focusNote.tags || []}
+              tagColors={tagColors}
+              existingFolders={folders.map((folder) => folder.name)}
+              setNotes={setNotes}
+              onDelete={() => {
+                setIsFocusNoteFullScreen(false);
+                handleDeleteNote(focusNote);
+              }}
+              onArchive={() => handleArchiveNote(focusNote)}
+              onDuplicate={() => handleDuplicateNote(focusNote)}
+              isFocusNote
+              onToggleFocus={() => {
+                setIsFocusNoteFullScreen(false);
+                handleToggleFocusNote(focusNote.id);
+              }}
+            />
+          </div>
+        </div>
+      )}
       {isMobileLayout ? (
         <div className="notes-mobile-shell">
           {mobileScreen === "browse" ? (
