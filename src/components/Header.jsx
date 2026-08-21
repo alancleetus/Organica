@@ -82,6 +82,7 @@ function Header({ notes = [], palette, setPalette }) {
             handleLogout();
             window.location.href = "/login";
           }}
+          aria-label="Log out"
           data-testid="logout-button"
         >
           <LogoutBoxRLineIcon />

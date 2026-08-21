@@ -18,6 +18,10 @@ async function createNote(page: Page, title: string, content: string) {
   await page.getByTestId('note-save').click();
 
   await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
+  // The dev server double-mounts data-fetching effects (React StrictMode),
+  // which can briefly render the just-created note twice before the
+  // notes list settles on the fetched data.
+  await expect(noteListItemByTitle(page, title)).toHaveCount(1);
   await expect(noteListItemByTitle(page, title)).toBeVisible();
   await expect(detailCard(page).getByTestId('note-card-title-input')).toHaveValue(title);
 }
@@ -30,6 +34,7 @@ function noteListItemByTitle(page: Page, title: string): Locator {
 
 async function focusNoteFromList(page: Page, title: string) {
   const noteListItem = noteListItemByTitle(page, title);
+  await expect(noteListItem).toHaveCount(1);
   await expect(noteListItem).toBeVisible();
   await noteListItem.click();
   await expect(detailCard(page).getByTestId('note-card-title-input')).toHaveValue(title);
@@ -68,6 +73,7 @@ test.describe('Notes CRUD (Firestore)', () => {
     await expect(page.getByTestId('note-title')).toBeVisible();
     await page.getByTestId('note-title').fill(`should-not-save-${Date.now()}`);
 
+    page.once('dialog', (dialog) => dialog.accept());
     await page.getByTestId('cancel-add-note').click();
     await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
   });
@@ -92,7 +98,6 @@ test.describe('Notes CRUD (Firestore)', () => {
     await createNote(page, title, initialContent);
 
     const card = detailCard(page);
-    await card.getByTestId('note-read-panel').click();
     const contentArea = card.getByTestId('note-card-content-editor');
     await contentArea.fill(updatedContent);
     await page.waitForTimeout(3000);
@@ -104,77 +109,75 @@ test.describe('Notes CRUD (Firestore)', () => {
     await deleteSelectedNote(page, title);
   });
 
+  async function createChecklistNote(page: Page, title: string, lines: string[]) {
+    await page.getByTestId('add-note-fab').click();
+    await expect(page.getByTestId('add-note-modal')).toBeVisible();
+    await page.getByTestId('note-title').fill(title);
+    await page.getByTestId('note-content').fill(lines.join('\n'));
+    // Switching to the checklist type converts each existing line into an item.
+    await page.getByTestId('note-type-checklist').click();
+
+    await page.getByTestId('note-save').click();
+    await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
+    // The dev server double-mounts data-fetching effects (React StrictMode),
+    // which can briefly render the just-created note twice before the
+    // notes list settles on the fetched data.
+    await expect(noteListItemByTitle(page, title)).toHaveCount(1);
+    await expect(noteListItemByTitle(page, title)).toBeVisible();
+  }
+
   test('task lines can be toggled by clicking and persist after reload', async ({ page }) => {
     await page.goto('/main');
 
     const title = `e2e-task-autosave-${Date.now()}`;
 
-    await createNote(page, title, '[ ] Checkbox item');
+    await createChecklistNote(page, title, ['Checkbox item']);
     await focusNoteFromList(page, title);
 
     const card = detailCard(page);
-    const checklistItem = card.getByTestId('note-checklist-toggle').first();
-
-    await checklistItem.click();
-    await page.waitForTimeout(3000);
+    const checklistItem = card.locator('[data-testid="note-checklist-item"]').first();
+    await checklistItem.locator('.plain-note-checklist-toggle').click();
+    await expect(checklistItem).toHaveClass(/is-checked/);
+    await expect(card.getByTestId('note-card-save-state')).toHaveAttribute('data-state', 'saved');
 
     await page.reload();
-
     await focusNoteFromList(page, title);
-    await expect(detailCard(page).getByTestId('note-card-content-editor')).toHaveValue('[x] Checkbox item');
+
+    await expect(
+      detailCard(page).locator('[data-testid="note-checklist-item"]').first()
+    ).toHaveClass(/is-checked/);
 
     await deleteSelectedNote(page, title);
   });
 
-
-  test('completed checklist items render in a separate section in view mode', async ({ page }) => {
+  test('completed checklist items render in a separate section', async ({ page }) => {
     await page.goto('/main');
 
     const title = 'e2e-completed-section-' + Date.now();
-    const content = ['[ ] Open task', '[x] Done task', 'Plain note line'].join('\n');
 
-    await createNote(page, title, content);
+    await createChecklistNote(page, title, ['Open task', 'Done task', 'Plain note line']);
     await focusNoteFromList(page, title);
 
     const card = detailCard(page);
-    const readPanel = card.getByTestId('note-read-panel');
     const completedSection = card.getByTestId('note-completed-section');
+    await expect(completedSection).not.toBeVisible();
 
-    await expect(readPanel).toContainText('Open task');
-    await expect(readPanel).toContainText('Plain note line');
+    // Item text lives inside each row's <input value>, not as plain text
+    // content, so items are matched by position and read via their value.
+    const items = card.locator('[data-testid="note-checklist-item"]');
+    await expect(items).toHaveCount(3);
+    await expect(items.nth(1).locator('.checklist-editor-input')).toHaveValue('Done task');
+    await items.nth(1).locator('.plain-note-checklist-toggle').click();
+
     await expect(completedSection).toContainText('Completed (1)');
-    await expect(completedSection).toContainText('Done task');
+    await expect(completedSection.locator('.checklist-editor-input')).toHaveValue('Done task');
 
-    await deleteSelectedNote(page, title);
-  });
-  test('checklist toggle applies to a full selected block', async ({ page }) => {
-    await page.goto('/main');
-
-    const title = `e2e-bulk-task-${Date.now()}`;
-    const content = ['first line', 'second line', 'third line'].join('\n');
-
-    await page.getByTestId('add-note-fab').click();
-    await expect(page.getByTestId('add-note-modal')).toBeVisible();
-    await page.getByTestId('note-title').fill(title);
-    await page.getByTestId('note-content').fill(content);
-
-    const modalEditor = page.getByTestId('note-content');
-    await modalEditor.click();
-    await page.keyboard.press('Control+A');
-    await page.getByTestId('add-note-modal').getByTestId('toggle-task-list').click();
-
-    await expect(modalEditor).toHaveValue(
-      ['[ ] first line', '[ ] second line', '[ ] third line'].join('\n')
+    const activeInputs = card.locator(
+      '.checklist-editor-items > [data-testid="note-checklist-item"] .checklist-editor-input'
     );
-
-    await page.getByTestId('note-save').click();
-    await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
-    await focusNoteFromList(page, title);
-
-    const detailEditor = detailCard(page).getByTestId('note-card-content-editor');
-    await expect(detailEditor).toHaveValue(
-      ['[ ] first line', '[ ] second line', '[ ] third line'].join('\n')
-    );
+    await expect(activeInputs).toHaveCount(2);
+    await expect(activeInputs.nth(0)).toHaveValue('Open task');
+    await expect(activeInputs.nth(1)).toHaveValue('Plain note line');
 
     await deleteSelectedNote(page, title);
   });

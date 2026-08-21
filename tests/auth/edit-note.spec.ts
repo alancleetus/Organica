@@ -20,6 +20,7 @@ test('editing note title in the detail pane autosaves and persists', async ({ pa
 
   const focusNoteFromList = async (noteTitle: string) => {
     const noteListItem = noteListItemByTitle(noteTitle);
+    await expect(noteListItem).toHaveCount(1);
     await expect(noteListItem).toBeVisible();
     await noteListItem.click();
     await expect(detailCard().getByTestId('note-card-title-input')).toHaveValue(noteTitle);
@@ -35,6 +36,10 @@ test('editing note title in the detail pane autosaves and persists', async ({ pa
 
   await page.getByTestId('note-save').click();
   await expect(page.getByTestId('add-note-modal')).not.toBeVisible();
+  // The dev server double-mounts data-fetching effects (React StrictMode),
+  // which can briefly render the just-created note twice before the
+  // notes list settles on the fetched data.
+  await expect(noteListItemByTitle(title)).toHaveCount(1);
 
   const card = detailCard();
   await expect(card.getByTestId('note-card-title-input')).toHaveValue(title);
@@ -45,9 +50,9 @@ test('editing note title in the detail pane autosaves and persists', async ({ pa
   const updatedTitle = `${title}-should-save`;
   await card.getByTestId('note-card-title-input').fill(updatedTitle);
 
-  await expect(card.getByTestId('note-card-save')).toBeVisible();
-  await page.waitForTimeout(3000);
-  await expect(card.getByTestId('note-card-save')).not.toBeVisible();
+  const saveState = card.getByTestId('note-card-save-state');
+  await expect(saveState).toHaveAttribute('data-state', /pending|saving/);
+  await expect(saveState).toHaveAttribute('data-state', 'saved', { timeout: 5000 });
 
   await page.reload();
   await focusNoteFromList(updatedTitle);

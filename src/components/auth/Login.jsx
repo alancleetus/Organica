@@ -15,6 +15,7 @@ const Login = () => {
     setIsSubmitting(true);
     try {
       await login(email, password);
+      toast.success("Login Successful!", { position: "top-center" });
       navigate("/main");
     } catch (error) {
       toast.error(error.message, { position: "bottom-center" });

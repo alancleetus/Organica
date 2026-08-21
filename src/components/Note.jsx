@@ -385,7 +385,7 @@ function Note(props) {
         </div>
 
         <div className="note-footer">
-          <p className="note-save-state" data-state={saveState}>
+          <p className="note-save-state" data-testid="note-card-save-state" data-state={saveState}>
             {props.isReadOnly ? "Read-only" : saveLabel}
           </p>
           <p className="note-date" data-testid="note-card-date">

@@ -51,7 +51,14 @@ export const CreateNote = async ({
     const createdNote = { ...note, id: docRef.id };
 
     if (setNotes) {
-      setNotes((prevNotes) => [createdNote, ...prevNotes]);
+      // A slow initial fetch can resolve after this write has already
+      // committed, in which case its results already include this note —
+      // prepending unconditionally would then duplicate it in state.
+      setNotes((prevNotes) =>
+        prevNotes.some((existing) => existing.id === createdNote.id)
+          ? prevNotes
+          : [createdNote, ...prevNotes]
+      );
     }
 
     console.log("Added note:", createdNote);

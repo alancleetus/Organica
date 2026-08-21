@@ -4,8 +4,9 @@ import AxeBuilder from '@axe-core/playwright';
 test('a11y: main page has no serious/critical violations', async ({ page }) => {
   await page.goto('/main');
 
-  // Wait for the main UI to render
-  await page.waitForLoadState('networkidle');
+  // Wait for the main UI to render. Firestore keeps a persistent realtime
+  // connection open, so `networkidle` never fires here.
+  await expect(page.getByTestId('add-note-fab')).toBeVisible();
 
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
