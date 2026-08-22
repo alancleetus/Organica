@@ -20,7 +20,6 @@ export const CreateNote = async ({
   tags = [],
   dueDateTime = null,
   reminderDateTime = null,
-  recurrenceRule = null,
   setNotes,
 }) => {
   if (!user) {
@@ -46,7 +45,6 @@ export const CreateNote = async ({
     tags,
     dueDateTime,
     reminderDateTime,
-    recurrenceRule,
   };
 
   try {
@@ -158,7 +156,6 @@ export const UpdateNote = async ({
   tags,
   dueDateTime,
   reminderDateTime,
-  recurrenceRule,
   setNotes,
 }) => {
   try {
@@ -185,8 +182,6 @@ export const UpdateNote = async ({
         reminderDateTime !== undefined
           ? reminderDateTime
           : noteData.reminderDateTime,
-      recurrenceRule:
-        recurrenceRule !== undefined ? recurrenceRule : noteData.recurrenceRule,
       modifiedDate, // Update the modified date
     };
 

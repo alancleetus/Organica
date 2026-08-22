@@ -1555,25 +1555,6 @@ body {
   color: #d64545;
 }
 
-.calendar-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.calendar-group:last-child {
-  margin-bottom: 0;
-}
-
-.calendar-group-label {
-  font-size: 0.74rem;
-  font-family: "Gilroy-Bold", Arial, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--light-gray);
-}
-
 .note-list-item {
   width: 100%;
   border: 1px solid var(--workspace-panel-border);
@@ -2252,22 +2233,9 @@ form.create-note button:hover {
     padding-bottom: 34px;
   }
 
-  /* These are list rows / grouped-section wrappers, not note cards — they
-     shouldn't get squeezed into one half of the 2-column card grid above.
-     A calendar group spans full width for its label, then lays its own
-     notes out as the same 2-column grid the rest of the mobile list uses. */
+  /* A trash row is a list row, not a note card — it shouldn't get
+     squeezed into one half of the 2-column card grid above. */
   .trash-list-item {
-    grid-column: 1 / -1;
-  }
-
-  .calendar-group {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  .calendar-group-label {
     grid-column: 1 / -1;
   }
 

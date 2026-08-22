@@ -5,22 +5,10 @@ import HeartFillIcon from "remixicon-react/HeartFillIcon";
 import CheckboxBlankCircleLineIcon from "remixicon-react/CheckboxBlankCircleLineIcon";
 import CheckboxCircleFillIcon from "remixicon-react/CheckboxCircleFillIcon";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
-import CalendarEventLineIcon from "remixicon-react/CalendarEventLineIcon";
 import { PinNote, UpdateNote } from "../utils/notesCrud";
 import { getPreviewItems } from "../utils/noteContent";
 
 const VISIBLE_TAG_COUNT = 2;
-
-function formatDueBadge(dueDateTime) {
-  const due = new Date(dueDateTime);
-  if (Number.isNaN(due.getTime())) return null;
-  return due.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
 
 function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {}, isMobileLayout = false }) {
   const allPreviewItems = getPreviewItems(note.content).filter(
@@ -32,8 +20,6 @@ function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {}, is
   const tags = note.tags || [];
   const visibleTags = tags.slice(0, VISIBLE_TAG_COUNT);
   const hiddenTagCount = tags.length - visibleTags.length;
-  const dueBadgeLabel = note.dueDateTime ? formatDueBadge(note.dueDateTime) : null;
-  const isOverdue = note.dueDateTime ? new Date(note.dueDateTime).getTime() < Date.now() : false;
 
   const handleSelect = () => onSelect(note.id);
 
@@ -99,13 +85,6 @@ function NoteListItem({ note, isSelected, onSelect, setNotes, tagColors = {}, is
       <h3 className="note-list-item-title">
         {note.title?.trim() || "Untitled note"}
       </h3>
-
-      {dueBadgeLabel && (
-        <div className={`note-due-badge${isOverdue ? " is-overdue" : ""}`}>
-          <CalendarEventLineIcon aria-hidden="true" />
-          <span>{dueBadgeLabel}</span>
-        </div>
-      )}
 
       {previewItems.length ? (
         <div className="note-list-item-preview">

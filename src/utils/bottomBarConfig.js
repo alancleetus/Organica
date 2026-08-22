@@ -13,7 +13,6 @@ export const LIBRARY_FILTERS = [
   { id: "tasks", label: "Lists" },
   { id: "favorites", label: "Favorites" },
   { id: "notes-only", label: "Notes" },
-  { id: "calendar", label: "Calendar" },
   { id: "archived", label: "Archived" },
   { id: "trash", label: "Trash" },
 ];
@@ -22,7 +21,7 @@ export const LIBRARY_FILTERS = [
 // views worth their own line) vs. a single compact icon-only row
 // (glanceable extras that don't each need a whole row of space).
 export const PRIMARY_LIBRARY_FILTERS = ["all", "notes-only", "tasks"];
-export const QUICK_LIBRARY_FILTERS = ["pinned", "favorites", "calendar", "archived", "trash"];
+export const QUICK_LIBRARY_FILTERS = ["pinned", "favorites", "archived", "trash"];
 
 export const UNCATEGORIZED_FILTER_ID = "uncategorized";
 export const UNCATEGORIZED_LABEL = "Uncategorized";

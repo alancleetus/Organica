@@ -14,7 +14,6 @@ import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import FolderOffOutlinedIcon from "@mui/icons-material/FolderOffOutlined";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import RestoreFromTrashOutlinedIcon from "@mui/icons-material/RestoreFromTrashOutlined";
 import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined";
@@ -65,7 +64,6 @@ const BOTTOM_BAR_ICONS = {
   tasks: FactCheckOutlinedIcon,
   "notes-only": NotesOutlinedIcon,
   uncategorized: FolderOffOutlinedIcon,
-  calendar: CalendarMonthOutlinedIcon,
   archived: ArchiveOutlinedIcon,
   trash: DeleteOutlineOutlinedIcon,
 };
@@ -77,7 +75,6 @@ const RESERVED_FILTERS = [
   "tasks",
   "notes-only",
   "uncategorized",
-  "calendar",
   "archived",
   "trash",
 ];
@@ -447,9 +444,6 @@ function NotesManager({ palette, setPalette }) {
 
         if (activeFilter === "archived") {
           if (!note.isArchived) return false;
-        } else if (activeFilter === "calendar") {
-          if (note.isArchived) return false;
-          if (!note.dueDateTime) return false;
         } else {
           if (note.isArchived) return false;
 
@@ -486,43 +480,6 @@ function NotesManager({ palette, setPalette }) {
       );
     });
   }, [sortedNotes, activeFilter, searchTerm, hiddenFolderNames]);
-
-  // Buckets calendar-view notes into Overdue / Today / This Week / This
-  // Month / Later — a rolling window from "now", not a literal Mon-Sun
-  // week or a fixed 5-week grid, since the ask was date-range grouping
-  // rather than a full month-grid calendar widget.
-  const calendarGroups = useMemo(() => {
-    if (activeFilter !== "calendar") return null;
-
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-    const weekEnd = new Date(todayStart.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
-    const groups = {
-      overdue: { label: "Overdue", notes: [] },
-      today: { label: "Today", notes: [] },
-      thisWeek: { label: "This Week", notes: [] },
-      thisMonth: { label: "This Month", notes: [] },
-      later: { label: "Later", notes: [] },
-    };
-
-    const withDueDates = visibleNotes
-      .filter((note) => note.dueDateTime)
-      .sort((a, b) => new Date(a.dueDateTime) - new Date(b.dueDateTime));
-
-    withDueDates.forEach((note) => {
-      const due = new Date(note.dueDateTime);
-      if (due < todayStart) groups.overdue.notes.push(note);
-      else if (due < todayEnd) groups.today.notes.push(note);
-      else if (due < weekEnd) groups.thisWeek.notes.push(note);
-      else if (due < monthEnd) groups.thisMonth.notes.push(note);
-      else groups.later.notes.push(note);
-    });
-
-    return Object.values(groups).filter((group) => group.notes.length > 0);
-  }, [visibleNotes, activeFilter]);
 
   useEffect(() => {
     const handleKeyboardShortcuts = (event) => {
@@ -600,7 +557,6 @@ function NotesManager({ palette, setPalette }) {
   ).length;
   const archivedCount = notes.filter((note) => note.isArchived && !note.isDeleted).length;
   const trashCount = notes.filter((note) => note.isDeleted).length;
-  const calendarCount = activeNotes.filter((note) => note.dueDateTime).length;
   const uncategorizedCount = activeNotes.filter(
     (note) => (note.tags || []).length === 0
   ).length;
@@ -611,7 +567,6 @@ function NotesManager({ palette, setPalette }) {
     tasks: checklistCount,
     "notes-only": activeNotes.length - checklistCount,
     uncategorized: uncategorizedCount,
-    calendar: calendarCount,
     archived: archivedCount,
     trash: trashCount,
   };
@@ -1369,21 +1324,19 @@ function NotesManager({ palette, setPalette }) {
           )}
           <p className="section-badge">{visibleNotes.length}</p>
         </div>
-        {activeFilter !== "calendar" && (
-          <Sorter
-            sortingOptions={[
-              { value: "title", label: "Title" },
-              { value: "creationDT", label: "Created" },
-              { value: "modifiedDT", label: "Modified" },
-              { value: "dueDT", label: "Due" },
-              { value: "reminderDT", label: "Reminder" },
-            ]}
-            currentSorting={sortingMethod}
-            onSortingChange={handleSortingChange}
-            toggleSortDirection={toggleSortDirection}
-            isAscending={isAscending}
-          />
-        )}
+        <Sorter
+          sortingOptions={[
+            { value: "title", label: "Title" },
+            { value: "creationDT", label: "Created" },
+            { value: "modifiedDT", label: "Modified" },
+            { value: "dueDT", label: "Due" },
+            { value: "reminderDT", label: "Reminder" },
+          ]}
+          currentSorting={sortingMethod}
+          onSortingChange={handleSortingChange}
+          toggleSortDirection={toggleSortDirection}
+          isAscending={isAscending}
+        />
       </div>
 
       <AddNoteFab onClick={() => setIsAddNoteOpen(true)} />
@@ -1396,31 +1349,23 @@ function NotesManager({ palette, setPalette }) {
         {!visibleNotes.length ? (
           <div className="notes-list-empty">
             <p className="notes-detail-label">
-              {activeFilter === "trash"
-                ? "Trash is empty"
-                : activeFilter === "calendar"
-                  ? "Nothing scheduled"
-                  : "No matches"}
+              {activeFilter === "trash" ? "Trash is empty" : "No matches"}
             </p>
             <h3>
               {activeFilter === "trash"
                 ? "Deleted notes show up here."
-                : activeFilter === "calendar"
-                  ? "No notes have a due date yet."
-                  : hasScopedView
-                    ? "Your current view is hiding notes."
-                    : "Nothing fits this view right now."}
+                : hasScopedView
+                  ? "Your current view is hiding notes."
+                  : "Nothing fits this view right now."}
             </h3>
             <p>
               {activeFilter === "trash"
                 ? "Anything you delete stays here for 30 days before it's gone for good."
-                : activeFilter === "calendar"
-                  ? "Open a note and set a due date to see it here."
-                  : hasScopedView
-                    ? "Clear search and filters to show every note again."
-                    : "Try a different filter, clear search, or create a new note."}
+                : hasScopedView
+                  ? "Clear search and filters to show every note again."
+                  : "Try a different filter, clear search, or create a new note."}
             </p>
-            {hasScopedView && activeFilter !== "calendar" && activeFilter !== "trash" && (
+            {hasScopedView && activeFilter !== "trash" && (
               <button
                 type="button"
                 className="notes-list-reset"
@@ -1464,23 +1409,6 @@ function NotesManager({ palette, setPalette }) {
                   <DeleteForeverOutlinedIcon />
                 </button>
               </div>
-            </div>
-          ))
-        ) : activeFilter === "calendar" ? (
-          calendarGroups.map((group) => (
-            <div className="calendar-group" key={group.label}>
-              <p className="calendar-group-label">{group.label}</p>
-              {group.notes.map((note) => (
-                <NoteListItem
-                  key={note.id}
-                  note={note}
-                  isSelected={note.id === selectedNoteId}
-                  onSelect={handleSelectNote}
-                  setNotes={setNotes}
-                  tagColors={tagColors}
-                  isMobileLayout={isMobileLayout}
-                />
-              ))}
             </div>
           ))
         ) : (
@@ -1548,9 +1476,6 @@ function NotesManager({ palette, setPalette }) {
             isFavorite={selectedNote.isFavorite}
             isArchived={selectedNote.isArchived}
             isReadOnly={isSelectedNoteReadOnly}
-            dueDateTime={selectedNote.dueDateTime}
-            reminderDateTime={selectedNote.reminderDateTime}
-            recurrenceRule={selectedNote.recurrenceRule}
             tags={selectedNote.tags || []}
             tagColors={tagColors}
             existingFolders={folders.map((folder) => folder.name)}
@@ -1676,9 +1601,6 @@ function NotesManager({ palette, setPalette }) {
               isFavorite={focusNote.isFavorite}
               isArchived={focusNote.isArchived}
               isReadOnly={isFocusNoteReadOnly}
-              dueDateTime={focusNote.dueDateTime}
-              reminderDateTime={focusNote.reminderDateTime}
-              recurrenceRule={focusNote.recurrenceRule}
               tags={focusNote.tags || []}
               tagColors={tagColors}
               existingFolders={folders.map((folder) => folder.name)}

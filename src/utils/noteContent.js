@@ -174,15 +174,6 @@ export function toggleChecklistLine(content = "", lineIndex) {
   return lines.join("\n");
 }
 
-// Used when a recurring task's due date rolls forward — the note starts
-// its next occurrence fresh rather than carrying over last time's ticks.
-export function uncheckAllChecklistItems(content = "") {
-  return content
-    .split("\n")
-    .map((line) => line.replace(/^\[x\]/i, "[ ]"))
-    .join("\n");
-}
-
 export function getSearchableText(content = "") {
   return normalizeNoteContent(content).toLowerCase();
 }

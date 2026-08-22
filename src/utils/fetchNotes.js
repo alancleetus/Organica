@@ -1,7 +1,6 @@
 import { db } from "../components/Firebase";
-import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from "firebase/firestore";
-import { normalizeNoteContent, uncheckAllChecklistItems } from "./noteContent";
-import { getNextOccurrence } from "./recurrence";
+import { collection, getDocs, query, where, doc, deleteDoc } from "firebase/firestore";
+import { normalizeNoteContent } from "./noteContent";
 
 const TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -29,25 +28,6 @@ export const fetchNotes = async (user) => {
         deleteDoc(doc(db, "notes", note.id)).catch((error) =>
           console.error("Error purging trashed note:", error)
         );
-        continue;
-      }
-
-      // A recurring note whose due date has passed rolls forward to its
-      // next occurrence (looping past any missed periods, e.g. the app
-      // not being opened for two weeks) and starts unchecked again.
-      if (note.recurrenceRule && note.dueDateTime && new Date(note.dueDateTime).getTime() <= now) {
-        const nextDueDateTime = getNextOccurrence(note.dueDateTime, note.recurrenceRule, now);
-        const nextContent =
-          note.noteType === "checklist" ? uncheckAllChecklistItems(note.content) : note.content;
-        const updatedFields = {
-          dueDateTime: nextDueDateTime,
-          content: nextContent,
-          modifiedDate: now,
-        };
-        updateDoc(doc(db, "notes", note.id), updatedFields).catch((error) =>
-          console.error("Error rolling recurring note forward:", error)
-        );
-        notesList.push({ ...note, ...updatedFields });
         continue;
       }
 
