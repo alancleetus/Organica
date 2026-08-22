@@ -32,7 +32,6 @@ import { formatDate, loadDateFormat } from "../utils/dateFormat.js";
 import { ReplaceTagsForNote, DeleteNote, ArchiveNote, CreateNote } from "../utils/notesCrud";
 import { toast } from "react-toastify";
 import {
-  LIBRARY_FILTERS,
   PRIMARY_LIBRARY_FILTERS,
   QUICK_LIBRARY_FILTERS,
   UNCATEGORIZED_FILTER_ID,

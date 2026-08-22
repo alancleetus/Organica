@@ -32,7 +32,6 @@ import {
   saveLibraryLabels,
   loadDisabledLibraryFilters,
   saveDisabledLibraryFilters,
-  getLibraryLabel,
 } from "../utils/bottomBarConfig";
 
 // Swatch previews shown on each card. The actual theme is applied via the
@@ -596,7 +595,7 @@ function Settings({
           <p className="settings-section-hint">
             Scales all the text in the app. Phone and desktop each keep their
             own size, and both are shown here so you can set either one
-            regardless of which you're using right now.
+            regardless of which you&rsquo;re using right now.
           </p>
 
           <div className="settings-size-group">

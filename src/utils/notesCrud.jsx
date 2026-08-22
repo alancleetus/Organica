@@ -10,7 +10,6 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import isEqual from "lodash/isEqual";
 import { v4 as uuidv4 } from "uuid";
 
 export const CreateNote = async ({
