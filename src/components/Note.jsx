@@ -14,11 +14,14 @@ import PushpinLineIcon from "remixicon-react/PushpinLineIcon";
 import PushpinFillIcon from "remixicon-react/PushpinFillIcon";
 import HeartLineIcon from "remixicon-react/HeartLineIcon";
 import HeartFillIcon from "remixicon-react/HeartFillIcon";
+import CalendarEventLineIcon from "remixicon-react/CalendarEventLineIcon";
+import AlarmLineIcon from "remixicon-react/AlarmLineIcon";
 import { PinNote, UpdateNote, ReplaceTagsForNote } from "../utils/notesCrud";
 import PlainTextNoteEditor from "./PlainTextNoteEditor";
 import ChecklistEditor from "./ChecklistEditor";
 import { normalizeNoteContent, resolveNoteType, trimNoteContent } from "../utils/noteContent";
 import { formatDate } from "../utils/dateFormat";
+import { RECURRENCE_OPTIONS } from "../utils/recurrence";
 
 const AUTOSAVE_DELAY_MS = 1200;
 
@@ -107,6 +110,52 @@ function Note(props) {
     const nextTags = tags.filter((tag) => tag !== tagToRemove);
     setTags(nextTags);
     ReplaceTagsForNote(props.id, nextTags, props.setNotes);
+  };
+
+  const [dueDateTime, setDueDateTimeState] = useState(props.dueDateTime || "");
+  const [reminderDateTime, setReminderDateTimeState] = useState(props.reminderDateTime || "");
+  const [recurrenceRule, setRecurrenceRuleState] = useState(props.recurrenceRule || "");
+
+  useEffect(() => setDueDateTimeState(props.dueDateTime || ""), [props.dueDateTime]);
+  useEffect(() => setReminderDateTimeState(props.reminderDateTime || ""), [props.reminderDateTime]);
+  useEffect(() => setRecurrenceRuleState(props.recurrenceRule || ""), [props.recurrenceRule]);
+
+  // A native datetime-local input fires onChange with value === "" for
+  // every incomplete intermediate keystroke while a date is being typed
+  // segment by segment (e.g. right after just the month is entered) —
+  // not only when the field is deliberately cleared. Persisting on that
+  // intermediate empty value silently wiped out a due date the user was
+  // still in the middle of typing. Only a complete value gets saved here;
+  // an actual clear goes through the dedicated buttons below instead,
+  // which is the only place null is ever sent for these two fields.
+  const handleDueDateChange = (value) => {
+    setDueDateTimeState(value);
+    if (!value) return;
+    UpdateNote({ id: props.id, dueDateTime: value, setNotes: props.setNotes });
+  };
+
+  // Clearing the due date drops any recurrence with it — a repeat rule
+  // with nothing to repeat from doesn't mean anything.
+  const handleClearDueDate = () => {
+    setDueDateTimeState("");
+    setRecurrenceRuleState("");
+    UpdateNote({ id: props.id, dueDateTime: null, recurrenceRule: null, setNotes: props.setNotes });
+  };
+
+  const handleReminderDateChange = (value) => {
+    setReminderDateTimeState(value);
+    if (!value) return;
+    UpdateNote({ id: props.id, reminderDateTime: value, setNotes: props.setNotes });
+  };
+
+  const handleClearReminderDate = () => {
+    setReminderDateTimeState("");
+    UpdateNote({ id: props.id, reminderDateTime: null, setNotes: props.setNotes });
+  };
+
+  const handleRecurrenceChange = (value) => {
+    setRecurrenceRuleState(value);
+    UpdateNote({ id: props.id, recurrenceRule: value || null, setNotes: props.setNotes });
   };
 
   useEffect(() => {
@@ -357,6 +406,69 @@ function Note(props) {
               <AddIcon />
               <span>Folder</span>
             </button>
+          )}
+        </div>
+
+        <div className="note-schedule-row">
+          <label className="note-schedule-field">
+            <CalendarEventLineIcon aria-hidden="true" />
+            <span>Due</span>
+            <input
+              type="datetime-local"
+              value={dueDateTime}
+              onChange={(event) => handleDueDateChange(event.target.value)}
+              disabled={props.isReadOnly}
+              data-testid="note-due-date-input"
+            />
+            {dueDateTime && !props.isReadOnly && (
+              <button
+                type="button"
+                className="note-schedule-clear"
+                aria-label="Clear due date"
+                onClick={handleClearDueDate}
+              >
+                <CloseIcon />
+              </button>
+            )}
+          </label>
+
+          <label className="note-schedule-field">
+            <AlarmLineIcon aria-hidden="true" />
+            <span>Remind</span>
+            <input
+              type="datetime-local"
+              value={reminderDateTime}
+              onChange={(event) => handleReminderDateChange(event.target.value)}
+              disabled={props.isReadOnly}
+              data-testid="note-reminder-date-input"
+            />
+            {reminderDateTime && !props.isReadOnly && (
+              <button
+                type="button"
+                className="note-schedule-clear"
+                aria-label="Clear reminder"
+                onClick={handleClearReminderDate}
+              >
+                <CloseIcon />
+              </button>
+            )}
+          </label>
+
+          {dueDateTime && (
+            <label className="note-schedule-field note-schedule-recurrence">
+              <select
+                value={recurrenceRule}
+                onChange={(event) => handleRecurrenceChange(event.target.value)}
+                disabled={props.isReadOnly}
+                data-testid="note-recurrence-select"
+              >
+                {RECURRENCE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           )}
         </div>
 

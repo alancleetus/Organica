@@ -20,6 +20,7 @@ export const CreateNote = async ({
   tags = [],
   dueDateTime = null,
   reminderDateTime = null,
+  recurrenceRule = null,
   setNotes,
 }) => {
   if (!user) {
@@ -40,9 +41,12 @@ export const CreateNote = async ({
     isPinned: false, // Default values for new fields
     isFavorite: false,
     isArchived: false,
+    isDeleted: false,
+    deletedDate: null,
     tags,
     dueDateTime,
     reminderDateTime,
+    recurrenceRule,
   };
 
   try {
@@ -154,6 +158,7 @@ export const UpdateNote = async ({
   tags,
   dueDateTime,
   reminderDateTime,
+  recurrenceRule,
   setNotes,
 }) => {
   try {
@@ -180,6 +185,8 @@ export const UpdateNote = async ({
         reminderDateTime !== undefined
           ? reminderDateTime
           : noteData.reminderDateTime,
+      recurrenceRule:
+        recurrenceRule !== undefined ? recurrenceRule : noteData.recurrenceRule,
       modifiedDate, // Update the modified date
     };
 
@@ -287,14 +294,51 @@ export const ReplaceTagsForNote = async (id, newTags, setNotes) => {
   }
 };
 
+// Permanently removes the Firestore document — only meant to be called
+// on a note that's already in the trash (isDeleted: true), either by the
+// user choosing "Delete forever" or by the retention-window auto-purge
+// in fetchNotes.js.
 export const DeleteNote = async (id, setNotes) => {
   try {
     const noteRef = doc(db, "notes", id); // Get the document reference
     await deleteDoc(noteRef); // Delete Firestore document
-    setNotes((prevNotes) => prevNotes.filter((note) => note.id !== id)); // Update state
+    setNotes?.((prevNotes) => prevNotes.filter((note) => note.id !== id)); // Update state
     console.log("Removed note with id:", id);
   } catch (error) {
     console.error("Error removing note:", error);
+  }
+};
+
+// Moves a note to the trash instead of deleting it outright — reversible
+// via RestoreNote until the retention window auto-purges it.
+export const SoftDeleteNote = async (id, setNotes) => {
+  try {
+    const noteRef = doc(db, "notes", id);
+    const deletedDate = Date.now();
+    await updateDoc(noteRef, { isDeleted: true, deletedDate });
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === id ? { ...note, isDeleted: true, deletedDate } : note
+      )
+    );
+    console.log("Trashed note with id:", id);
+  } catch (error) {
+    console.error("Error trashing note:", error);
+  }
+};
+
+export const RestoreNote = async (id, setNotes) => {
+  try {
+    const noteRef = doc(db, "notes", id);
+    await updateDoc(noteRef, { isDeleted: false, deletedDate: null });
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === id ? { ...note, isDeleted: false, deletedDate: null } : note
+      )
+    );
+    console.log("Restored note with id:", id);
+  } catch (error) {
+    console.error("Error restoring note:", error);
   }
 };
 

@@ -1,23 +1,39 @@
 .login-page {
+  position: relative;
   height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   background: var(--background-color);
+  overflow: hidden;
+}
+
+/* Soft, theme-colored atmosphere behind the card — built entirely from
+   --primary-color so it re-tints itself for every palette (Dracula's
+   purple, Gruvbox's orange, ...) instead of carrying its own fixed
+   colors the way a hero image would. */
+.login-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(480px circle at 12% 8%, color-mix(in srgb, var(--primary-color) 20%, transparent), transparent 60%),
+    radial-gradient(560px circle at 88% 92%, color-mix(in srgb, var(--primary-color) 14%, transparent), transparent 60%);
 }
 
 .login-card {
+  position: relative;
   width: 100%;
   max-width: 360px;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 32px 28px;
+  padding: 36px 28px 32px;
   background: var(--workspace-panel-bg);
   border: 1px solid var(--workspace-panel-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--workspace-shadow);
+  box-shadow: var(--shadow-pop);
 }
 
 .login-brand {
@@ -28,9 +44,21 @@
   margin-bottom: 6px;
 }
 
+.login-brand-icon-halo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  margin-bottom: 2px;
+}
+
 .login-brand-icon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  display: block;
+  border-radius: 11px;
 }
 
 .login-brand h1 {
@@ -39,33 +67,82 @@
   color: var(--text-color);
 }
 
+.login-tagline {
+  font-family: var(--body-font, "Gilroy-Regular"), Arial, sans-serif;
+  font-size: 0.84rem;
+  color: var(--light-gray);
+  text-align: center;
+  margin: -2px 0 4px;
+}
+
 .login-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.login-field span {
+.login-field span:first-child {
   font-family: "Gilroy-Medium", Arial, sans-serif;
   font-size: 0.82rem;
   color: var(--light-gray);
 }
 
-.login-field input {
+.login-field-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-field-control svg:first-child {
+  position: absolute;
+  left: 14px;
+  width: 17px;
+  height: 17px;
+  color: var(--light-gray);
+  pointer-events: none;
+}
+
+.login-field-control input {
+  width: 100%;
   height: 44px;
   border: 1px solid var(--workspace-panel-border);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--text-color);
-  padding: 0 14px;
+  padding: 0 14px 0 40px;
   font-family: var(--body-font, "Gilroy-Regular"), Arial, sans-serif;
   font-size: 0.95rem;
 }
 
-.login-field input:focus {
+.login-field-control input:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+.login-field-toggle {
+  position: absolute;
+  right: 6px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--light-gray);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.login-field-toggle:hover {
+  color: var(--text-color);
+  background: var(--tint-weak);
+}
+
+.login-field-toggle svg {
+  width: 18px;
+  height: 18px;
 }
 
 .login-submit {
@@ -78,6 +155,7 @@
   font-family: "Gilroy-Bold", Arial, sans-serif;
   font-size: 0.95rem;
   cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 
 .login-submit:hover {
@@ -85,7 +163,12 @@
   color: var(--primary-color);
 }
 
+.login-submit:active {
+  transform: translateY(1px);
+}
+
 .login-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }

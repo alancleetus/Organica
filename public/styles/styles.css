@@ -110,6 +110,7 @@
    --------------------------------------------------------------------- */
 
 :root {
+  color-scheme: light; /* themes the native date/time picker popup to match */
   /* shape — flat across every palette, colors vary, corners don't */
   --radius: 6px;
   --radius-lg: 10px;
@@ -153,6 +154,7 @@
 }
 
 [data-palette="monochrome-light"] {
+  color-scheme: light; /* themes the native date/time picker popup to match */
   --background-color: #f0f0f2;
   --surface: #ffffff;
   --surface-strong: #ffffff;
@@ -174,6 +176,7 @@
 }
 
 [data-palette="monochrome-dark"] {
+  color-scheme: dark; /* themes the native date/time picker popup to match */
   --background-color: #0e0e10;
   --surface: #1b1b1f;
   --surface-strong: #232327;
@@ -195,6 +198,7 @@
 }
 
 [data-palette="slate-light"] {
+  color-scheme: light; /* themes the native date/time picker popup to match */
   --background-color: #f0f0f2;
   --surface: #ffffff;
   --surface-strong: #ffffff;
@@ -216,6 +220,7 @@
 }
 
 [data-palette="slate-dark"] {
+  color-scheme: dark; /* themes the native date/time picker popup to match */
   --background-color: #0e0e10;
   --surface: #1b1b1f;
   --surface-strong: #232327;
@@ -238,6 +243,7 @@
 
 /* Dracula — draculatheme.com */
 [data-palette="dracula"] {
+  color-scheme: dark; /* themes the native date/time picker popup to match */
   --background-color: #282a36;
   --surface: #343746;
   --surface-strong: #3a3d4d;
@@ -260,6 +266,7 @@
 
 /* Nord — nordtheme.com */
 [data-palette="nord"] {
+  color-scheme: dark; /* themes the native date/time picker popup to match */
   --background-color: #2e3440;
   --surface: #3b4252;
   --surface-strong: #434c5e;
@@ -282,6 +289,7 @@
 
 /* Solarized — ethanschoonover.com/solarized */
 [data-palette="solarized-light"] {
+  color-scheme: light; /* themes the native date/time picker popup to match */
   --background-color: #eee8d5;
   --surface: #fdf6e3;
   --surface-strong: #fdf6e3;
@@ -303,6 +311,7 @@
 }
 
 [data-palette="solarized-dark"] {
+  color-scheme: dark; /* themes the native date/time picker popup to match */
   --background-color: #002b36;
   --surface: #073642;
   --surface-strong: #0a4152;
@@ -328,6 +337,7 @@
    accent, which is the point: most palettes above vary one accent hue
    over a neutral grey scale, this one is colorful throughout. */
 [data-palette="gruvbox-light"] {
+  color-scheme: light; /* themes the native date/time picker popup to match */
   --background-color: #fbf1c7;
   --surface: #f9f5d7;
   --surface-strong: #f2e5bc;
@@ -349,6 +359,7 @@
 }
 
 [data-palette="gruvbox-dark"] {
+  color-scheme: dark; /* themes the native date/time picker popup to match */
   --background-color: #282828;
   --surface: #32302f;
   --surface-strong: #3c3836;
@@ -372,6 +383,7 @@
 /* Catppuccin — github.com/catppuccin/catppuccin (Latte / Mocha). Pastel
    lavender-tinted surfaces rather than a neutral grey base. */
 [data-palette="catppuccin-latte"] {
+  color-scheme: light; /* themes the native date/time picker popup to match */
   --background-color: #e6e9ef;
   --surface: #eff1f5;
   --surface-strong: #eff1f5;
@@ -393,6 +405,7 @@
 }
 
 [data-palette="catppuccin-mocha"] {
+  color-scheme: dark; /* themes the native date/time picker popup to match */
   --background-color: #181825;
   --surface: #1e1e2e;
   --surface-strong: #292c3c;
@@ -1478,6 +1491,89 @@ body {
   cursor: pointer;
 }
 
+.trash-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--workspace-panel-border);
+  background: var(--surface);
+}
+
+.trash-list-item-info {
+  min-width: 0;
+}
+
+.trash-list-item-title {
+  font-size: 0.94rem;
+  font-family: "Gilroy-Bold", Arial, sans-serif;
+  color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trash-list-item-meta {
+  font-size: 0.78rem;
+  color: var(--light-gray);
+  margin-top: 2px;
+}
+
+.trash-list-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.trash-list-item-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--light-gray);
+  cursor: pointer;
+}
+
+.trash-list-item-action:hover {
+  background: var(--tint-weak);
+  color: var(--text-color);
+}
+
+.trash-list-item-action svg {
+  width: 18px;
+  height: 18px;
+}
+
+.trash-list-item-action-delete:hover {
+  color: #d64545;
+}
+
+.calendar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.calendar-group:last-child {
+  margin-bottom: 0;
+}
+
+.calendar-group-label {
+  font-size: 0.74rem;
+  font-family: "Gilroy-Bold", Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--light-gray);
+}
+
 .note-list-item {
   width: 100%;
   border: 1px solid var(--workspace-panel-border);
@@ -2154,6 +2250,25 @@ form.create-note button:hover {
        the last row of cards can scroll fully into view instead of
        sitting underneath it. */
     padding-bottom: 34px;
+  }
+
+  /* These are list rows / grouped-section wrappers, not note cards — they
+     shouldn't get squeezed into one half of the 2-column card grid above.
+     A calendar group spans full width for its label, then lays its own
+     notes out as the same 2-column grid the rest of the mobile list uses. */
+  .trash-list-item {
+    grid-column: 1 / -1;
+  }
+
+  .calendar-group {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .calendar-group-label {
+    grid-column: 1 / -1;
   }
 
   .note-list-item {

@@ -14,6 +14,10 @@ import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import FolderOffOutlinedIcon from "@mui/icons-material/FolderOffOutlined";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import RestoreFromTrashOutlinedIcon from "@mui/icons-material/RestoreFromTrashOutlined";
+import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined";
 import Settings3LineIcon from "remixicon-react/Settings3LineIcon";
 import PencilLineIcon from "remixicon-react/PencilLineIcon";
 import EyeLineIcon from "remixicon-react/EyeLineIcon";
@@ -29,7 +33,14 @@ import AddNoteFab from "./AddNoteFab";
 import NoteListItem from "./NoteListItem";
 import { fetchNotes } from "../utils/fetchNotes.js";
 import { formatDate, loadDateFormat } from "../utils/dateFormat.js";
-import { ReplaceTagsForNote, DeleteNote, ArchiveNote, CreateNote } from "../utils/notesCrud";
+import {
+  ReplaceTagsForNote,
+  DeleteNote,
+  SoftDeleteNote,
+  RestoreNote,
+  ArchiveNote,
+  CreateNote,
+} from "../utils/notesCrud";
 import { toast } from "react-toastify";
 import {
   PRIMARY_LIBRARY_FILTERS,
@@ -54,7 +65,9 @@ const BOTTOM_BAR_ICONS = {
   tasks: FactCheckOutlinedIcon,
   "notes-only": NotesOutlinedIcon,
   uncategorized: FolderOffOutlinedIcon,
+  calendar: CalendarMonthOutlinedIcon,
   archived: ArchiveOutlinedIcon,
+  trash: DeleteOutlineOutlinedIcon,
 };
 
 const RESERVED_FILTERS = [
@@ -64,7 +77,9 @@ const RESERVED_FILTERS = [
   "tasks",
   "notes-only",
   "uncategorized",
+  "calendar",
   "archived",
+  "trash",
 ];
 
 // Curated, distinct hues a folder can be color-coded with — rendered via
@@ -142,7 +157,6 @@ function NotesManager({ palette, setPalette }) {
     }
   }, [focusNoteId]);
   const overlayPushedRef = useRef(false);
-  const pendingDeletesRef = useRef(new Map());
 
   // Backs the PWA's home-screen long-press shortcuts (manifest.json),
   // which land here as /main?new=note or /main?new=checklist — opens the
@@ -423,32 +437,44 @@ function NotesManager({ palette, setPalette }) {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return sortedNotes.filter((note) => {
-      if (activeFilter === "archived") {
-        if (!note.isArchived) return false;
+      // Trashed notes are only ever visible from the Trash filter itself —
+      // every other view (including Archived) hard-excludes them, the
+      // same way Archived already hard-excludes everything else.
+      if (activeFilter === "trash") {
+        if (!note.isDeleted) return false;
       } else {
-        if (note.isArchived) return false;
+        if (note.isDeleted) return false;
 
-        const matchesFilter =
-          activeFilter === "all" ||
-          (activeFilter === "pinned" && note.isPinned) ||
-          (activeFilter === "favorites" && note.isFavorite) ||
-          (activeFilter === "tasks" && isChecklistContent(note.content)) ||
-          (activeFilter === "notes-only" && !isChecklistContent(note.content)) ||
-          (activeFilter === "uncategorized" && (note.tags || []).length === 0) ||
-          (!RESERVED_FILTERS.includes(activeFilter) &&
-            (note.tags || []).includes(activeFilter));
+        if (activeFilter === "archived") {
+          if (!note.isArchived) return false;
+        } else if (activeFilter === "calendar") {
+          if (note.isArchived) return false;
+          if (!note.dueDateTime) return false;
+        } else {
+          if (note.isArchived) return false;
 
-        if (!matchesFilter) return false;
+          const matchesFilter =
+            activeFilter === "all" ||
+            (activeFilter === "pinned" && note.isPinned) ||
+            (activeFilter === "favorites" && note.isFavorite) ||
+            (activeFilter === "tasks" && isChecklistContent(note.content)) ||
+            (activeFilter === "notes-only" && !isChecklistContent(note.content)) ||
+            (activeFilter === "uncategorized" && (note.tags || []).length === 0) ||
+            (!RESERVED_FILTERS.includes(activeFilter) &&
+              (note.tags || []).includes(activeFilter));
 
-        // A note tagged into a hidden folder (e.g. a personal tracker)
-        // only shows up while browsing that folder directly, or while
-        // actively searching — passive browsing (All Notes, Pinned,
-        // other folders...) is what it stays out of, not search.
-        const noteTags = note.tags || [];
-        const hasHiddenTag = noteTags.some((tag) => hiddenFolderNames.has(tag));
-        const viewingThatHiddenFolder =
-          hiddenFolderNames.has(activeFilter) && noteTags.includes(activeFilter);
-        if (hasHiddenTag && !viewingThatHiddenFolder && !normalizedSearch) return false;
+          if (!matchesFilter) return false;
+
+          // A note tagged into a hidden folder (e.g. a personal tracker)
+          // only shows up while browsing that folder directly, or while
+          // actively searching — passive browsing (All Notes, Pinned,
+          // other folders...) is what it stays out of, not search.
+          const noteTags = note.tags || [];
+          const hasHiddenTag = noteTags.some((tag) => hiddenFolderNames.has(tag));
+          const viewingThatHiddenFolder =
+            hiddenFolderNames.has(activeFilter) && noteTags.includes(activeFilter);
+          if (hasHiddenTag && !viewingThatHiddenFolder && !normalizedSearch) return false;
+        }
       }
 
       if (!normalizedSearch) return true;
@@ -460,6 +486,43 @@ function NotesManager({ palette, setPalette }) {
       );
     });
   }, [sortedNotes, activeFilter, searchTerm, hiddenFolderNames]);
+
+  // Buckets calendar-view notes into Overdue / Today / This Week / This
+  // Month / Later — a rolling window from "now", not a literal Mon-Sun
+  // week or a fixed 5-week grid, since the ask was date-range grouping
+  // rather than a full month-grid calendar widget.
+  const calendarGroups = useMemo(() => {
+    if (activeFilter !== "calendar") return null;
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const weekEnd = new Date(todayStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const groups = {
+      overdue: { label: "Overdue", notes: [] },
+      today: { label: "Today", notes: [] },
+      thisWeek: { label: "This Week", notes: [] },
+      thisMonth: { label: "This Month", notes: [] },
+      later: { label: "Later", notes: [] },
+    };
+
+    const withDueDates = visibleNotes
+      .filter((note) => note.dueDateTime)
+      .sort((a, b) => new Date(a.dueDateTime) - new Date(b.dueDateTime));
+
+    withDueDates.forEach((note) => {
+      const due = new Date(note.dueDateTime);
+      if (due < todayStart) groups.overdue.notes.push(note);
+      else if (due < todayEnd) groups.today.notes.push(note);
+      else if (due < weekEnd) groups.thisWeek.notes.push(note);
+      else if (due < monthEnd) groups.thisMonth.notes.push(note);
+      else groups.later.notes.push(note);
+    });
+
+    return Object.values(groups).filter((group) => group.notes.length > 0);
+  }, [visibleNotes, activeFilter]);
 
   useEffect(() => {
     const handleKeyboardShortcuts = (event) => {
@@ -527,14 +590,17 @@ function NotesManager({ palette, setPalette }) {
   const isSelectedNoteReadOnly =
     !!selectedNote &&
     (selectedNote.isArchived ||
+      selectedNote.isDeleted ||
       (selectedNote.tags || []).some((tag) => hiddenFolderNames.has(tag)));
-  const activeNotes = notes.filter((note) => !note.isArchived);
+  const activeNotes = notes.filter((note) => !note.isArchived && !note.isDeleted);
   const pinnedCount = activeNotes.filter((note) => note.isPinned).length;
   const favoriteCount = activeNotes.filter((note) => note.isFavorite).length;
   const checklistCount = activeNotes.filter((note) =>
     isChecklistContent(note.content)
   ).length;
-  const archivedCount = notes.filter((note) => note.isArchived).length;
+  const archivedCount = notes.filter((note) => note.isArchived && !note.isDeleted).length;
+  const trashCount = notes.filter((note) => note.isDeleted).length;
+  const calendarCount = activeNotes.filter((note) => note.dueDateTime).length;
   const uncategorizedCount = activeNotes.filter(
     (note) => (note.tags || []).length === 0
   ).length;
@@ -545,7 +611,9 @@ function NotesManager({ palette, setPalette }) {
     tasks: checklistCount,
     "notes-only": activeNotes.length - checklistCount,
     uncategorized: uncategorizedCount,
+    calendar: calendarCount,
     archived: archivedCount,
+    trash: trashCount,
   };
   const hasScopedView = activeFilter !== "all" || searchTerm.trim() !== "";
 
@@ -559,43 +627,42 @@ function NotesManager({ palette, setPalette }) {
   const focusNote = notes.find((note) => note.id === focusNoteId) || null;
   const isFocusNoteReadOnly =
     !!focusNote &&
-    (focusNote.isArchived || (focusNote.tags || []).some((tag) => hiddenFolderNames.has(tag)));
+    (focusNote.isArchived ||
+      focusNote.isDeleted ||
+      (focusNote.tags || []).some((tag) => hiddenFolderNames.has(tag)));
 
   const handleToggleFocusNote = (noteId) => {
     setFocusNoteId((prev) => (prev === noteId ? null : noteId));
   };
 
-  // Deleting is optimistic and reversible: the note disappears from the UI
-  // right away, but the actual Firestore delete is held for a few seconds
-  // so the "Undo" toast can put it back without ever having removed it.
+  // Deleting moves a note to the Trash rather than removing it outright —
+  // the 5-second "Undo" toast is just a fast path back; the note also
+  // stays reachable and restorable from the Trash filter itself for the
+  // full retention window (see TRASH_RETENTION_MS in fetchNotes.js).
   const handleDeleteNote = (note) => {
     if (!note) return;
 
-    setNotes((prev) => prev.filter((n) => n.id !== note.id));
+    SoftDeleteNote(note.id, setNotes);
     if (selectedNoteId === note.id) {
       setSelectedNoteId(null);
       if (isMobileLayout && mobileScreen === "detail") {
         window.history.back();
       }
     }
-
-    const timerId = setTimeout(() => {
-      pendingDeletesRef.current.delete(note.id);
-      DeleteNote(note.id, setNotes);
-    }, 5000);
-    pendingDeletesRef.current.set(note.id, timerId);
+    if (focusNoteId === note.id) {
+      setIsFocusNoteFullScreen(false);
+      setFocusNoteId(null);
+    }
 
     toast(
       ({ closeToast }) => (
         <div className="undo-toast">
-          <span>Note deleted</span>
+          <span>Note moved to Trash</span>
           <button
             type="button"
             className="undo-toast-button"
             onClick={() => {
-              clearTimeout(pendingDeletesRef.current.get(note.id));
-              pendingDeletesRef.current.delete(note.id);
-              setNotes((prev) => [note, ...prev]);
+              RestoreNote(note.id, setNotes);
               closeToast();
             }}
           >
@@ -605,6 +672,20 @@ function NotesManager({ palette, setPalette }) {
       ),
       { autoClose: 5000, closeButton: false }
     );
+  };
+
+  const handleRestoreNote = (note) => {
+    if (!note) return;
+    RestoreNote(note.id, setNotes);
+  };
+
+  // Unlike handleDeleteNote, this one is not reversible — it's only
+  // reachable from within the Trash view itself, on a note the user has
+  // already moved there deliberately once.
+  const handlePermanentlyDeleteNote = (note) => {
+    if (!note) return;
+    if (selectedNoteId === note.id) setSelectedNoteId(null);
+    DeleteNote(note.id, setNotes);
   };
 
   const handleArchiveNote = (note) => {
@@ -1288,19 +1369,21 @@ function NotesManager({ palette, setPalette }) {
           )}
           <p className="section-badge">{visibleNotes.length}</p>
         </div>
-        <Sorter
-          sortingOptions={[
-            { value: "title", label: "Title" },
-            { value: "creationDT", label: "Created" },
-            { value: "modifiedDT", label: "Modified" },
-            { value: "dueDT", label: "Due" },
-            { value: "reminderDT", label: "Reminder" },
-          ]}
-          currentSorting={sortingMethod}
-          onSortingChange={handleSortingChange}
-          toggleSortDirection={toggleSortDirection}
-          isAscending={isAscending}
-        />
+        {activeFilter !== "calendar" && (
+          <Sorter
+            sortingOptions={[
+              { value: "title", label: "Title" },
+              { value: "creationDT", label: "Created" },
+              { value: "modifiedDT", label: "Modified" },
+              { value: "dueDT", label: "Due" },
+              { value: "reminderDT", label: "Reminder" },
+            ]}
+            currentSorting={sortingMethod}
+            onSortingChange={handleSortingChange}
+            toggleSortDirection={toggleSortDirection}
+            isAscending={isAscending}
+          />
+        )}
       </div>
 
       <AddNoteFab onClick={() => setIsAddNoteOpen(true)} />
@@ -1310,7 +1393,97 @@ function NotesManager({ palette, setPalette }) {
       )}
 
       <div className="notes-list-scroll">
-        {visibleNotes.length ? (
+        {!visibleNotes.length ? (
+          <div className="notes-list-empty">
+            <p className="notes-detail-label">
+              {activeFilter === "trash"
+                ? "Trash is empty"
+                : activeFilter === "calendar"
+                  ? "Nothing scheduled"
+                  : "No matches"}
+            </p>
+            <h3>
+              {activeFilter === "trash"
+                ? "Deleted notes show up here."
+                : activeFilter === "calendar"
+                  ? "No notes have a due date yet."
+                  : hasScopedView
+                    ? "Your current view is hiding notes."
+                    : "Nothing fits this view right now."}
+            </h3>
+            <p>
+              {activeFilter === "trash"
+                ? "Anything you delete stays here for 30 days before it's gone for good."
+                : activeFilter === "calendar"
+                  ? "Open a note and set a due date to see it here."
+                  : hasScopedView
+                    ? "Clear search and filters to show every note again."
+                    : "Try a different filter, clear search, or create a new note."}
+            </p>
+            {hasScopedView && activeFilter !== "calendar" && activeFilter !== "trash" && (
+              <button
+                type="button"
+                className="notes-list-reset"
+                onClick={resetListView}
+              >
+                Show all notes
+              </button>
+            )}
+          </div>
+        ) : activeFilter === "trash" ? (
+          visibleNotes.map((note) => (
+            <div className="trash-list-item" key={note.id}>
+              <div className="trash-list-item-info">
+                <h3 className="trash-list-item-title">
+                  {note.title?.trim() || "Untitled note"}
+                </h3>
+                <p className="trash-list-item-meta">
+                  Deleted {formatDate(note.deletedDate, dateFormat)}
+                </p>
+              </div>
+              <div className="trash-list-item-actions">
+                <button
+                  type="button"
+                  className="trash-list-item-action"
+                  aria-label="Restore note"
+                  onClick={() => handleRestoreNote(note)}
+                >
+                  <RestoreFromTrashOutlinedIcon />
+                </button>
+                <button
+                  type="button"
+                  className="trash-list-item-action trash-list-item-action-delete"
+                  aria-label="Delete forever"
+                  onClick={() => {
+                    const label = note.title?.trim() || "Untitled note";
+                    if (window.confirm(`Permanently delete "${label}"? This can't be undone.`)) {
+                      handlePermanentlyDeleteNote(note);
+                    }
+                  }}
+                >
+                  <DeleteForeverOutlinedIcon />
+                </button>
+              </div>
+            </div>
+          ))
+        ) : activeFilter === "calendar" ? (
+          calendarGroups.map((group) => (
+            <div className="calendar-group" key={group.label}>
+              <p className="calendar-group-label">{group.label}</p>
+              {group.notes.map((note) => (
+                <NoteListItem
+                  key={note.id}
+                  note={note}
+                  isSelected={note.id === selectedNoteId}
+                  onSelect={handleSelectNote}
+                  setNotes={setNotes}
+                  tagColors={tagColors}
+                  isMobileLayout={isMobileLayout}
+                />
+              ))}
+            </div>
+          ))
+        ) : (
           visibleNotes.map((note) => (
             <NoteListItem
               key={note.id}
@@ -1322,29 +1495,6 @@ function NotesManager({ palette, setPalette }) {
               isMobileLayout={isMobileLayout}
             />
           ))
-        ) : (
-          <div className="notes-list-empty">
-            <p className="notes-detail-label">No matches</p>
-            <h3>
-              {hasScopedView
-                ? "Your current view is hiding notes."
-                : "Nothing fits this view right now."}
-            </h3>
-            <p>
-              {hasScopedView
-                ? "Clear search and filters to show every note again."
-                : "Try a different filter, clear search, or create a new note."}
-            </p>
-            {hasScopedView && (
-              <button
-                type="button"
-                className="notes-list-reset"
-                onClick={resetListView}
-              >
-                Show all notes
-              </button>
-            )}
-          </div>
         )}
       </div>
     </section>
@@ -1398,6 +1548,9 @@ function NotesManager({ palette, setPalette }) {
             isFavorite={selectedNote.isFavorite}
             isArchived={selectedNote.isArchived}
             isReadOnly={isSelectedNoteReadOnly}
+            dueDateTime={selectedNote.dueDateTime}
+            reminderDateTime={selectedNote.reminderDateTime}
+            recurrenceRule={selectedNote.recurrenceRule}
             tags={selectedNote.tags || []}
             tagColors={tagColors}
             existingFolders={folders.map((folder) => folder.name)}
@@ -1523,6 +1676,9 @@ function NotesManager({ palette, setPalette }) {
               isFavorite={focusNote.isFavorite}
               isArchived={focusNote.isArchived}
               isReadOnly={isFocusNoteReadOnly}
+              dueDateTime={focusNote.dueDateTime}
+              reminderDateTime={focusNote.reminderDateTime}
+              recurrenceRule={focusNote.recurrenceRule}
               tags={focusNote.tags || []}
               tagColors={tagColors}
               existingFolders={folders.map((folder) => folder.name)}
